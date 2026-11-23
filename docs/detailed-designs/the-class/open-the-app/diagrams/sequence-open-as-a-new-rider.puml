@@ -35,7 +35,7 @@ bikes -> storage : getItem("telo-ride.bike")
 storage --> bikes : nothing stored
 bikes --> guard : null
 guard -> record : any()
-note right of record : NoFinishedRides until slice 32.1,\nthen the record in localStorage
+note right of record : the record in localStorage (RideRecordStore)
 record --> guard : false
 guard -> rule : openingScreen(no bike, no finished ride)
 rule --> guard : 'connect-bike'

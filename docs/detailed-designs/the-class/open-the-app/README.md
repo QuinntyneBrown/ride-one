@@ -81,11 +81,9 @@ their guards, in the table below, are still Telo Ride's until slices 31.1 and 32
   | no | yes | The Class |
   | yes | yes | The Class |
 - **`FINISHED_RIDES`** and **`FinishedRides`** (`api/src/rides/finished-rides.ts`): the contract of
-  "has the rider finished a ride", one method, `any()`. The record does not exist until slice 32.1,
-  so the token is bound to `NoFinishedRides` (`domain/src/storage/no-finished-rides.ts`), whose
-  answer is always `false`: today the remembered bike alone decides. Slice 32.1 binds the token to
-  the record (`any()` is `RIDE_RECORD.current() !== null`) and deletes `NoFinishedRides`; the guard
-  does not change.
+  "has the rider finished a ride", one method, `any()`. Since slice 32.1 the token is bound, with
+  `useExisting`, to the record: `RideRecordStore` (`domain/src/storage/ride-record-store.ts`),
+  whose `any()` is `read().rides > 0`. `NoFinishedRides` is gone; the guard did not change.
 - **`REMEMBERED_BIKE`** and **`RememberedBike`** (`api/src/bike/remembered-bike.ts`, exist): the
   contract of the remembered bike. `RememberedBikeStore` (`domain/src/storage/`, exists) implements
   it over the `localStorage` key `telo-ride.bike`. `get()` returns a `RememberedBikeRecord`, the
@@ -149,8 +147,7 @@ then loads Connect Bike or The Class.
 
 `rideRoutes` is configuration, shown with the `<<config>>` stereotype. `rememberedBikeGuard`
 depends on the `RememberedBike` and `FinishedRides` contracts, on `openingScreen()` for the rule
-and on `BikeConnection` for the reconnect. `RideRecordStore` realizes `FinishedRides` from slice
-32.1; until then `NoFinishedRides` does.
+and on `BikeConnection` for the reconnect. `RideRecordStore` realizes `FinishedRides` (slice 32.1).
 
 ![Class diagram for opening the app](diagrams/class-structure.png)
 

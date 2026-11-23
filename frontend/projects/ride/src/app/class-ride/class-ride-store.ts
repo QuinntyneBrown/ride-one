@@ -10,6 +10,7 @@ import {
   HOW_TO_RIDE,
   RIDE_ACTIVITY,
   RIDE_MUSIC,
+  RIDE_RECORD,
   SCREEN_WAKE_LOCK,
   THE_CLASS,
   TICKER,
@@ -71,6 +72,7 @@ export class ClassRideStore {
   private readonly announcer = inject(ANNOUNCER);
   private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
   private readonly music = inject(RIDE_MUSIC);
+  private readonly rideRecord = inject(RIDE_RECORD);
   /** Whether a ride is in progress, so a new version of the app waits for its end (L2-150 AC2). */
   private readonly activity = inject(RIDE_ACTIVITY);
   private readonly started = signal(false);
@@ -289,6 +291,8 @@ export class ClassRideStore {
       outputKj: this.recorder?.outputKj ?? 0,
       onTargetShare: this.recorder?.onTargetShare ?? 0,
     };
+    // Only a ride that reaches its end is counted (L2-168 AC1, AC2).
+    this.rideRecord.add(classResult.outputKj);
     void this.router.navigateByUrl('/results', { state: { classResult } });
   }
 

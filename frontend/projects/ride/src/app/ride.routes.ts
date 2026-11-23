@@ -1,11 +1,11 @@
 import { inject, provideEnvironmentInitializer } from '@angular/core';
 import type { Routes } from '@angular/router';
-import { ANNOUNCER, DISPLAY_PREFERENCES, FINISHED_RIDES, FULLSCREEN } from '@telo/api';
+import { ANNOUNCER, DISPLAY_PREFERENCES, FINISHED_RIDES, FULLSCREEN, RIDE_RECORD } from '@telo/api';
 import {
   BrowserDisplayPreferences,
   BrowserFullscreen,
   LiveRegionAnnouncer,
-  NoFinishedRides,
+  RideRecordStore,
 } from '@telo/domain';
 import { provideAppCache } from './app-cache/provide-app-cache';
 import { provideAppUpdates } from './app-update/provide-app-updates';
@@ -22,8 +22,10 @@ export const rideRoutes: Routes = [
     path: '',
     providers: [
       provideBikeConnection(),
-      // Whether the rider has finished a ride, which the app opens by (L2-167): never, until the record of slice 32.1.
-      { provide: FINISHED_RIDES, useClass: NoFinishedRides },
+      // The record of finished rides, kept on the device (L2-168), which also says whether the rider has finished one:
+      // the app opens by it (L2-167).
+      { provide: RIDE_RECORD, useClass: RideRecordStore },
+      { provide: FINISHED_RIDES, useExisting: RIDE_RECORD },
       provideAppCache(),
       // Each new version offered between rides, never during one (L2-150 AC2).
       provideAppUpdates(),

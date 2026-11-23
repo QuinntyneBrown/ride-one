@@ -51,8 +51,8 @@ interface BikeConnection {
 }
 
 class RememberedBikeStore
-class NoFinishedRides {
-  +any(): false
+class RideRecordStore {
+  +any(): rides > 0
 }
 class RideRecordStore <<slice 32.1>>
 
@@ -63,6 +63,6 @@ rememberedBikeGuard ..> openingScreen : asks for the screen
 rememberedBikeGuard ..> BikeConnection : starts the reconnect on
 RememberedBike ..> RememberedBikeRecord : returns
 RememberedBikeStore ..|> RememberedBike
-NoFinishedRides ..|> FinishedRides : until the record exists
+RideRecordStore ..|> FinishedRides
 RideRecordStore ..|> FinishedRides : from slice 32.1
 @enduml
