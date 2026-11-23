@@ -214,6 +214,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L187 | What only the real host does (a redirect, a certificate) is not faked in a spec. Prove the part the repository owns (the file in the build, the answers of the spec server that follows it), and write the person's commands with the answer expected beside each in `docs/deployment.md`; name the gap in the ADR, the spec's header and the film. | 28.8 | | |
 | L188 | Before a slice, `git grep -n "<slice number>" docs/adr docs/detailed-designs`: earlier ADRs hand later slices work the prompt may not repeat. 28.8 found `@angular/cdk` (ADR 0040) and five status lines (ADR 0037) that way. | 28.8 | | |
 | L189 | `git rm -r <folder>` leaves the folder on disk when it holds ignored files (`bin/`, `obj/`, `TestResults/`); follow it with `rm -rf <folder>` and remove the folder's lines from `.gitignore` in the same change. | 28.8 | | |
+| L190 | A service worker's requests never reach `page.route`. Once the worker's policy lets it fetch another origin, a fixture that answers that origin on the page is passed by and the real site is asked, only when the network is up and the timing allows (28.8's CI: the real YouTube player loaded in `app-cache.spec.ts`). Answer and guard other origins with `page.context().route`, as `ApiFixture` does, and after any change to a header the worker gets, run `npx playwright test e2e/app-cache.spec.ts --repeat-each 10`, with and without `CI=1`. Moving a catch-all route off the page can leave a helper holding the page's only route: let every held request go before `page.unroute` (`AppDocument.firstPaint`), and run all of verify after a fixture change, gating the commit on its exit status (L17). | 28.8 | | |
 
 ## Log
 
@@ -244,9 +245,17 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 - The spec server read its headers from a file inside `backend/`, so the backend could not go until the headers had
   a home. They are now the host's own file in the build, and the spec server follows it (L185).
 - ADR 0022 had found, on a real host, that the service worker fetches the YouTube player and the class cover under
-  its own policy. ADR 0026's one header set had lost that. Nothing local shows it: the specs block service workers
-  but for one, and that one answers YouTube before the worker is asked. The worker's policy is back, proved as a
-  header only, and its effect is on the list a person checks.
+  its own policy. ADR 0026's one header set had lost that. The worker's policy is back.
+- **It failed CI after the commit.** With that policy the worker in `app-cache.spec.ts` could fetch YouTube, and the
+  fixture answered YouTube on the page only, so the worker asked the real site: the real player script loaded and
+  made a real embed frame, which the guard caught. It passed here ten times in ten because the spec goes offline
+  before the player is asked for, by a margin CI did not have. The policy was right and the fixture was wrong: the
+  YouTube answers and the off-localhost guard are now on the browser context (L190), and a second spec rides with the
+  worker in control and expects the player. 20 of 20 runs of the file passed, with and without `CI=1`, and 185 of 185
+  `@critical` runs under `CI=1`. With the guard off the page, `AppDocument.firstPaint` held the page's only route, and
+  taking it away while scripts were still held continued them twice: both first-paint specs failed in the next verify,
+  which was run without gating the commit on it (L17, not applied; the commit was amended). The helper now lets each
+  held script go before it takes the route away; 80 of 80 runs of `theme.spec.ts` passed.
 - An earlier ADR, not the prompt, gave this slice `@angular/cdk` to remove and the superseded ADRs' status lines to
   change (L188).
 - `AGENTS.md` lost its *Backend* section, and one of its rules still applies ("A setting a deployed system needs is
@@ -263,6 +272,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 - **L187 Do not fake what only the host does.** Prove the file, and write the person's commands.
 - **L188 Search the ADRs for the slice's number** before starting.
 - **L189 `git rm -r` leaves ignored files behind.**
+- **L190 A service worker's requests never reach `page.route`.** Answer other origins on the context.
 
 **Specs and tests deleted without a replacement**
 
@@ -272,7 +282,7 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
   fallback, the headers, HSTS and the cache rules are proved again by the seven specs of `e2e/static-host.spec.ts`.
   The redirect is not: it is the host's, and `docs/deployment.md` has the command a person runs. The rest proved
   behaviour that no longer exists.
-- No behaviour spec and no unit test of the app was deleted or weakened. 172 behaviour specs before, 179 after.
+- No behaviour spec and no unit test of the app was deleted or weakened. 172 behaviour specs before, 180 after.
 
 **What a person checks on the real host**
 

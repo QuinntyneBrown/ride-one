@@ -80,12 +80,15 @@ export class YouTubeFixture {
 
   static async install(page: Page): Promise<YouTubeFixture> {
     const youtube = new YouTubeFixture(page);
-    await page.route(API, (route) =>
+    // On the context, not the page: once the app's service worker controls the page it fetches the player's script and
+    // the covers itself, under its own policy (ADR 0043), and a route on the page never sees a worker's request.
+    const context = page.context();
+    await context.route(API, (route) =>
       youtube.blocked
         ? route.abort('blockedbyclient')
         : route.fulfill({ contentType: 'text/javascript', body: FAKE_API }),
     );
-    await page.route(COVER, (route) => {
+    await context.route(COVER, (route) => {
       const own = path.join(COVERS, `${COVER.exec(route.request().url())?.[1]}.jpg`);
       return route.fulfill({ path: existsSync(own) ? own : COVER_FILE });
     });

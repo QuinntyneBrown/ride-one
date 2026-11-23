@@ -114,7 +114,9 @@ Proved on this machine by `e2e/static-host.spec.ts`, on the production build:
 - every answer carries the L2-131 headers and a year of HSTS;
 - the hashed files are immutable for a year, and the shell, `ngsw.json`, the worker and the
   manifest are `no-cache`;
-- the worker carries its own policy;
+- the worker carries its own policy, and with the worker in control of the page the class ride still makes its
+  player (`e2e/app-cache.spec.ts`, with YouTube answered by the fixture on the browser context, since a worker's
+  requests pass a route on the page);
 - a script, a font and a course that are not there are 404;
 - the build carries the file, with the fallback and the headers.
 

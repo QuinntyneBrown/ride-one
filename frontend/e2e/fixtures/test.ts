@@ -62,7 +62,8 @@ export const test = base.extend<Fixtures>({
       void youtube;
       const problems: string[] = [];
       page.on('pageerror', (error) => problems.push(`page error: ${error.message}`));
-      await page.route(
+      // On the context, so a request the app's service worker makes off localhost is caught as the page's is.
+      await page.context().route(
         (url) => !['localhost', '127.0.0.1'].includes(url.hostname),
         async (route) => {
           const url = new URL(route.request().url());

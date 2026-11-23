@@ -56,9 +56,13 @@ export class AppDocument {
     let release = (): void => undefined;
     const held = new Promise<void>((resolve) => (release = resolve));
     const scripts = /\.m?js(\?.*)?$/;
-    await this.page.route(scripts, async (route) => {
-      await held;
-      await route.continue();
+    // Each held script is let go before the route is taken away: taking away the page's last route while a script is
+    // still held continues it for the handler, whose own `continue` then fails.
+    const letGo: Promise<void>[] = [];
+    await this.page.route(scripts, (route) => {
+      const gone = held.then(() => route.continue());
+      letGo.push(gone);
+      return gone;
     });
     await this.page.goto(path, { waitUntil: 'commit' });
     await this.page.waitForFunction(
@@ -74,6 +78,7 @@ export class AppDocument {
     );
     const background = await this.background();
     release();
+    await Promise.all(letGo);
     await this.page.unroute(scripts);
     return background;
   }

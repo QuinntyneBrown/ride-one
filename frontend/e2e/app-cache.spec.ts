@@ -46,3 +46,22 @@ test('once opened, the app opens again and a solo class starts with no network (
   await expect(ride.name).toHaveText('Intervals to the Beat · Solo');
   await expect(ride.clock).toHaveText('0:30 / 20:00');
 });
+
+test('with the service worker in control, the worker fetches the player for the page and the video still loads (ADR 0043)', async ({
+  page,
+  bluetooth,
+  api,
+  youtube,
+}) => {
+  const start = new ClassStartPage(page);
+  await start.open();
+  await appCached(page);
+  await page.reload();
+  await expect(start.title).toHaveText('Intervals to the Beat');
+
+  await startClassRide(page, bluetooth, api);
+
+  await expect
+    .poll(async () => (await youtube.players()).map((player) => player.videoId))
+    .toEqual([theClass.video.videoId]);
+});
