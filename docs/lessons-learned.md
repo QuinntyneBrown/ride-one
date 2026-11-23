@@ -273,6 +273,33 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 37.7 The course's budgets (2026-11-23)
+
+**Applied from earlier**
+
+- **L41 see the spec fail first — saved time:** the budget spec failed on a real number: 130,130 triangles at the
+  finish, over the 120,000 L2-177 AC1 allows. The course had never been measured at every place.
+- **37.5's lesson on cores — saved time:** one software-drawn spec, one worker, one window; the sizes are asserted
+  without drawing.
+
+**What slowed it down**
+
+- Six places along the course was too few: 119,275 triangles at the first fix passed there and would have failed
+  between the samples. The spec samples 25 places, every 50 s and the last at 1190 s.
+
+**Decisions**
+
+- **The remedy is the map's draw distance, not its models:** `DRAWN_FAR` is 0.75 for the top three steps. Draw
+  calls were never close (at most 85 of 140).
+- **The step rule left the renderer for `FrameBudget`,** a pure class with unit tests, so AC3's 90 frames, 1.1 and
+  1.6 are proved without a GPU.
+- **"No texture on the map" is checked on the model file** (no `textures` or `images` in its glTF), and "no shadow
+  map" on the renderer's own report. Procedural canvases the renderer makes (surface detail) are not on the map.
+
+**New lessons**
+
+- A budget is proved at its worst step and at many places: pin the heaviest step and sample the whole course.
+
 ### 37.6 The Music button (2026-11-23)
 
 **Applied from earlier**

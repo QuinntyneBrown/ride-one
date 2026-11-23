@@ -1,6 +1,7 @@
 // The course drawn with Three.js (ADR 0034, ADR 0047, L2-174): the map built in Blender from the class's plan, loaded
 // as glTF, with the rider alone on its road and a chase camera behind them. The ride's clock places the rider, so
 // each hill arrives with the resistance it was laid from. There is no other rider, ghost or bot (L2-174 AC6).
+import { FrameBudget } from './frame-budget';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
@@ -122,7 +123,7 @@ function raised(camera: PerspectiveCamera): PerspectiveCamera {
 const DUSK_LIGHT = 0.16;
 
 /** How far the map is drawn at each tier, as a share of each group's draw distance: a slower device draws less far. */
-const DRAWN_FAR = [0.7, 0.8, 0.9, 1, 1] as const;
+const DRAWN_FAR = [0.65, 0.7, 0.75, 0.75, 0.75] as const;
 
 /** How finely the rider is made at each tier (1 is the finest). */
 const RIDER_DETAIL = [0.6, 0.7, 0.8, 0.9, 1] as const;
@@ -151,10 +152,6 @@ const TIERS = [
 const START = 1;
 /** The tier the test-only hook pins (world-ride-probe.ts): the bench reads frame times at one known tier. */
 const PINNED: Readonly<Record<string, number>> = { low: 0, medium: 1, high: 3, ultra: 4 };
-/** Frames judged before a step, and how their average time must compare with the display's frame period. */
-const JUDGED_FRAMES = 90;
-const TOO_SLOW = 1.6;
-const AT_PACE = 1.1;
 
 /** The rider's jersey colour, the design system's `--jersey-you`. */
 function jerseyColour(element: Element): Color {
@@ -204,6 +201,7 @@ export class ThreeCourseRenderer implements CourseRenderer {
     backend: '',
     drawCalls: 0,
     triangles: 0,
+    shadowMap: false,
     groups: {},
     riders: 0,
     firstMetres: null,
@@ -250,12 +248,10 @@ export class ThreeCourseRenderer implements CourseRenderer {
   // The frame budget: the tier follows what the device can draw at the display's pace (L2-166 AC6).
   private size: readonly [number, number, number] = [0, 0, 1];
   private tier = START;
-  /** Set once slow frames have stepped the tier down: it steps up no more. */
-  private settled = false;
+  /** Judges the frames and says when the tier steps (frame-budget.ts); it starts where the tier does. */
+  private readonly budget = new FrameBudget(TIERS.length, START);
   private period: number | null = null;
   private lastFrameAt: number | null = null;
-  private judged = 0;
-  private spent = 0;
   /** Set by the test-only hook: the tier never steps, and each frame's cost is written to the hook. */
   private pinned = false;
   /** Set by the test-only hook: the metres up the road the bench starts its ride from. */
@@ -373,8 +369,7 @@ export class ThreeCourseRenderer implements CourseRenderer {
   setFramePeriod(ms: number): void {
     this.period = ms;
     this.lastFrameAt = null;
-    this.judged = 0;
-    this.spent = 0;
+    this.budget.restart();
   }
 
   pauseBudget(): void {
@@ -889,6 +884,7 @@ export class ThreeCourseRenderer implements CourseRenderer {
     drawn.backend = this.backend;
     drawn.drawCalls = renderer.info.render.drawCalls;
     drawn.triangles = renderer.info.render.triangles;
+    drawn.shadowMap = renderer.shadowMap.enabled;
     hook['course'] = drawn;
   }
 
@@ -898,17 +894,8 @@ export class ThreeCourseRenderer implements CourseRenderer {
     const last = this.lastFrameAt;
     this.lastFrameAt = now;
     if (this.pinned || this.period === null || last === null) return;
-    this.spent += now - last;
-    if (++this.judged < JUDGED_FRAMES) return;
-    const average = this.spent / this.judged;
-    this.judged = 0;
-    this.spent = 0;
-    if (average > this.period * TOO_SLOW) {
-      this.settled = true;
-      if (this.tier > 0) this.step(-1);
-    } else if (!this.settled && average <= this.period * AT_PACE && this.tier < TIERS.length - 1) {
-      this.step(1);
-    }
+    const step = this.budget.frame(now - last, this.period);
+    if (step !== 0) this.step(step);
   }
 
   private step(by: number): void {

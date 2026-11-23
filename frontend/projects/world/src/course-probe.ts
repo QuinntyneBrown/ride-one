@@ -25,6 +25,8 @@ export interface CourseDrawn {
   backend: string;
   drawCalls: number;
   triangles: number;
+  /** Whether the renderer makes a shadow map: it does not (L2-177 AC1). */
+  shadowMap: boolean;
   /** The chunks of each group of the map in view. */
   groups: Record<string, number>;
   /** The riders made for the scene: the rider alone (L2-174 AC6). */
