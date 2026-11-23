@@ -50,7 +50,7 @@ export async function startClassRide(
   const home = new TheClassPage(page);
   await home.open();
   await connectBike(bluetooth);
-  await expect(home.start).toHaveText('Start class');
+  await expect(home.start).toHaveText(/^\s*(Start class|Ride it again)\s*$/);
   await home.videoSettled();
   await YouTubeFixture.forgetPlayers(page);
   await page.clock.pauseAt(RIDE_START + 60_000);
@@ -84,7 +84,7 @@ export async function startClassRideOnFtms(
   await expect.poll(() => bluetooth.log()).toContain(`subscribe ${INDOOR_BIKE_DATA}`);
   await expect(async () => {
     await bluetooth.notify(INDOOR_BIKE_DATA, INDOOR_BIKE_FRAME);
-    await expect(home.start).toHaveText('Start class', { timeout: 250 });
+    await expect(home.start).toHaveText(/^\s*(Start class|Ride it again)\s*$/, { timeout: 250 });
   }).toPass();
   await home.videoSettled();
   await YouTubeFixture.forgetPlayers(page);
@@ -108,7 +108,7 @@ export async function openTheClassForIbiza(
   const home = new TheClassPage(page);
   await home.open();
   await connectBike(bluetooth);
-  await expect(home.start).toHaveText('Start class');
+  await expect(home.start).toHaveText(/^\s*(Start class|Ride it again)\s*$/);
   return home;
 }
 

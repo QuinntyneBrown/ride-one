@@ -16,4 +16,6 @@ export interface ClassResult {
   readonly previousBestKj: number | null;
   /** Each effort's average watts, rounded, in plan order (L2-169). */
   readonly efforts: readonly number[];
+  /** Whether the device kept the ride in the record; `false` when storage refused it (L2-168 AC4). */
+  readonly saved: boolean;
 }

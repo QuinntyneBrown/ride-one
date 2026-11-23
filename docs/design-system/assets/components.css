@@ -2698,6 +2698,8 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 .class-done__effort--peak .class-done__bar { background: var(--color-volt); }
 @keyframes class-done-rise { from { transform: scaleY(0.96); opacity: 0; } }
 
+/* A record that could not be written: a polite status under the facts (L2-168 AC4) */
+.class-done__notice { margin-top: var(--space-4); }
 .class-done__actions { margin-top: var(--space-12); }
 @media (min-width: 64rem) { .class-done__actions { margin-top: auto; padding-top: var(--space-12); } }
 @media (min-width: 40rem) { .btn.class-done__done { width: var(--class-done-action-width); } }

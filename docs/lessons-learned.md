@@ -273,6 +273,26 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 32.7 A ride that could not be saved (2026-11-23)
+
+**Applied from earlier**
+
+- **Mock first:** the not-saved mock was drawn and registered before the spec; the spec failed on the missing notice.
+- **L41 see the spec fail first:** two of three cases failed for the right reason, the third (saved) passed already.
+
+**What slowed it down**
+
+- 32.6's "Ride it again" broke every spec that seeds a record and then expects "Start class" in a shared fixture;
+  found only because this slice reran neighbours. The fixture now accepts either label.
+
+**Decisions**
+
+- **`saved` rides in the result,** set from `RideRecord.add`'s return, so Class Done needs no storage access.
+
+**New lessons**
+
+- A slice that changes a label shared by fixtures must grep `e2e/fixtures` for that label, not just its own specs.
+
 ### 32.6 Come back to beat it (2026-11-23)
 
 **Applied from earlier**

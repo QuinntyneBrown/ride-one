@@ -38,6 +38,11 @@
             </div>
           }
         </dl>
+        @if (!saved()) {
+          <wz-inline-message class="class-done__notice" tone="warn" role="status"
+            >This ride could not be saved on this device. Your result is above.</wz-inline-message
+          >
+        }
       </section>
       @if (efforts().length > 0) {
         <section class="class-done__efforts" aria-labelledby="class-done-efforts-title">

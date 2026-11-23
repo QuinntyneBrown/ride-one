@@ -18,6 +18,7 @@ const ride = (
   onTargetShare: 0.84,
   previousBestKj,
   efforts,
+  saved: true,
 });
 
 describe('classDoneView', () => {
@@ -31,6 +32,7 @@ describe('classDoneView', () => {
       verdict: 'Class done. That’s your number to beat.',
       best: false,
       bestFact: null,
+      saved: true,
       efforts: [],
       announcement: 'Class done. That’s your number to beat. 351 kJ in 20:00.',
     });
@@ -100,6 +102,13 @@ describe('classDoneView', () => {
       });
     });
   });
+  describe('the saved flag (L2-168 AC4)', () => {
+    it('carries whether the ride was kept', () => {
+      expect(classDoneView({ ...ride(351, 1200), saved: false }).saved).toBe(false);
+      expect(classDoneView(ride(351, 1200)).saved).toBe(true);
+    });
+  });
+
   describe('the efforts (L2-169)', () => {
     const efforts = (watts: number[]) => classDoneView(ride(351, 1200, null, watts)).efforts;
 

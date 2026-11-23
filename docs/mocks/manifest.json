@@ -144,7 +144,8 @@
         "default",
         "first",
         "not-best",
-        "efforts-none"
+        "efforts-none",
+        "not-saved"
       ],
       "not_applicable": {
         "loading": "The result is computed on the device when the class ends; the page has it before it opens.",
