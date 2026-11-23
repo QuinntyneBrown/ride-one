@@ -273,6 +273,20 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 36.1 Fit every width (2026-11-23)
+
+**What slowed it down**
+
+- The carried-over `fit-every-width.spec.ts` already covered no sideways scroll at 320 and 2560 px on every screen
+  and the 16/24/32 px margins. The gap was "nothing is cut off": a page can fit its width while an element's box
+  reaches outside it. `AppDocument.cutOff()` lists visible elements whose box leaves the window, and each screen's case
+  now asserts it is empty. It passed at once, after skipping `.visually-hidden` live regions, which sit off-screen on purpose.
+  No product code changed. "Nothing overlaps" is left to the responsive sweep (`e2e/sweeps/`), run on request.
+
+**New lessons**
+
+- A layout check that skips visually-hidden elements must say so; the first run flagged the live announcer on every screen.
+
 ### 35.2 Treat bike and stored data as untrusted (2026-11-23)
 
 **Applied from earlier**
