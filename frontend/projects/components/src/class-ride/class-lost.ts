@@ -13,7 +13,7 @@ import { Button } from '../button/button';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ClassLost {
-  /** What the ride does while the bike is away: it pauses in solo, and goes on in a group. */
+  /** What the ride does while the bike is away: it pauses. */
   readonly body = input.required<string>();
   readonly reconnect = output();
 }

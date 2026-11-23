@@ -31,10 +31,6 @@ export { IndexedDbRidesWaiting } from './storage/indexed-db-rides-waiting';
 export { SimulatedRiderProfile } from './bluetooth/simulated-rider-profile';
 export { WebBluetoothBikeConnection } from './bluetooth/web-bluetooth-bike-connection';
 export { BikeTelemetry, CADENCE_TIMEOUT_MS } from './engine/bike-telemetry';
-export {
-  type MultiplayerAvailability,
-  multiplayerAvailability,
-} from './engine/multiplayer-availability';
 export { EnergyModel } from './engine/energy-model';
 export { HeartRateSource } from './engine/heart-rate-source';
 export { RideInProgress } from './engine/ride-in-progress';
@@ -49,7 +45,6 @@ export { RideRecorder } from './engine/ride-recorder';
 export { DRIFT_LIMIT_SECONDS, VideoClockSync } from './engine/video-clock-sync';
 export { WorkoutEngine } from './engine/workout-engine';
 export { SpeedModel } from './engine/speed-model';
-export { ordinal } from './engine/standings';
 export { SecondTicker } from './engine/second-ticker';
 export {
   EchelonProtocol,
@@ -62,7 +57,6 @@ export { BrowserDisplayPreferences } from './browser/browser-display-preferences
 export { BrowserFullscreen } from './browser/browser-fullscreen';
 export { LiveRegionAnnouncer } from './browser/live-region-announcer';
 export { WebAudioRideSound } from './browser/web-audio-ride-sound';
-export { BrowserNetworkStatus } from './browser/browser-network-status';
 export { BrowserScreenWakeLock } from './browser/browser-screen-wake-lock';
 export { BrowserGraphicsSupport } from './browser/browser-graphics-support';
 export { worldQuality } from './engine/world-quality';

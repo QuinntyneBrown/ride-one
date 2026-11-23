@@ -85,8 +85,8 @@ Before a screen is built, its states are transcribed from the prototype into
 This repository began as a copy of [Telo Ride](https://github.com/QuinntyneBrown/wattzup) and is
 being cut down to Telo Ride 1. What the one class needs is already built there and carried over:
 
-- **The scaffold.** The Angular workspace and libraries, the test harness (fake Bluetooth, API and
-  hub fixtures), CI and hosting.
+- **The scaffold.** The Angular workspace and libraries, the test harness (fake Bluetooth and API
+  fixtures), CI and hosting.
 - **Connect a bike.** A simulated bike behind `?simulate`, the browser-support check, pairing,
   remembering the bike, keepalive, reconnecting after a drop and the `ble` status.
 - **Live telemetry and resistance control.** Echelon and FTMS notifications decoded into power,
@@ -97,8 +97,8 @@ being cut down to Telo Ride 1. What the one class needs is already built there a
 Still to do: the change of class to Intervals to the Beat, riding in Ibiza and its music
 (`docs/specs/`), The Class and Class Done as Telo Ride 1 designs them, the TELO RIDE 1 wordmark,
 keeping the rider's ride count and best and last output, and taking out what Telo Ride 1 leaves
-out. The code for those features (races, the 3D world and its Blender courses, sign-in,
-progression, group classes, the marketing site) and the docs that describe them
+out. The code for those features (the other courses, sign-in,
+progression, the marketing site) and the docs that describe them
 (the detailed designs and the ADRs) are still Telo Ride's until each is rewritten or removed.
 [`docs/journeys.md`](docs/journeys.md) lists what is carried over and what is left to build.
 

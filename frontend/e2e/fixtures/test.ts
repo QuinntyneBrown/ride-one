@@ -2,7 +2,6 @@ import { test as base, expect } from '@playwright/test';
 import { ApiFixture } from './api';
 import { ContentSecurityPolicyFixture } from './content-security-policy';
 import { FakeBluetooth } from './fake-bluetooth';
-import { HubFixture } from './hub';
 import { WakeLockFixture } from './wake-lock';
 import { FakeWebGl } from './webgl';
 import { WorldRideProbe } from './world-ride-probe';
@@ -13,8 +12,6 @@ interface Fixtures {
   bluetooth: FakeBluetooth;
   /** The backend's answers; a request no answer matches fails the spec. */
   api: ApiFixture;
-  /** The ride hub, speaking SignalR's JSON protocol once the spec opens it. */
-  hub: HubFixture;
   /** The YouTube IFrame API and the class covers, answered by a fake player and a local picture. */
   youtube: YouTubeFixture;
   /** The Content Security Policy's refusals in the page; any the spec does not take fails it. */
@@ -30,8 +27,8 @@ interface Fixtures {
 
 /**
  * The shared fixture every spec imports (AGENTS.md, E2E; L2-148 AC1). It installs the fake Bluetooth stack and Screen Wake Lock API before
- * the app loads and answers backend and ride hub requests as the spec declares. It fails the spec on a page error, a request
- * off localhost (YouTube's player script and covers excepted, which a fake answers), an unanswered backend or hub request, a Content Security Policy
+ * the app loads and answers backend requests as the spec declares. It fails the spec on a page error, a request
+ * off localhost (YouTube's player script and covers excepted, which a fake answers), an unanswered backend request, a Content Security Policy
  * refusal, or a Bluetooth call the spec did not expect.
  */
 export const test = base.extend<Fixtures>({
@@ -40,9 +37,6 @@ export const test = base.extend<Fixtures>({
   },
   api: async ({ page }, use) => {
     await use(await ApiFixture.install(page));
-  },
-  hub: async ({ page }, use) => {
-    await use(await HubFixture.install(page));
   },
   youtube: async ({ page }, use) => {
     await use(await YouTubeFixture.install(page));
@@ -63,7 +57,7 @@ export const test = base.extend<Fixtures>({
     { auto: true },
   ],
   guard: [
-    async ({ page, bluetooth, api, hub, youtube, policy }, use) => {
+    async ({ page, bluetooth, api, youtube, policy }, use) => {
       // Installed first, so this catch-all, registered after them, can hand their requests back.
       void youtube;
       const problems: string[] = [];
@@ -79,7 +73,6 @@ export const test = base.extend<Fixtures>({
       );
       await use();
       problems.push(...api.unanswered().map((request) => `unanswered request: ${request}`));
-      problems.push(...hub.unanswered().map((request) => `unanswered hub request: ${request}`));
       problems.push(...policy.untaken().map((refusal) => `policy refusal: ${refusal}`));
       problems.push(...bluetooth.unexpected().map((call) => `unexpected Bluetooth call: ${call}`));
       expect(

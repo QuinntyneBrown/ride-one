@@ -26,7 +26,8 @@ Secrets go in the host's secret store, never in `appsettings.json` or the reposi
 
 One Azure App Service runs the API and serves the app (ADR 0026). A person provisions it once:
 
-- **App Service:** Linux, .NET 10, plan B1, HTTPS only, **Web sockets: On** (SignalR), Always on.
+- **App Service:** Linux, .NET 10, plan B1, HTTPS only, Always on. Web sockets are not needed: the
+  service has no hub (ADR 0038).
   Its managed identity is a user of the database, and the `ConnectionStrings:TeloRide` above uses
   `Authentication=Active Directory Default`.
 - **Custom domain:** the site's address, with the App Service managed certificate. The app and the

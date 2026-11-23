@@ -39,11 +39,6 @@ export {
   type DiagnosticsTone,
 } from './diagnostics/diagnostics';
 export type { ClassDto } from './classes/class-dto';
-export type {
-  ClassSessionDto,
-  NextGroupSessionDto,
-  SessionRiderDto,
-} from './classes/class-session-dto';
 export { CLASSES_API, type ClassesApi } from './classes/classes-api';
 export { ClassesApiError, type ClassesApiErrorCode } from './classes/classes-api-error';
 export { HttpClassesApi } from './classes/http-classes-api';
@@ -58,7 +53,6 @@ export {
   type VideoPlayerFactory,
 } from './video/video-player';
 export type { Plan, Segment, SegmentKind } from './workout/plan';
-export { NETWORK_STATUS, type NetworkStatus } from './network/network-status';
 export { ANNOUNCER, type Announcer } from './screen/announcer';
 export { DISPLAY_PREFERENCES, type DisplayPreferences } from './screen/display-preferences';
 export { RIDE_SOUND, type RideSound, type RideSoundSource } from './sound/ride-sound';
@@ -160,19 +154,6 @@ export {
   DISPLAY_NAME_MIN_LENGTH,
   isDisplayName,
 } from './riders/display-name';
-export { measureClockOffset, type ClockSample } from './live/clock-offset';
-export {
-  RideHubError,
-  seatFrom,
-  type JoinClassSessionResult,
-  type OfferedSession,
-  type RideHubErrorCode,
-  type SeatAssignment,
-} from './live/join-class-session';
-export { RIDE_HUB_CLIENT, type RideHubClient, type RideHubState } from './live/ride-hub-client';
-export { RideHubRetryPolicy, type RetryContext } from './live/ride-hub-retry-policy';
-export { SignalRRideHubClient } from './live/signalr-ride-hub-client';
-export type { StandingRow, Standings } from './live/standings';
 export { AUTO_QUALITY, type WorldQuality } from './world/world-quality';
 export {
   DEVICE_CHECK,

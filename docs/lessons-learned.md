@@ -171,13 +171,81 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L144 | A store that starts async work from a callback (`onReconnected`) is unit-tested with a fake that awaits what the handlers return (`await Promise.all([...handlers].map((h) => h() as unknown))`), not with `vi.waitFor`, which polls in real time. | 14.1 | | |
 | L145 | To build the previous version for a comparison, stash only frontend paths (`git stash push -u -- projects e2e package.json package-lock.json`), so the `.cache` link stays, and check `git stash list` before building; a failed step in an `&&` chain otherwise skips the stash and the pop finds nothing. | 14.1 | | |
 | L146 | Before carrying code over from another repository, read its CI (`gh run list --branch <branch>`); copy from a green commit or plan the fix with the copy. | 28.2 | | |
-| L147 | Remove a feature from the outside in: a spec that its addresses are page not found, then routes and screens, then each library export nothing uses, building between. | 28.2 | | |
-| L148 | A spec that used a removed feature as its vehicle moves onto a class ride (`startClassRideInWorld`) with its assertion unchanged. | 28.2 | | |
+| L147 | Remove a feature from the outside in: a spec that its addresses are page not found, then routes and screens, then each library export nothing uses, building between. | 28.2 | 28.3 | Saved time |
+| L148 | A spec that used a removed feature as its vehicle moves onto a class ride (`startClassRideInWorld`) with its assertion unchanged. | 28.2 | 28.3 | Did not apply: every deleted spec proved only group or hub behaviour |
 | L149 | Where `detailed-journeys.md` and `docs/specs/` disagree, the specs stand; correct the slice's row in the same change. | 28.2 | 28.1 | Saved time |
-| L150 | The film tools' Python: `KOKORO_DIR=$PWD/.cache/kokoro ../wattzup/.cache/video-venv/bin/python tools/video-audio/film_audio.py <folder>`, or make `.cache/video-venv` once. | 28.2 | 28.1 | Saved time |
+| L150 | The film tools' Python: `KOKORO_DIR=$PWD/.cache/kokoro ../wattzup/.cache/video-venv/bin/python tools/video-audio/film_audio.py <folder>`, or make `.cache/video-venv` once. | 28.2 | 28.1, 28.3 | Saved time |
 | L151 | A decision slice's film: copy the last film's folder, keep `hook`, `widths` and `close`, and write the middle as cards and lists in the ADR's words. | 28.1 | | |
+| L152 | A scripted cut ends at the next sibling's opening text, never at the first `}`: "from this method to the next `}\n`" stops inside the method's first block and leaves a broken file. | 28.3 | | |
+| L153 | Before deleting a removed feature's data or interface, list who else reads it. Remove its endpoints now and the data with its last reader, and write the split in the ADR. | 28.3 | | |
+| L154 | After removing a component that owned part of a screen's layout, look at a screenshot of the screen at 1440 px before going on. | 28.3 | | |
+| L155 | To compare with `main` without touching the work tree: `git worktree add --detach <scratchpad>/base main`, link `frontend/node_modules` into it, build and test there, then `git worktree remove` it. No stash (replaces L145). | 28.3 | | |
+| L156 | Under Playwright's paused clock, wait for something a dynamic import brings by stepping the clock inside the poll (`await page.clock.runFor(50)` before each read). | 28.3 | | |
 
 ## Log
+
+### 28.3 Remove group classes and live races (2026-11-22)
+
+**Applied from earlier**
+
+- **L2 port 4310; L3 format first; L17 judge verify by its exit status — saved time:** verify passed the first time
+  it ran, in 60 seconds.
+- **L25 all-or-nothing scripted edits — saved time, and made it worse four times:** every edit asserted one match, but
+  a helper that cut "from this text to the next `}`" stopped inside the first block of what it removed and left
+  `http-classes-api.ts`, `cached-classes-api.ts`, `harness.spec.ts`, `app-calls.ts` and a unit spec unbalanced (L152).
+  The compiler named each within a minute.
+- **L147 remove from the outside in — saved time:** the new spec first, then the screens, then the exports; the build
+  and the unit tests named `RideClock.start(at)` and the ticker's late-rider test, which only the hub had used.
+- **L148 a moved spec keeps its assertion — did not apply:** every deleted spec proved group or hub behaviour only.
+- **L150 the film tools' Python — saved time.**
+- **L145 stash to build the previous version — not used:** a detached worktree in the scratchpad gave `main`'s
+  numbers without a stash (L155).
+
+**What slowed it down**
+
+- The backend's map catalogue could not go as the prompt listed it: recording a ride and answering progress still read
+  `maps.json` for a map's stars and unlocks. Its endpoints went; the file goes with progression in 28.4 (ADR 0038).
+- Class Start's Start button had been laid out by the ride choice. With the choice gone it fell to the foot of a tall
+  column, below the fold at 1440 px, and only the film's first screenshot showed it.
+- `AGENTS.md` still names SignalR and hub tests in five rules. An agent may not change it, so ADR 0038 records it.
+
+**New lessons**
+
+- **L152 A scripted cut ends at the next sibling's opening text**, never at the first `}`.
+- **L153 List who else reads a removed feature's data before deleting it.** Remove the endpoints now and the data
+  with its last reader, and write the split in the ADR.
+- **L154 Look at a screenshot after removing a component that owned layout.** No behaviour spec fails when a button
+  moves below the fold.
+- **L155 Compare with `main` in a detached worktree in the scratchpad**, with `frontend/node_modules` linked in:
+  `main` built there gave 89.10 kB, 347 specs and 536 backend tests. It replaces L145's stash.
+- **L156 Under a paused clock, step it inside the poll** when waiting for what a dynamic import brings (the film's
+  ride shot waited for the video player).
+
+**Specs and tests deleted without a replacement** (the behaviour they proved is gone; `always-solo.spec.ts` proves
+what the rider sees now)
+
+- Behaviour specs: `class-library-group`, `class-start-group`, `class-world-group`, `group-class-board`,
+  `group-class-join`, `group-class-start`, `ride-hub`, `lost-service`, `offline-choices`, and the two ride hub tests
+  of `harness.spec.ts`. 347 specs became 322, and 55 `@critical` paths became 47.
+- Frontend unit tests: `clock-offset`, `join-class-session`, `ride-hub-retry-policy`, `live-session-store`,
+  `group-chip`, `group-session-view`, `group-board-view`, `multiplayer-availability`, `standings` (`ordinal`),
+  `browser-network-status`, and one test each of `ride-clock` (a start in the past), `ride-ticker` (a late rider) and
+  `world-load-view` (waiting for the group). 1910 tests became 1833.
+- Backend tests: `BotPaceModelTests`, `GroupClassSessionTests`, `GroupSessionJoinTests`, `GroupSessionScheduleTests`,
+  `GroupSessionStandingsTests`, `GroupSessionsTests`, `LostServiceTests`, `MapCatalogueTests`,
+  `ProgressRateGateTests`, `ProgressRateTests`, `RaceDnfTests`, `RaceLobbyTests`, `RaceResultTests`,
+  `RaceSessionTests`, `RaceStandingsTests`, `RideHubTests`, `VirtualSpeedModelTests`; the hub cases of
+  `InputValidationTests` and `SameOriginTests`, the `/hubs/unknown` row of `HostingTests`, and the sessions and maps
+  rows of `InputValidationTests` and `AnonymousEndpointsTests`. 536 tests became 382.
+
+**Left for a later slice**
+
+- `maps.json`, `IMapCatalogue`, map progress, stars and unlocks, and the race kind of a recorded ride, in `backend/`
+  and in `api`'s ride and progress contracts: 28.4.
+- Home's teaser button still reads "Ride alone": 28.5 removes Home.
+- The films of earlier slices (6.3, 14.1 and others) import page-object members and the `hub` fixture that are gone;
+  their `shots.ts` no longer run. They are history and are not rebuilt.
+- `docs/design-system/` still lists `--classes-board-width` and the group board; the token stays in `tokens.css`.
 
 ### 28.1 Decide the backend (2026-11-22)
 

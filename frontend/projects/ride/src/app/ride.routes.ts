@@ -7,7 +7,6 @@ import {
   DISPLAY_PREFERENCES,
   FULLSCREEN,
   HttpRiderProgressApi,
-  NETWORK_STATUS,
   PROGRESS_STORE,
   RIDE_SETTINGS,
   RIDER_PROGRESS_API,
@@ -16,7 +15,6 @@ import {
   BikeConnectionHistory,
   BrowserDisplayPreferences,
   BrowserFullscreen,
-  BrowserNetworkStatus,
   LiveRegionAnnouncer,
   LocalRideSettingsStore,
 } from '@telo/domain';
@@ -46,8 +44,6 @@ export const rideRoutes: Routes = [
       provideAppCache(),
       // Each new version offered between rides, never during one (L2-150 AC2).
       provideAppUpdates(),
-      // Whether the browser has a network, for the screens that offer rides with other people (L2-135 AC4).
-      { provide: NETWORK_STATUS, useClass: BrowserNetworkStatus },
       // The ride settings, which Settings changes and every ride screen follows (L2-158 AC3).
       { provide: RIDE_SETTINGS, useClass: LocalRideSettingsStore },
       // Theme, motion and ride numbers on <html>, applied from the start and at once on each change (L2-164 AC2 to AC4).

@@ -19,7 +19,12 @@ import { DiagnosticsDialog } from './pages/diagnostics.dialog';
 // The clock runs as it does for a rider, so the bike's keepalive goes on once a second: the counts are compared with
 // the writes before and after, and the file with the writes in order.
 
-type Line = { time: string; direction: 'out' | 'in'; frame: string; hex: string };
+interface Line {
+  time: string;
+  direction: 'out' | 'in';
+  frame: string;
+  hex: string;
+}
 
 const hex = (bytes: readonly number[]): string =>
   bytes.map((byte) => byte.toString(16).toUpperCase().padStart(2, '0')).join(' ');

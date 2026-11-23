@@ -5,7 +5,7 @@ const port = Number(process.env['E2E_PORT'] ?? 4300);
 const developmentPort = port + 1;
 
 // Behaviour specs only, Chromium only, never retried (AGENTS.md). e2e/fixtures/test.ts fails a spec on a page error,
-// a request off localhost, an unanswered backend or hub request, or an unexpected Bluetooth call.
+// a request off localhost, an unanswered backend request, or an unexpected Bluetooth call.
 export default defineConfig({
   testDir: './e2e',
   testMatch: '**/*.spec.ts',

@@ -47,17 +47,6 @@ describe('RideTicker', () => {
     expect(ticker.second()).toBe(3);
   });
 
-  it('publishes the second of a clock started in the past at once, as a late rider joins a live session (L2-121 AC3)', () => {
-    ticker.stop();
-    clock.start(Date.now() - 4_500);
-    ticker.start();
-
-    expect(ticker.second()).toBe(4);
-    expect(ticks).toEqual([4]);
-    vi.advanceTimersByTime(500);
-    expect(ticks).toEqual([4, 5]);
-  });
-
   it('publishes no new second while the ride is paused', () => {
     vi.advanceTimersByTime(2_500);
     clock.pause();

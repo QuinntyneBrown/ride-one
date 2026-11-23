@@ -16,12 +16,8 @@ export class RideClock {
 
   readonly running = this.isRunning.asReadonly();
 
-  /**
-   * Starts the clock now, or from `at`, a monotonic moment that may be past: a group ride starts from its session's
-   * start, so every rider's clock reads the same at the same server time (L2-122 AC3).
-   */
-  start(at: number = this.time.now()): void {
-    this.startedAt = at;
+  start(): void {
+    this.startedAt = this.time.now();
     this.pausedAt = null;
     this.pausedTotalMs = 0;
     this.isRunning.set(true);

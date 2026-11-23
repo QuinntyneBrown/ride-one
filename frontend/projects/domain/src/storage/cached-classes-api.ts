@@ -4,8 +4,6 @@ import {
   type ClassDto,
   type ClassesApi,
   ClassesApiError,
-  type ClassSessionDto,
-  type NextGroupSessionDto,
   HttpClassesApi,
 } from '@telo/api';
 import { type Observable, catchError, map, of, tap, throwError } from 'rxjs';
@@ -43,14 +41,5 @@ export class CachedClassesApi implements ClassesApi {
         return found;
       }),
     );
-  }
-
-  /** The group sessions are live: asked of the backend each time, and never kept. */
-  sessions(classId: string): Observable<readonly ClassSessionDto[]> {
-    return this.http.sessions(classId);
-  }
-
-  nextSessions(): Observable<readonly NextGroupSessionDto[]> {
-    return this.http.nextSessions();
   }
 }

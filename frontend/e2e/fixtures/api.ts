@@ -88,9 +88,6 @@ const SESSION_ENDED: ApiReply = {
  * Every spec starts signed in as `signedInRider`, a new rider, and its finished rides are recorded; `signedOut()` ends the
  * session.
  */
-/** A class's group sessions (`GET /api/classes/{id}/sessions`), which no spec has to answer: unanswered, they cannot be reached. */
-const CLASS_SESSIONS = /^GET \/api\/classes\/[^/]+\/sessions$/;
-const UNREACHABLE: Handler = () => ({ status: 503 });
 /** No custom workout saved yet (`GET /api/riders/me/custom-workout`). */
 const NO_CUSTOM_WORKOUT: Handler = () => ({
   status: 404,
@@ -113,9 +110,6 @@ export class ApiFixture {
     api.answer('GET', '/api/progress', newRiderProgress);
     // Home reads the class catalogue for its Classes door (L2-035).
     api.answer('GET', '/api/classes', catalogue);
-    // Class Start and the Class Library read the group sessions (L2-083, L2-085); unless a spec serves them, they cannot
-    // be reached, and both screens offer riding alone only (L2-085 AC5, L2-081 AC6).
-    api.answer('GET', '/api/classes/sessions', UNREACHABLE);
     // Custom workout opens on the rider's saved workout; unless a spec serves one, there is none, and Start ride saves.
     api.answer('GET', '/api/riders/me/custom-workout', NO_CUSTOM_WORKOUT);
     api.answer('PUT', '/api/riders/me/custom-workout', () => ({ status: 204 }));
@@ -128,8 +122,7 @@ export class ApiFixture {
         const key = `${request.method()} ${new URL(request.url()).pathname}`;
         api.sent.push(key);
         if (request.postData() !== null) api.bodies.push({ key, body: request.postDataJSON() });
-        const handler =
-          api.answers.get(key) ?? (CLASS_SESSIONS.test(key) ? UNREACHABLE : undefined);
+        const handler = api.answers.get(key);
         if (!handler && api.noNetwork) {
           await route.abort('internetdisconnected');
           return;

@@ -75,8 +75,7 @@ export class ClassWorldScene {
         this.player.set(player);
       });
     });
-    // The scene is created once the library and the prepared renderer are both here: at once after Start riding, or
-    // when a group's world becomes ready after the start, fading in over the panorama (L2-154 AC4).
+    // The scene is created once the library and the prepared renderer are both here, after Start riding.
     effect(() => {
       const library = world();
       const prepared = this.prepared();

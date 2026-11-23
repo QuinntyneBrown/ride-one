@@ -1,8 +1,7 @@
 // Acceptance test
-// Traces to: L2-080 AC1; L2-081 AC1 to AC4, AC6; L2-082 AC2, AC3; L2-043 AC2
+// Traces to: L2-080 AC1; L2-081 AC1 to AC4; L2-082 AC2, AC3; L2-043 AC2
 // Description: the Class Library reads its head and its three shelves, lists the catalogue's classes in order, and an
-// open card leads to its Class Start with its cover, length, resistance profile, title, channel and focus; with no
-// group sessions to read, it shows no group chip. The Class length tabs show one shelf or all, by pointer or arrow key. For
+// open card leads to its Class Start with its cover, length, resistance profile, title, channel and focus. The Class length tabs show one shelf or all, by pointer or arrow key. For
 // the new rider, the classes above level 1 are disabled buttons that say the level that opens them.
 import { library } from './fixtures/library';
 import { expect, test } from './fixtures/test';
@@ -21,7 +20,7 @@ test.describe('Class Library', () => {
 
     await expect(classes.heading).toBeVisible();
     await expect(classes.lead).toHaveText(
-      'Ride a video alone whenever you like, or join a group of 8–10 riders. The bike follows the class either way.',
+      'Ride a video whenever you like. The bike follows the class.',
     );
     await expect(classes.shelfTitles).toHaveText(['20 min', '30 min', '60 min endurance']);
     await expect(classes.shelfBlurbs).toHaveText([
@@ -40,7 +39,7 @@ test.describe('Class Library', () => {
     ]);
   });
 
-  test('an open card leads to its Class Start with its cover, length, profile, channel and focus, and no group chip (L2-081 AC4, AC6)', async ({
+  test('an open card leads to its Class Start with its cover, length, profile, channel and focus (L2-081 AC4)', async ({
     page,
   }) => {
     const classes = new ClassLibraryPage(page);
@@ -55,7 +54,6 @@ test.describe('Class Library', () => {
     await expect(hiit.time).toHaveText('30:00');
     await expect(hiit.profileBars).toHaveCount(17);
     await expect(hiit.meta).toHaveText('GCN Training · HIIT');
-    await expect(hiit.group).toHaveCount(0);
     await expect(classes.card('20 Minute Power Intervals').time).toHaveText('20:00');
   });
 
@@ -75,7 +73,6 @@ test.describe('Class Library', () => {
       await expect(locked.root).toHaveJSProperty('tagName', 'BUTTON');
       await expect(locked.root).toBeDisabled();
       await expect(locked.lock).toHaveText(`Opens at level ${level}`);
-      await expect(locked.group).toHaveCount(0);
     }
     for (const title of [
       '20 Minute Power Intervals',

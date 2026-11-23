@@ -11,7 +11,7 @@ namespace Telo.Ride.Api.Hosting;
 /// </summary>
 /// <remarks>
 /// Scripts from the app and the YouTube player; frames only from youtube-nocookie; connections to the app's own origin
-/// (its backend and hub) and Google's Map Tiles API; images from the app, YouTube's covers and the tiles. The 3D Tiles
+/// (its backend) and Google's Map Tiles API; images from the app, YouTube's covers and the tiles. The 3D Tiles
 /// mesh decoder runs WebAssembly in a <c>blob:</c> worker, and a tile's embedded textures load through <c>blob:</c>
 /// URLs the page makes from bytes it holds, so neither admits a foreign origin. The policy is static: the service
 /// worker keeps <c>index.html</c> by the hash of its bytes (ADR 0032), so no nonce can be minted per response, and

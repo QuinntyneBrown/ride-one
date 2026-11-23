@@ -4,7 +4,6 @@ import { RouterLink } from '@angular/router';
 import {
   Button,
   ClassBike,
-  ClassBoard,
   ClassHeader,
   ClassLost,
   ClassResist,
@@ -27,7 +26,7 @@ import { FullscreenButton } from '../fullscreen/fullscreen-button';
 
 /**
  * The class ride (docs/mocks/pages/class-ride/, solo), which `ClassRidePage` shows once the rider presses Start riding on
- * World loading, or at once in a group: the header with the class and its clock,
+ * World loading: the header with the class and its clock,
  * the class video (in the corner of the class's world when World loading got it ready), and the bike panel with the segment card, Power, Cadence and the resistance stepper. Every part of the ride is
  * provided here, so leaving the page stops the clock and the ticker and releases them.
  */
@@ -37,7 +36,6 @@ import { FullscreenButton } from '../fullscreen/fullscreen-button';
     FullscreenButton,
     Button,
     ClassBike,
-    ClassBoard,
     ClassHeader,
     ClassLost,
     ClassResist,
@@ -64,7 +62,7 @@ import { FullscreenButton } from '../fullscreen/fullscreen-button';
 })
 export class ClassRideSession {
   protected readonly store = inject(ClassRideStore);
-  /** The class's world from World loading; `null` rides the video alone (a group ride until slice 16.4). */
+  /** The class's world from World loading; `null` rides the video alone. */
   readonly world = input<World | null>(null);
   /** The world's panorama, under the world and in its place when it is not drawn. */
   readonly panorama = input<{ readonly url: string; readonly alt: string } | null>(null);
