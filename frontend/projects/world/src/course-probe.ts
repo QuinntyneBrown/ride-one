@@ -27,6 +27,11 @@ export interface CourseDrawn {
   triangles: number;
   /** Whether the renderer makes a shadow map: it does not (L2-177 AC1). */
   shadowMap: boolean;
+  /** True once the renderer's own dispose has finished (L2-174 AC8). */
+  released: boolean;
+  /** What the renderer held of geometries and textures at the start of dispose and after the course's own were released. */
+  heldBefore: { geometries: number; textures: number };
+  held: { geometries: number; textures: number };
   /** The chunks of each group of the map in view. */
   groups: Record<string, number>;
   /** The riders made for the scene: the rider alone (L2-174 AC6). */

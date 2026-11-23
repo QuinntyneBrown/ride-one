@@ -248,6 +248,14 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
   at the heaviest step, the course drew up to 130,130 triangles at the finish, over the 120,000; the map's draw
   distance at the top three steps (`DRAWN_FAR`) is now 0.75 of its groups' (0.65 and 0.7 at the lowest two), and
   the most of 25 places along the course is 111,570 triangles in 85 draw calls or fewer.
+- **Leaving Ibiza clean** (slice 37.8; `L2-174` AC8, `L2-177` AC4, AC5). Leaving or finishing destroys the host, which
+  disposes the scene and the renderer (`CourseScene.dispose`, `ThreeCourseRenderer.dispose`). The test-only hook now
+  reports `released` (the renderer's own async `dispose()` has resolved) and what it held of geometries and textures at
+  the start of dispose and after the course's own were released (`heldBefore`, `held`); a spec asserts the drop and
+  that no frame is drawn after leaving. The renderer's own output quad and targets (1 geometry, 3 textures) remain
+  until its `dispose()`, which also zeroes its counts, so they are read before it. AC4 and AC5 (no interface frame over
+  100 ms, heap growth of at most 50 MB over a full ride on the reference tablet) are measured on that tablet by
+  `e2e/heap/` and the vitals checks, which run only when a person asks (`npm run heap`).
 - **A course that cannot be drawn** (slice 37.4; `L2-175` AC2, AC4, AC5; the mock `class-ride/ibiza-unavailable`).
   `CourseScene` emits `unavailable` once when the renderer's start fails (a file that is not there or `parseCourse`
   refuses) or when the canvas's graphics context is lost and does not come back within 3 seconds
