@@ -65,6 +65,6 @@ Page --> ClassSegment : Class Ride
 Page --> ClassLost : lost bike
 Page --> ClassProfile : The Class, Class Ride
 Page ..> LiveAnnouncer : paused, resumed, paired
-ClassDonePage ..> Tokens : ~--duration-slow, ~--duration-stagger
+ClassDonePage ..> Tokens : --duration-slow, ~--duration-stagger
 Tokens ..> Pairs : role colours checked by
 @enduml

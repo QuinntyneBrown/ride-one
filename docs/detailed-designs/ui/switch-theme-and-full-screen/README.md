@@ -91,9 +91,10 @@ cannot be told apart there. Which theme such a device gets is `<TO SUPPLY>` (`L2
   `document.documentElement.requestFullscreen()` and `exit()` calls `document.exitFullscreen()`;
   both swallow a rejection. The listener is removed through `DestroyRef` when its owner is
   destroyed.
-- **Binding** (changes): `FULLSCREEN` is bound today on `MainShell`'s route in `ride.routes.ts`
-  and again by the ride screens' own providers (`provide-class-ride.ts`, `race.routes.ts`). Telo
-  Ride 1 drops `MainShell`. The token shall be bound once, to `BrowserFullscreen`, in the
+- **Binding** (changes): `FULLSCREEN` is bound today only on `MainShell`'s route in
+  `ride.routes.ts`, and `MainShell` is its only consumer, so Connect Bike and the class ride have
+  no Full screen button in the code. Telo Ride 1 drops `MainShell`. The token shall be bound
+  once, to `BrowserFullscreen`, in the
   `providers` of the lazy parent route in `ride.routes.ts`. All five pages then share one
   instance, its code stays out of the initial bundle, and full screen survives a move from The
   Class to Class Ride to Class Done.

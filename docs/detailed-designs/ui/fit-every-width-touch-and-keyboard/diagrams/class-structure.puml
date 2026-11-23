@@ -68,8 +68,8 @@ Page --> Button : renders
 Page --> ClassResist : renders on Class Ride
 Page --> FullscreenToggle : renders
 AppPartial ..> Tokens : reads
-PagePartial ..> Tokens : ~--layout-margin
+PagePartial ..> Tokens : --layout-margin
 Button ..> Tokens : control heights
-ClassResist ..> Tokens : ~--target-ride
+ClassResist ..> Tokens : --target-ride
 Styles ..> Tokens : focus ring
 @enduml
