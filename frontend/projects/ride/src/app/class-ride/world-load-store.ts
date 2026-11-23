@@ -2,6 +2,7 @@ import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import {
+  AUTO_QUALITY,
   BIKE_CONNECTION,
   REMEMBERED_BIKE,
   type Backend,
@@ -17,9 +18,8 @@ import {
   type WorldStartProgress,
   type WorldTier,
   panoramaUrl,
-  RIDE_SETTINGS,
 } from '@telo/api';
-import { PlanSummary, worldQuality } from '@telo/domain';
+import { PlanSummary } from '@telo/domain';
 import { startStepping } from './start-stepping';
 import {
   TIER_NAME,
@@ -53,9 +53,6 @@ function draws3d(): boolean {
 @Injectable()
 export class WorldLoadStore {
   private readonly downloader = inject(WORLD_DOWNLOADER);
-  /** The rider's World settings: the level, step-down and graphics API the world starts with (L2-159, L2-160, L2-161). */
-  private readonly settings = inject(RIDE_SETTINGS).settings;
-  private readonly drawing = computed(() => worldQuality(this.settings()));
   private readonly connection = inject(BIKE_CONNECTION);
   private readonly remembered = inject(REMEMBERED_BIKE).get();
   private readonly abort = new AbortController();
@@ -72,8 +69,7 @@ export class WorldLoadStore {
   readonly riding = signal(false);
   /** The started renderer and its canvas, handed to the class ride by Start riding (L2-153 AC3, AC5). */
   readonly prepared = signal<PreparedWorld | null>(null);
-  /** The class's id, for Back to class. */
-  readonly classId: string;
+  private readonly classId: string;
   readonly dto = signal<ClassDto | null>(null);
   /** The class's world as `main` draws it, once the world library has loaded. */
   readonly world = signal<World | null>(null);
@@ -127,7 +123,6 @@ export class WorldLoadStore {
       progress: this.progress(),
       api: this.backend() ?? this.expected,
       panoramaOnly: this.panoramaOnly(),
-      keepWorlds: this.settings().keepWorlds,
       warmUpSeconds: first?.kind === 'warm-up' ? first.duration : null,
       startPercent: this.startPercent(),
       programs: this.programs(),
@@ -150,14 +145,9 @@ export class WorldLoadStore {
       this.phase() !== 'failed',
   );
 
-  /**
-   * The quality fact, "Auto quality · Low", while the world is drawn in 3D (L2-152 AC7); "Quality · Medium" when the
-   * rider fixed the level in Settings (L2-159 AC5).
-   */
+  /** The quality fact, "Auto quality · Low", while the world is drawn in 3D (L2-152 AC7). */
   readonly quality = computed(() =>
-    this.panoramaOnly()
-      ? null
-      : `${this.settings().quality === 'auto' ? 'Auto quality' : 'Quality'} · ${TIER_NAME[this.tier()]}`,
+    this.panoramaOnly() ? null : `Auto quality · ${TIER_NAME[this.tier()]}`,
   );
 
   /** The bike fact: its name when connected, "No bike" otherwise (L2-152 AC7). */
@@ -243,7 +233,7 @@ export class WorldLoadStore {
     if (this.destroyed) return;
     const drawn = world.worldForMap(dto.world);
     this.world.set(drawn);
-    if (!this.lowChosen()) this.tier.set(this.drawing().tier ?? world.startTier());
+    if (!this.lowChosen()) this.tier.set(world.startTier());
     const progress = this.progress();
     this.startPercent.set(
       progress.total > 0 ? Math.floor((40 * progress.received) / progress.total) : 0,
@@ -287,11 +277,11 @@ export class WorldLoadStore {
         canvas.width = innerWidth;
         canvas.height = innerHeight;
         this.canvas = canvas;
-        const drawing = this.drawing();
+        // Telo Ride 1 has no Settings: the recommended quality, which steps down on slow frames (ADR 0040).
         return renderer.start(canvas, drawn, () => this.nextFrame(), segments, {
           tier,
-          stepDown: drawing.stepDown,
-          forceWebGL: drawing.forceWebGL,
+          stepDown: AUTO_QUALITY.stepDown,
+          forceWebGL: AUTO_QUALITY.forceWebGL,
           progress: (progress) => this.report(progress),
         });
       },

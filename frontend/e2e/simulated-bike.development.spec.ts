@@ -1,11 +1,11 @@
 // Acceptance test
 // Traces to: L2-024 AC1, AC4
 // Description: a development build opened with ?simulate pairs a simulated Echelon EX-5s from Connect Bike without
-// the browser's chooser: the page makes no Bluetooth call at all (the shared fixture fails the spec on any), and Home
+// the browser's chooser: the page makes no Bluetooth call at all (the shared fixture fails the spec on any), and the class
 // follows once it is paired.
 import { expect, test } from './fixtures/test';
 import { ConnectBikePage } from './pages/connect-bike.page';
-import { HomePage } from './pages/home.page';
+import { ClassStartPage } from './pages/class-start.page';
 
 test.describe('Simulated bike', () => {
   test(
@@ -23,7 +23,7 @@ test.describe('Simulated bike', () => {
       await expect(connect.deviceIdentifier).toHaveText('EX5S-0bf669f1');
       await expect(connect.pairButton).toHaveText('Paired');
       await expect(connect.pairedCheck).toBeVisible();
-      await expect.poll(() => new HomePage(page).url()).toBe('/');
+      await expect.poll(() => new ClassStartPage(page).url()).toBe('/');
     },
   );
 });

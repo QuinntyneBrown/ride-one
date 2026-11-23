@@ -1,36 +1,26 @@
 // Acceptance test
 // Traces to: L1 (left out: group classes, the multiplayer service); ADR 0038
-// Description: a class is always ridden solo. The Class Library's cards carry no group chip and its head offers no
-// group; Class Start has no choice between riding alone and with a group, only Start class; and an address that names
+// Description: a class is always ridden solo. Class Start has no choice between riding alone and with a group, only Start class; and an address that names
 // a group session, `/classes/:id/ride?session=…`, rides the class solo, with Pause, no board, no request about a group
 // session and no hub connection.
 import { connectBike } from './fixtures/class-ride';
 import { catalogue, hiitCardio } from './fixtures/classes';
 import { echelonBike } from './fixtures/echelon';
-import { library } from './fixtures/library';
 import { expect, test } from './fixtures/test';
-import { ClassLibraryPage } from './pages/class-library.page';
 import { ClassRidePage } from './pages/class-ride.page';
 import { ClassStartPage } from './pages/class-start.page';
 import { WorldLoadingPage } from './pages/world-loading.page';
 
 test.describe('Always solo', () => {
-  test('the Class Library and Class Start offer no group session (ADR 0038) @critical', async ({
+  test('Class Start offers no group session (ADR 0038) @critical', async ({
     page,
     api,
+    bluetooth,
   }) => {
-    api.answer('GET', '/api/classes', library);
-    const classes = new ClassLibraryPage(page);
-    await classes.open();
-
-    await expect(classes.lead).toHaveText(
-      'Ride a video whenever you like. The bike follows the class.',
-    );
-    await expect(classes.card('30 Minute HIIT Cardio').root).toBeVisible();
-    await expect(classes.groupChips).toHaveCount(0);
-
-    await classes.card('30 Minute HIIT Cardio').root.click();
+    await bluetooth.remember(echelonBike);
     const start = new ClassStartPage(page);
+    await start.open();
+
     await expect(start.title).toHaveText('30 Minute HIIT Cardio');
     await expect(start.start).toBeVisible();
     await expect(start.choice).toHaveCount(0);

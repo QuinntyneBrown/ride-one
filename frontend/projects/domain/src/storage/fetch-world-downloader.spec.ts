@@ -1,19 +1,11 @@
 // Unit test
-// Traces to: L2-152 AC2, AC3; L2-156 AC1, AC2, AC5; L2-165 AC1, AC3
+// Traces to: L2-152 AC2, AC3; L2-156 AC1, AC2, AC5
 // Description: a world's panorama is fetched with its progress in bytes and saved on the device; a saved world resolves
 // at once without a request; a download that stops part way is refused with the bytes received, and the next one asks
 // for the rest with a Range request and joins the two; offline with nothing saved it is refused at once; a world
-// without a panorama has nothing to download. A saved world carries its name and size; with Keep worlds after a ride
-// off, nothing new is saved.
-import { signal as writable } from '@angular/core';
+// without a panorama has nothing to download. A saved world carries its name and size.
 import { TestBed } from '@angular/core/testing';
-import {
-  RIDE_SETTINGS,
-  type RideSettings,
-  WorldDownloadError,
-  type WorldDownloadProgress,
-} from '@telo/api';
-import { RECOMMENDED_SETTINGS } from './local-ride-settings-store';
+import { WorldDownloadError, type WorldDownloadProgress } from '@telo/api';
 import { FetchWorldDownloader } from './fetch-world-downloader';
 
 /** Past the app cache's service worker, which would hold the file back until it had fully arrived (ADR 0032). */
@@ -62,7 +54,6 @@ describe('FetchWorldDownloader', () => {
   let caches: ReturnType<typeof fakeCaches>;
   let downloader: FetchWorldDownloader;
   let seen: WorldDownloadProgress[];
-  let settings: ReturnType<typeof writable<RideSettings>>;
   const progress = (p: WorldDownloadProgress) => seen.push(p);
   const signal = () => new AbortController().signal;
 
@@ -73,16 +64,7 @@ describe('FetchWorldDownloader', () => {
     vi.stubGlobal('fetch', fetchMock);
     vi.stubGlobal('caches', caches.storage);
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
-    settings = writable(RECOMMENDED_SETTINGS);
-    TestBed.configureTestingModule({
-      providers: [
-        FetchWorldDownloader,
-        {
-          provide: RIDE_SETTINGS,
-          useValue: { settings, persisted: writable(true), set: vi.fn(), reset: vi.fn() },
-        },
-      ],
-    });
+    TestBed.configureTestingModule({ providers: [FetchWorldDownloader] });
     downloader = TestBed.inject(FetchWorldDownloader);
   });
 
@@ -218,14 +200,5 @@ describe('FetchWorldDownloader', () => {
 
     expect(caches.headers.get(URL)?.get('x-telo-world-name')).toBe('Old Town Criterium');
     expect(caches.headers.get(URL)?.get('x-telo-world-bytes')).toBe('1000');
-  });
-
-  it('saves nothing new with Keep worlds after a ride off, and still downloads the world (L2-165 AC3)', async () => {
-    settings.set({ ...RECOMMENDED_SETTINGS, keepWorlds: false });
-    fetchMock.mockResolvedValue(streamed([BYTES], { length: 1000 }));
-
-    await expect(downloader.download(OLDTOWN, progress, signal())).resolves.toBe(1000);
-
-    expect(caches.saved.size).toBe(0);
   });
 });

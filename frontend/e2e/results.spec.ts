@@ -1,18 +1,17 @@
 // Acceptance test
 // Traces to: L2-078 AC1; L2-079 AC1; L2-037 AC3
 // Description: Results opens when a class ends, from the result the ride hands over: a solo class shows the time, its
-// output and its share on target. "Done" goes Home and "Ride it again" to Class Start. Results with no ride sends the
-// rider Home.
-import { hiitCardio } from './fixtures/classes';
+// output and its share on target. "Done" and "Ride it again" lead to the class at `/`. Results with no ride sends the
+// rider there too.
 import { startClassRide } from './fixtures/class-ride';
 import { ECHELON_NOTIFY, echelonBike, resistanceFrame, workoutFrame } from './fixtures/echelon';
 import { openResults, soloClass } from './fixtures/results';
 import { expect, test } from './fixtures/test';
-import { HomePage } from './pages/home.page';
+import { ClassStartPage } from './pages/class-start.page';
 import { ResultsPage } from './pages/results.page';
 
 test.describe('Results', () => {
-  test('a solo class shows its time, output and share on target, and Ride it again goes to Class Start (L2-078 AC1) @critical', async ({
+  test('a solo class shows its time, output and share on target, and Ride it again goes to the class (L2-078 AC1) @critical', async ({
     page,
     bluetooth,
     api,
@@ -34,7 +33,8 @@ test.describe('Results', () => {
     await expect(results.again).toHaveText('Ride it again');
 
     await results.again.click();
-    await expect(page).toHaveURL(`/classes/${hiitCardio.id}`);
+    await page.clock.runFor(100);
+    await expect(page).toHaveURL('/');
   });
 
   test('the share of running seconds within 10 % of target power shows on Results (L2-037 AC3)', async ({
@@ -62,7 +62,7 @@ test.describe('Results', () => {
     await expect(results.sub).toHaveText(/^[1-9]\d* kJ · 2% on target$/);
   });
 
-  test('Done goes Home (L2-079 AC1)', async ({ page, bluetooth }) => {
+  test('Done goes to the class at `/` (L2-079 AC1)', async ({ page, bluetooth }) => {
     await bluetooth.remember(echelonBike);
     await openResults(page, soloClass());
     const results = new ResultsPage(page);
@@ -71,13 +71,14 @@ test.describe('Results', () => {
 
     await results.done.click();
     await expect(page).toHaveURL('/');
+    await expect(new ClassStartPage(page).title).toHaveText('30 Minute HIIT Cardio');
   });
 
-  test('Results with no ride sends the rider Home', async ({ page, bluetooth }) => {
+  test('Results with no ride sends the rider to the class', async ({ page, bluetooth }) => {
     await bluetooth.remember(echelonBike);
     await new ResultsPage(page).open();
 
     await expect(page).toHaveURL('/');
-    await expect(new HomePage(page).main).toBeAttached();
+    await expect(new ClassStartPage(page).main).toBeAttached();
   });
 });

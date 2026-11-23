@@ -5,7 +5,7 @@ import type { BikeInfo, RememberedBike } from '@telo/api';
 export const REMEMBERED_BIKE_KEY = 'telo-ride.bike';
 
 /**
- * The remembered bike as one JSON record in localStorage, read synchronously so the guard can choose Home or Connect
+ * The remembered bike as one JSON record in localStorage, read synchronously so the guard can choose the class or Connect
  * Bike at start-up (docs/detailed-designs/bike/connect-a-bike). A record it cannot parse, or storage the browser
  * refuses, counts as no bike.
  */

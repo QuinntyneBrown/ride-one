@@ -108,7 +108,7 @@ test.describe('Pause, leave or finish a class', () => {
     ).toContain(targetResistanceWrite(6));
   });
 
-  test('Leave goes to Class Start at once and stops the ride and its video (L2-093 AC1)', async ({
+  test('Leave goes to the class at once and stops the ride and its video (L2-093 AC1)', async ({
     page,
     bluetooth,
     api,
@@ -121,7 +121,7 @@ test.describe('Pause, leave or finish a class', () => {
 
     await ride.leave.click();
     await page.clock.runFor(100);
-    await expect(page).toHaveURL(`/classes/${hiitCardio.id}`);
+    await expect(page).toHaveURL('/');
     const start = new ClassStartPage(page);
     await expect(async () => {
       await page.clock.runFor(16);

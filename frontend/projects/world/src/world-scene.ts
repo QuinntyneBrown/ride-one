@@ -67,7 +67,7 @@ export class WorldScene implements AfterViewInit {
    */
   readonly quality = input<WorldQuality>(AUTO_QUALITY);
   /**
-   * Reduce motion as the rider's Settings apply it (L2-164 AC2); null follows this device's `prefers-reduced-motion`,
+   * Reduce motion as the app asks for it; null follows this device's `prefers-reduced-motion`,
    * as `main` does.
    */
   readonly reducedMotion = input<boolean | null>(null);

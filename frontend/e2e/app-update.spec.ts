@@ -13,7 +13,7 @@ import { appCached } from './fixtures/app-cache';
 import { startClassRide } from './fixtures/class-ride';
 import { expect, test } from './fixtures/test';
 import { AppUpdate } from './pages/app-update';
-import { HomePage } from './pages/home.page';
+import { ClassStartPage } from './pages/class-start.page';
 import { ResultsPage } from './pages/results.page';
 
 test.use({ serviceWorkers: 'allow' });
@@ -25,10 +25,10 @@ test('a new version deployed is offered when the app opens, and Reload loads it 
   page,
   context,
 }) => {
-  const home = new HomePage(page);
+  const start = new ClassStartPage(page);
   const update = new AppUpdate(page);
-  await home.open();
-  await expect(home.greeting).toBeVisible();
+  await start.open();
+  await expect(start.title).toBeVisible();
   await appCached(page);
 
   await update.deploy(context);
@@ -40,7 +40,7 @@ test('a new version deployed is offered when the app opens, and Reload loads it 
   await update.markPage();
   await Promise.all([page.waitForEvent('load'), update.reload.click()]);
   expect(await update.reloaded()).toBe(true);
-  await expect(home.greeting).toBeVisible();
+  await expect(start.title).toBeVisible();
   await expect(update.toast).toBeHidden();
 });
 
@@ -50,10 +50,10 @@ test('during a ride the new version waits, and is offered when the ride ends (L2
   bluetooth,
   api,
 }) => {
-  const home = new HomePage(page);
+  const start = new ClassStartPage(page);
   const update = new AppUpdate(page);
-  await home.open();
-  await expect(home.greeting).toBeVisible();
+  await start.open();
+  await expect(start.title).toBeVisible();
   await appCached(page);
   await startClassRide(page, bluetooth, api);
   await update.markPage();
@@ -77,14 +77,14 @@ test('the rider can dismiss the offer, and the page stays (L2-150 AC2)', async (
   page,
   context,
 }) => {
-  const home = new HomePage(page);
+  const start = new ClassStartPage(page);
   const update = new AppUpdate(page);
-  await home.open();
-  await expect(home.greeting).toBeVisible();
+  await start.open();
+  await expect(start.title).toBeVisible();
   await appCached(page);
   // Opened again, so the worker serves the page and tells it of the next version.
   await page.reload();
-  await expect(home.greeting).toBeVisible();
+  await expect(start.title).toBeVisible();
   await update.markPage();
 
   await update.deploy(context);

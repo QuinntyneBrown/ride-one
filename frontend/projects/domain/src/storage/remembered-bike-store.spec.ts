@@ -1,5 +1,5 @@
 // Unit test
-// Traces to: L2-015 AC1, L2-113 AC4
+// Traces to: L2-015 AC1
 // Description: the remembered bike survives a reload as one localStorage record; a record it cannot read counts as
 // no bike, and forgetting removes it. It knows when the bike was last seen: when it was last saved, or for a record
 // from before, when it was paired.

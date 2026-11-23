@@ -76,7 +76,7 @@ export class FakeWebGl {
   }
 
   /**
-   * Call before the page loads: a WebGPU adapter is granted, so Settings offers WebGPU (L2-161 AC1). The adapter is
+   * Call before the page loads: a WebGPU adapter is granted, so a screen that asks finds WebGPU. The adapter is
    * a stand-in that draws nothing: only for screens that ask whether WebGPU is there, never for a world.
    */
   async withWebGpu(): Promise<void> {

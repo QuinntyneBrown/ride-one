@@ -13,10 +13,9 @@ import {
 } from './fixtures/ftms';
 import { expect, test } from './fixtures/test';
 import { ConnectBikePage } from './pages/connect-bike.page';
-import { HomePage } from './pages/home.page';
+import { ClassStartPage } from './pages/class-start.page';
 
 const FTMS = 0x1826;
-const HEART_RATE = 0x180d;
 /** A `D1` frame: 5 s, no revolutions, 80 rpm (docs/protocol/echelon-ble-frames.md). */
 const WORKOUT_FRAME = [
   0xf0, 0xd1, 0x09, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x50, 0x00, 0x1f,
@@ -43,7 +42,6 @@ test.describe('Pair a bike', () => {
       .toEqual([
         {
           filters: [{ services: [ECHELON_SERVICE] }, { services: [FTMS] }],
-          optionalServices: [HEART_RATE],
         },
       ]);
   });
@@ -118,7 +116,7 @@ test.describe('Pair a bike', () => {
 
       await expect(connect.pairedCheck).toBeVisible();
       await expect(connect.pairButton).toHaveText('Paired');
-      await expect.poll(() => new HomePage(page).url()).toBe('/');
+      await expect.poll(() => new ClassStartPage(page).url()).toBe('/');
     },
   );
 

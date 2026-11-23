@@ -7,7 +7,7 @@
 } @else {
   <div class="class-ride-page">
     <wz-class-start-header>
-      <a wz-back-link slot="back" [routerLink]="['/classes', load.classId]">Back to class</a>
+      <a wz-back-link slot="back" routerLink="/">Back to class</a>
     </wz-class-start-header>
     @if (load.dto(); as dto) {
       @if (load.view(); as view) {

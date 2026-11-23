@@ -7,7 +7,6 @@ import {
   CLASSES_API,
   type ClassDto,
   type ClassResult,
-  RIDE_SOUND,
   RIDE_ACTIVITY,
   SCREEN_WAKE_LOCK,
   TICKER,
@@ -65,7 +64,6 @@ export class ClassRideStore {
   private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
   /** Whether a ride is in progress, so a new version of the app waits for its end (L2-150 AC2). */
   private readonly activity = inject(RIDE_ACTIVITY);
-  private readonly sound = inject(RIDE_SOUND);
   private readonly started = signal(false);
   /** The ride's output and share on target, for Results. */
   private recorder: RideRecorder | null = null;
@@ -87,8 +85,6 @@ export class ClassRideStore {
   readonly running = computed(() => this.started() && !this.pausedByRider() && !this.bikeLost());
   /** The bike's speed, for the world's cyclist (L2-153). */
   readonly speedKmh = this.telemetry.speedKmh;
-  /** The class video plays its own sound now. */
-  private readonly videoPlaying = computed(() => this.player()?.state() === 'playing');
   /** Whether the video cannot play: its code or YouTube's did not load, or the player failed. */
   readonly videoUnavailable = computed(
     () => this.playerMissing() || this.player()?.state() === 'error',
@@ -143,10 +139,9 @@ export class ClassRideStore {
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
       this.player()?.destroy();
-      // The lock and the sound are bound on the route, whose injector outlives the page.
+      // The lock is bound on the route, whose injector outlives the page.
       this.wakeLock.release();
       this.activity.end();
-      this.sound.stop();
     });
   }
 
@@ -205,14 +200,6 @@ export class ClassRideStore {
     this.recorder = new RideRecorder();
     this.wakeLock.hold();
     this.activity.begin();
-    // Ride sound follows the pedalling, quiet while paused and, when Settings asks, under the playing video (L2-163).
-    this.sound.play({
-      cadence: this.telemetry.cadence,
-      speedKmh: this.telemetry.speedKmh,
-      resistance: this.telemetry.resistance,
-      running: this.running,
-      videoPlaying: this.videoPlaying,
-    });
     this.clock.start();
     this.ticker.start();
     this.engine.follow(dto.plan);
@@ -251,7 +238,6 @@ export class ClassRideStore {
     this.player()?.pause();
     this.wakeLock.release();
     this.activity.end();
-    this.sound.stop();
     const classResult: ClassResult = {
       classId: ride.id,
       title: ride.title,

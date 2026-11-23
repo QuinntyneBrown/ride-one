@@ -45,7 +45,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 28.2 | Remove races | The race, the lobby, Race Setup, Map Select, ghost and bots, with their tests (ADR 0036). The `world` library and the Blender courses stay for riding in Ibiza; the other seven courses go in 30.1, the backend's race code after 28.1. | 3 | 28. Make it Telo Ride 1 | L1 (left out) | 100% |
 | 28.3 | Remove group classes and live races | The ride hub client and everything that used it: the group chip, the choice on Class Start, the group's countdown and board, and in `backend/` the hub, live, group and race sessions, bots and race results (ADR 0038). An address with `?session=` rides solo. The map catalogue's file goes with progression in 28.4. | 1 | 28. Make it Telo Ride 1 | L1 (left out) | 100% |
 | 28.4 | Remove sign-in and progression | Sign-in, display name and accounts; XP, rider levels, streaks, stars, unlocks and class tiers; the ride outbox and recorded rides; feedback and the custom workout; and in `backend/` accounts, authentication, progress, rides, workouts, feedback and the map catalogue, with a migration that drops their tables (ADR 0039). The app's only request is for the class catalogue. | 3 | 28. Make it Telo Ride 1 | L2-132 AC1, AC3 | 100% |
-| 28.5 | Remove Home, Profile, the class library and heart rate | No menu or navigation is left; `/` opens the one class until slice 30.2 draws The Class. | 2 | 28. Make it Telo Ride 1 | L2-080 AC4, L2-167 AC4 | 0% |
+| 28.5 | Remove Home, Profile, the class library and heart rate | Home, Profile, Settings, Diagnostics with the packet log, the class library, the header's navigation and heart rate (ADR 0040). No menu or navigation is left; `/` shows Class Start for the one class, with no redirect, until slice 30.2 draws The Class, and the old addresses are page not found, with "Back to the class". What Settings set is fixed at its default, and the theme follows the device. | 2 | 28. Make it Telo Ride 1 | L2-080 AC4, L2-167 AC4 | 100% |
 | 28.6 | Remove the marketing application | The workspace is `ride` on `api`, `domain`, `components` and `video`; an ADR supersedes ADR 0027. | 1 | 28. Make it Telo Ride 1 | L2-146 AC1–2 | 0% |
 | 28.7 | Wordmark | TELO RIDE 1 on every header, and "Telo Ride 1" in every title and message. | 1 | 28. Make it Telo Ride 1 | L2-172 | 0% |
 | 28.8 | Host as static files | Static files over HTTPS with an http redirect and HSTS; the backend's projects, tests and CI job go (ADR 0037). | 3 | 28. Make it Telo Ride 1 | L2-149 AC1, L2-009 AC2 | 0% |
@@ -81,7 +81,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
 
-**Total:** 50 slices, 99 days. **Complete:** 15 slices, 35 days (35%), 11 of them carried over.
+**Total:** 50 slices, 99 days. **Complete:** 16 slices, 37 days (37%), 11 of them carried over.
 **To build:** 35 slices, 64 days.
 
 ## What a slice waits for

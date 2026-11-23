@@ -1,32 +1,15 @@
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { inject, provideEnvironmentInitializer } from '@angular/core';
 import type { Routes } from '@angular/router';
-import {
-  ANNOUNCER,
-  BUILD_INFO,
-  CONNECTION_HISTORY,
-  DISPLAY_PREFERENCES,
-  FULLSCREEN,
-  RIDE_SETTINGS,
-} from '@telo/api';
-import {
-  BikeConnectionHistory,
-  BrowserDisplayPreferences,
-  BrowserFullscreen,
-  LiveRegionAnnouncer,
-  LocalRideSettingsStore,
-} from '@telo/domain';
+import { ANNOUNCER, DISPLAY_PREFERENCES, FULLSCREEN } from '@telo/api';
+import { BrowserDisplayPreferences, BrowserFullscreen, LiveRegionAnnouncer } from '@telo/domain';
 import { provideAppCache } from './app-cache/provide-app-cache';
 import { provideAppUpdates } from './app-update/provide-app-updates';
 import { provideBikeConnection } from './bike/provide-bike-connection';
 import { rememberedBikeGuard } from './bike/remembered-bike.guard';
 
-// Set at build time by angular.json's `define` (and the deploy's --define for the commit); absent in unit tests.
-declare const TELO_VERSION: string | undefined;
-declare const TELO_COMMIT: string | undefined;
-
 /**
- * Every screen, under one parent that provides the bike connection: one instance shared from Connect Bike to the ride,
+ * The four screens and page not found (ADR 0040), under one parent that provides the bike connection: one instance shared from Connect Bike to the ride,
  * loaded with the first screen instead of with the initial bundle (AGENTS.md, lazy loading first).
  */
 export const rideRoutes: Routes = [
@@ -39,84 +22,45 @@ export const rideRoutes: Routes = [
       provideAppCache(),
       // Each new version offered between rides, never during one (L2-150 AC2).
       provideAppUpdates(),
-      // The ride settings, which Settings changes and every ride screen follows (L2-158 AC3).
-      { provide: RIDE_SETTINGS, useClass: LocalRideSettingsStore },
-      // Theme, motion and ride numbers on <html>, applied from the start and at once on each change (L2-164 AC2 to AC4).
+      // The theme and reduced motion this device asks for, on <html> from the start (L2-143, L2-142).
       { provide: DISPLAY_PREFERENCES, useClass: BrowserDisplayPreferences },
       provideEnvironmentInitializer(() => void inject(DISPLAY_PREFERENCES)),
-      // The bike link's history from the first screen on, for Diagnostics' Connection and Reconnects (L2-113 AC2).
-      { provide: CONNECTION_HISTORY, useClass: BikeConnectionHistory },
-      provideEnvironmentInitializer(() => void inject(CONNECTION_HISTORY)),
-      // App version in Diagnostics, "2.0.0 · client 7f3c2a1" (L2-113 AC2); bound here, out of the initial bundle.
-      {
-        provide: BUILD_INFO,
-        useValue: {
-          version: typeof TELO_VERSION === 'undefined' ? '0.0.0' : TELO_VERSION,
-          commit: typeof TELO_COMMIT === 'undefined' ? 'dev' : TELO_COMMIT,
-        },
-      },
-      // Full screen, which the header offers and a ride's start can enter (L2-144, L2-164 AC6).
+      // Full screen, which every header offers (L2-144).
       { provide: FULLSCREEN, useClass: BrowserFullscreen },
       // What a screen reader hears: a ride's steps and the result (L2-141 AC2).
       { provide: ANNOUNCER, useClass: LiveRegionAnnouncer },
     ],
     children: [
-      // Connect Bike stands alone, with no app navigation (docs/mocks/pages/connect-bike/).
+      // Connect Bike, where a new rider starts (docs/mocks/pages/connect-bike/).
       {
         path: 'connect',
         title: 'Connect your bike · Telo Ride',
         loadComponent: () => import('./connect/connect-bike-page'),
       },
-      // A class ride has its own header, with no app navigation (docs/mocks/pages/class-ride/).
+      // The class ride, at its present address until slice 31.1 moves it to `/ride` (docs/mocks/pages/class-ride/).
       {
         path: 'classes/:id/ride',
         canActivate: [rememberedBikeGuard],
         loadChildren: () => import('./class-ride/class-ride.routes').then((m) => m.classRideRoutes),
       },
-      // Class Start has its own header, with no app navigation (docs/mocks/pages/class-start/).
-      {
-        path: 'classes/:id',
-        loadChildren: () =>
-          import('./class-start/class-start.routes').then((m) => m.classStartRoutes),
-      },
-      // Results has its own header, with no app navigation (docs/mocks/pages/results/).
+      // Results, until Class Done replaces it (slice 32.2).
       {
         path: 'results',
         loadChildren: () => import('./results/results.routes').then((m) => m.resultsRoutes),
       },
+      // `/` is the class: Class Start for the one class, until slice 30.2 draws The Class (ADR 0040).
       {
         path: '',
-        loadComponent: () => import('./main-shell/main-shell'),
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            title: 'Telo Ride',
-            canActivate: [rememberedBikeGuard],
-            loadComponent: () => import('./home/home-page'),
-          },
-          {
-            path: 'classes',
-            loadChildren: () =>
-              import('./class-library/class-library.routes').then((m) => m.classLibraryRoutes),
-          },
-          {
-            path: 'settings',
-            title: 'Settings · Telo Ride',
-            loadChildren: () => import('./settings/settings.routes').then((m) => m.settingsRoutes),
-          },
-          {
-            path: 'profile',
-            title: 'Profile · Telo Ride',
-            loadChildren: () => import('./profile/profile.routes').then((m) => m.profileRoutes),
-          },
-          // An address that matches no screen (L2-145). Always last.
-          {
-            path: '**',
-            title: 'Page not found · Telo Ride',
-            loadComponent: () => import('./not-found/not-found-page'),
-          },
-        ],
+        pathMatch: 'full',
+        canActivate: [rememberedBikeGuard],
+        loadChildren: () =>
+          import('./class-start/class-start.routes').then((m) => m.classStartRoutes),
+      },
+      // An address that matches no screen (L2-145). Always last.
+      {
+        path: '**',
+        title: 'Page not found · Telo Ride',
+        loadComponent: () => import('./not-found/not-found-page'),
       },
     ],
   },

@@ -1,8 +1,7 @@
 // Acceptance test
 // Traces to: L2-139 AC1, AC2
-// Description: every screen fits every width from 320 to 2560 px without scrolling sideways: Home,
-// the Class Library, Class Start, Profile, Settings, Connect Bike, Page not found,
-// Results and a class ride, each at the narrowest and the widest. The page margin is 16 px on a
+// Description: every screen fits every width from 320 to 2560 px without scrolling sideways: Class Start,
+// Connect Bike, Page not found, Results and a class ride, each at the narrowest and the widest. The page margin is 16 px on a
 // phone, 24 px from sm and 32 px from lg, and content is at most 80 rem wide, centred. Every width between is the
 // responsive sweep's (e2e/sweeps/), run only when a person asks.
 import { screens } from './fixtures/screens';
@@ -40,7 +39,7 @@ test.describe('Fit every width', () => {
       await page.setViewportSize({ width, height: 900 });
       const app = new AppDocument(page);
       await expect(
-        await screens['Home']({ page, bluetooth, api: undefined as never }),
+        await screens['Class Start']({ page, bluetooth, api: undefined as never }),
       ).toBeVisible();
 
       const layout = await app.layout();
@@ -57,7 +56,9 @@ test.describe('Fit every width', () => {
   }) => {
     await page.setViewportSize({ width: 2560, height: 1440 });
     const app = new AppDocument(page);
-    await expect(await screens['Home']({ page, bluetooth, api: undefined as never })).toBeVisible();
+    await expect(
+      await screens['Class Start']({ page, bluetooth, api: undefined as never }),
+    ).toBeVisible();
 
     const layout = await app.layout();
 

@@ -1,6 +1,6 @@
 <div class="class-start-page">
   <wz-class-start-header>
-    <a wz-back-link slot="back" routerLink="/classes">Classes</a>
+    <wz-app-header-bike slot="end" [status]="store.bike()" />
     <wz-fullscreen-button slot="end" />
   </wz-class-start-header>
   <div class="class-start-page__scroll">
@@ -37,6 +37,14 @@
             Start class
           </button>
         </div>
+      </main>
+    } @else if (store.unavailable()) {
+      <main id="main" class="container class-start__unavailable" tabindex="-1">
+        <h1 class="visually-hidden">The class</h1>
+        <wz-inline-message tone="warn" role="alert"
+          >The class can’t be loaded. Check your connection and try again.</wz-inline-message
+        >
+        <button wz-button variant="raised" type="button" (click)="store.retry()">Try again</button>
       </main>
     }
   </div>

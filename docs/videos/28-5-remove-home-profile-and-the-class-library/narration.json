@@ -1,0 +1,67 @@
+{
+  "voice": "af_heart",
+  "bpm": 92.99,
+  "beatsPerBar": 4,
+  "gapBeats": 1,
+  "outroSeconds": 3,
+  "music": {
+    "file": "../assets/music/beautiful-boom-bap.mp3",
+    "offset": 0.009,
+    "duckDb": 16,
+    "betweenDb": 5,
+    "fadeSeconds": 2
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "bars": 4,
+      "lines": [
+        "Telo Ride 1 has no menu. Open it with a paired bike, and the first thing you see is the class."
+      ]
+    },
+    {
+      "id": "screens",
+      "bars": 5,
+      "lines": [
+        "Four screens are left: connect the bike, the class, the ride, and the result. Done and Ride it again both lead back to the class."
+      ]
+    },
+    {
+      "id": "gone",
+      "bars": 5,
+      "lines": [
+        "Home, Profile, Settings, Diagnostics and the class library are gone. Their old addresses say the page does not exist, and lead back to the class."
+      ]
+    },
+    {
+      "id": "defaults",
+      "bars": 5,
+      "lines": [
+        "With no settings, the app decides. The screen stays awake, the theme follows the device, and heart rate and the packet log left too."
+      ]
+    },
+    {
+      "id": "widths",
+      "bars": 4,
+      "lines": [
+        "The class at the root address, on every screen from a phone to a desktop."
+      ]
+    },
+    {
+      "id": "proof",
+      "bars": 5,
+      "lines": [
+        "What the tests prove: no navigation, four old addresses not found, and every check still passes, in a smaller bundle."
+      ]
+    },
+    {
+      "id": "close",
+      "bars": 12,
+      "lines": [
+        "Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing else.",
+        "It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's resistance for every interval while the rider pedals.",
+        "Connect the bike, take the class, see your number, and come back to beat it."
+      ]
+    }
+  ]
+}

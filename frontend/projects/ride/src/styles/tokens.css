@@ -588,8 +588,8 @@
 }
 
 /* 6. Preferences ----------------------------------------------------------------------------- */
-/* Reduce motion: the device's wish until the app marks <html data-motion>, then the rider's choice
-   (Settings, L2-164 AC2): "reduced" zeroes the durations, "full" keeps them. */
+/* Reduced motion: the device's wish, before and after the app marks <html data-motion> with it
+   (L2-142): "reduced" zeroes the durations, "full" keeps them. */
 @media (prefers-reduced-motion: reduce) {
   :root:not([data-motion]) {
     --duration-countdown: 0ms;
@@ -607,14 +607,6 @@
   --duration-fast: 0ms;
   --duration-base: 0ms;
   --duration-slow: 0ms;
-}
-/* Ride numbers: power, the clock and the target on every ride screen, a quarter larger with
-   <html data-ride-numbers="large"> (Settings, L2-164 AC4). */
-:root {
-  --ride-number-scale: 1;
-}
-:root[data-ride-numbers='large'] {
-  --ride-number-scale: 1.25;
 }
 @media (prefers-contrast: more) {
   :root,

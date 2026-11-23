@@ -3284,7 +3284,7 @@ export class ThreeWorldRenderer implements WorldRenderer {
         antialias: false,
         trackTimestamp: asked !== null,
         // The sweep may profile the WebGL2 fallback on a WebGPU screen (#679).
-        // The rider may ask for WebGL 2 in Settings (L2-161 AC1).
+        // A caller may ask for WebGL 2; Telo Ride 1 never does (ADR 0040).
         forceWebGL: (asked?.forceWebGL ?? false) || options.forceWebGL === true,
       });
       await renderer.init();
@@ -3305,11 +3305,11 @@ export class ThreeWorldRenderer implements WorldRenderer {
       probe && this.backend === 'webgl2' && probe.tier === 'ultra'
         ? 'high'
         : (probe?.tier ?? undefined);
-    // A level the rider fixed in Settings; ultra draws at high on WebGL2 (L2-159 AC5, L2-161 AC1).
+    // A level the caller fixed; ultra draws at high on WebGL2. Telo Ride 1 fixes none (ADR 0040).
     const fixed = this.backend === 'webgl2' && options.tier === 'ultra' ? 'high' : options.tier;
     // A judged hook opens the ride at its tier and lets slow frames drop it, as a rider's (L2-159 AC4).
     // World loading may ask for a level: Low, when the rider chose it or a build above it failed (L2-155, L2-156).
-    // With Settings' step-down off, slow frames never lower the level (L2-160 AC2).
+    // With step-down off, slow frames never lower the level; Telo Ride 1 leaves it on (ADR 0040).
     this.budget = new FrameBudget(pin ?? fixed ?? startTier(), undefined, {
       pinned: (!!pin && !probe?.judged) || options.stepDown === false,
     });

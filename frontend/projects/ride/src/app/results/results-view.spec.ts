@@ -23,7 +23,7 @@ describe('resultsView', () => {
       of: null,
       sub: '342 kJ · 84% on target',
       announcement: 'Class results: You finished 30:00.',
-      again: { label: 'Ride it again', path: '/classes/hiit-cardio-30', query: {} },
+      again: 'Ride it again',
     });
   });
 

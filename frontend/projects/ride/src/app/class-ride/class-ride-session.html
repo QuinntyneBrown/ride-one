@@ -31,14 +31,14 @@
           <span class="class-ride__pause-label">Pause</span>
         }
       </button>
-      <!-- Leave earns nothing and asks for no confirmation (L2-093 AC1); leaving the page stops the ride. -->
+      <!-- Leave goes to the class and asks for no confirmation (L2-093 AC1); leaving the page stops the ride. -->
       <a
         wz-button
         size="sm"
         slot="end"
         class="class-ride__action class-ride__leave"
         aria-label="Leave class"
-        [routerLink]="['/classes', ride.id]"
+        routerLink="/"
       >
         <svg class="class-ride__icon" viewBox="0 0 24 24" aria-hidden="true">
           <path d="m16 17 5-5-5-5" />

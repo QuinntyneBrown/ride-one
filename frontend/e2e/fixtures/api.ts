@@ -31,7 +31,7 @@ export class ApiFixture {
 
   static async install(page: Page): Promise<ApiFixture> {
     const api = new ApiFixture();
-    // Home reads the class catalogue for its Classes door (L2-035).
+    // The class at `/` reads the class catalogue (L2-080).
     api.answer('GET', '/api/classes', catalogue);
     // On the context, not the page: once the app cache's service worker controls the page, it makes the requests.
     await page.context().route(

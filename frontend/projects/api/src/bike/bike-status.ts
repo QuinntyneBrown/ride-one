@@ -13,8 +13,4 @@ export interface BikeStatusView {
   /** The header's tooltip: "Bike not connected", or `null` when it is. */
   readonly title: string | null;
   readonly tone: BikeStatusTone;
-  /** Custom ride's status: "Connected", "Disconnected", "No bike connected", "Bluetooth is off" or "Bluetooth unavailable in this browser". */
-  readonly rideLabel: string;
-  /** The `aria-label` of the link to Diagnostics: "Diagnostics: Echelon EX-5s Connected". */
-  readonly diagnosticsLabel: string;
 }

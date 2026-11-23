@@ -1,7 +1,7 @@
 // Unit test (the slice's acceptance table: no screen shows telemetry until slice 3.2)
 // Traces to: L2-021 AC1
 // Description: FTMS Indoor Bike Data decodes by its flags: speed uint16 in 0.01 km/h (present when bit 0 is clear),
-// cadence uint16 in 0.5 rpm, power sint16 in W, heart rate uint8 in bpm; the fields between are skipped by size, and a
+// cadence uint16 in 0.5 rpm, power sint16 in W; the fields between and heart rate are skipped by size, and a
 // field the flags mark absent, or that runs past the end, is left undefined. One case per row.
 import { IndoorBikeDataDecoder } from './indoor-bike-data-decoder';
 
@@ -38,7 +38,7 @@ describe('IndoorBikeDataDecoder', () => {
       { cadence: 80 },
     ],
     ['a negative power, as sint16', data(MORE_DATA | POWER, u16(0xfff6)), { powerW: -10 }],
-    ['heart rate as uint8', data(MORE_DATA | HEART_RATE, u8(142)), { heartRate: 142 }],
+    ['heart rate skipped, as Telo Ride 1 reads none', data(MORE_DATA | HEART_RATE, u8(142)), {}],
     [
       'every field, the unused ones skipped by size',
       data(
@@ -62,7 +62,7 @@ describe('IndoorBikeDataDecoder', () => {
         [...u16(120), ...u16(600), ...u8(10)], // expended energy: total, per hour, per minute
         u8(151), // heart rate
       ),
-      { speedKmh: 25, cadence: 90, powerW: 250, heartRate: 151 },
+      { speedKmh: 25, cadence: 90, powerW: 250 },
     ],
   ])('decodes %s (AC1)', (_, bytes, fields) => {
     expect(IndoorBikeDataDecoder.decode(bytes, AT)).toEqual({ at: AT, ...fields });

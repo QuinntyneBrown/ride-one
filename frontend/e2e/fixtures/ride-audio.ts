@@ -1,5 +1,5 @@
-// The audio contexts the page makes (L2-163 AC3): every `new AudioContext()` and every `close()`, counted, so a spec
-// can say whether ride sound made one without hearing it.
+// The audio contexts the page makes (L2-176 AC9): every `new AudioContext()` and every `close()`, counted, so a spec
+// can say that nothing made one without listening.
 import type { Page } from '@playwright/test';
 
 interface Counts {

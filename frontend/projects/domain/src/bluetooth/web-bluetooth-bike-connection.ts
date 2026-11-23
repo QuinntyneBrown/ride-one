@@ -6,13 +6,12 @@ import {
   BikeConnectionError,
   type BikeInfo,
   type BleState,
-  PACKET_LOG,
   TICKER,
 } from '@telo/api';
 import { Subject, firstValueFrom } from 'rxjs';
 import { EchelonProtocol } from '../protocol/echelon-protocol';
 import { FtmsProtocol } from '../protocol/ftms-protocol';
-import type { BikeLink, PacketTap } from './bike-link';
+import type { BikeLink } from './bike-link';
 import { bikeIdentity } from './bike-identity';
 import { EchelonLink } from './echelon-link';
 import { FtmsLink, bytesOf } from './ftms-link';
@@ -21,9 +20,8 @@ import { describeError } from './describe-error';
 import { DeviceReconnector } from './device-reconnector';
 import { GattWriteQueue } from './gatt-write-queue';
 
-/** FTMS (0x1826) and Heart Rate (0x180D), the standard services the chooser offers beside Echelon's. */
+/** FTMS (0x1826), the standard service the chooser offers beside Echelon's. */
 const FTMS = 0x1826;
-const HEART_RATE = 0x180d;
 
 /**
  * The link to a real bike over Web Bluetooth, the only code that touches `navigator.bluetooth` (AGENTS.md). It opens
@@ -37,10 +35,6 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   private readonly ticker = inject(TICKER);
   private readonly reconnector = new DeviceReconnector();
   private readonly logger = inject(APP_LOGGER, { optional: true }) ?? new ConsoleAppLogger();
-  private readonly packets = inject(PACKET_LOG, { optional: true });
-  /** Every message to and from the bike goes past the packet log (L2-114). */
-  private readonly tap: PacketTap = (direction, characteristic, bytes) =>
-    this.packets?.record(direction, characteristic, bytes);
   private device: BluetoothDevice | null = null;
   private watched: BluetoothDevice | null = null;
   private link: BikeLink | null = null;
@@ -51,9 +45,7 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
     const value = characteristic.value;
     if (!value) return;
-    const bytes = bytesOf(value);
-    this.tap('in', characteristic.uuid, bytes);
-    this.received.next(bytes);
+    this.received.next(bytesOf(value));
   };
 
   private readonly linkState = signal<BleState>('idle');
@@ -71,7 +63,6 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     try {
       this.device = await navigator.bluetooth.requestDevice({
         filters: [{ services: [EchelonProtocol.service] }, { services: [FTMS] }],
-        optionalServices: [HEART_RATE],
       });
     } catch (error) {
       if (error instanceof DOMException && error.name === 'NotFoundError') return null;
@@ -121,14 +112,8 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
         'The bike offers neither the Echelon service nor FTMS',
       );
     const link: BikeLink = echelon
-      ? new EchelonLink(
-          this.queue,
-          this.onValue,
-          this.ticker,
-          (error) => this.onFailure(error),
-          this.tap,
-        )
-      : new FtmsLink(this.queue, this.onValue, this.tap);
+      ? new EchelonLink(this.queue, this.onValue, this.ticker, (error) => this.onFailure(error))
+      : new FtmsLink(this.queue, this.onValue);
     await link.open(service);
     this.link = link;
     await link.initialise();
