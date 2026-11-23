@@ -16,10 +16,7 @@ internal static class TransportSecurity
     {
         services.Configure<ForwardedHeadersOptions>(options =>
         {
-            // The client's address too, for the per-network sign-in limit (L2-003 AC5). With the default ForwardLimit of 1
-            // only the rightmost X-Forwarded-For entry is read: the one App Service's front end appends, which a client
-            // cannot forge.
-            options.ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedFor;
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
             // App Service's front end has no fixed address to trust by name.
             options.KnownIPNetworks.Clear();
             options.KnownProxies.Clear();

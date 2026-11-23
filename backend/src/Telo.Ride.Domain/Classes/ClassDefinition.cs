@@ -10,7 +10,6 @@ public sealed record ClassDefinition(
     string Channel,
     string Focus,
     int LengthSeconds,
-    int OpensAtLevel,
     string ShelfId,
     string Summary,
     string World,

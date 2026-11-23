@@ -11,18 +11,6 @@
       >
     }
     <wz-app-header-bike slot="end" [status]="bike()" />
-    @if (streakDays() > 0) {
-      <wz-app-header-streak slot="end" [days]="streakDays()" />
-    }
-    @if (level(); as level) {
-      <a
-        wz-app-header-level
-        slot="end"
-        routerLink="/profile"
-        [attr.aria-label]="level.ariaLabel"
-        [level]="level"
-      ></a>
-    }
     @if (fullscreen.available()) {
       <wz-fullscreen-toggle
         slot="end"

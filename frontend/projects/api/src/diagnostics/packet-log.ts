@@ -6,7 +6,7 @@ export type PacketDirection = 'out' | 'in';
 /**
  * The packet log (L2-114): the commands sent to the bike, or every message both ways while "Log every packet" is on,
  * kept on this device up to 10 MB, oldest dropped first, and saved as JSON Lines when the rider asks. It never leaves
- * the device but in a feedback report the rider sends with diagnostics attached (L2-117).
+ * the device (ADR 0039).
  */
 export interface PacketLog {
   /** "Log every packet": off by default, and off again when the app starts. */

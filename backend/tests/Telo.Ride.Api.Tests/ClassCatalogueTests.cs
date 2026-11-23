@@ -1,7 +1,7 @@
 // Acceptance test
 // Traces to: L2-080 AC1, AC2, AC5; L2-081 AC3; ADR 0028
 // Description: the class catalogue, read without a session, lists the seven classes of L2-080 AC1 in
-// catalogue order, each with its channel, focus, length and the rider level it opens at, a YouTube video,
+// catalogue order, each with its channel, focus and length and no level to open it (ADR 0039), a YouTube video,
 // a sync offset, a summary, a plan as long as the class and its world, on the shelves of L2-081 AC3; one
 // class is served by its id (30 Minute HIIT Cardio from 0:12.0, working at level 24, L2-084, L2-096), and an id the
 // catalogue does not hold is 404 class_not_found.
@@ -24,15 +24,15 @@ public sealed class ClassCatalogueTests(TeloRideApiFactory api) : IClassFixture<
         var catalogue = await response.Content.ReadFromJsonAsync<Catalogue>(TestContext.Current.CancellationToken);
         Assert.Equal(
             [
-                new Listed("20 Minute Power Intervals", "Telo Ride Studio", "VO₂ max", 1200, 1),
-                new Listed("20 Min Threshold Builder", "Telo Ride Studio", "Threshold", 1200, 1),
-                new Listed("30 Minute HIIT Cardio", "GCN Training", "HIIT", 1800, 1),
-                new Listed("30 Min Tempo Paceline", "Telo Ride Studio", "Tempo", 2160, 5),
-                new Listed("30 Min Vice City Pyramid", "Telo Ride Studio", "Pyramid", 1710, 10),
-                new Listed("60 Min Dolomites Endurance", "Telo Ride Scenic", "Zone 2", 3600, 10),
-                new Listed("60 Min Coastal Endurance + Surges", "Telo Ride Scenic", "Endurance", 3600, 20),
+                new Listed("20 Minute Power Intervals", "Telo Ride Studio", "VO₂ max", 1200),
+                new Listed("20 Min Threshold Builder", "Telo Ride Studio", "Threshold", 1200),
+                new Listed("30 Minute HIIT Cardio", "GCN Training", "HIIT", 1800),
+                new Listed("30 Min Tempo Paceline", "Telo Ride Studio", "Tempo", 2160),
+                new Listed("30 Min Vice City Pyramid", "Telo Ride Studio", "Pyramid", 1710),
+                new Listed("60 Min Dolomites Endurance", "Telo Ride Scenic", "Zone 2", 3600),
+                new Listed("60 Min Coastal Endurance + Surges", "Telo Ride Scenic", "Endurance", 3600),
             ],
-            catalogue!.Classes.Select(c => new Listed(c.Title, c.Channel, c.Focus, c.LengthSeconds, c.OpensAtLevel)));
+            catalogue!.Classes.Select(c => new Listed(c.Title, c.Channel, c.Focus, c.LengthSeconds)));
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public sealed class ClassCatalogueTests(TeloRideApiFactory api) : IClassFixture<
         return catalogue!;
     }
 
-    private sealed record Listed(string Title, string Channel, string Focus, int LengthSeconds, int OpensAtLevel);
+    private sealed record Listed(string Title, string Channel, string Focus, int LengthSeconds);
 }
 
 /// <summary>The catalogue as the API serves it, read back by the acceptance tests.</summary>
@@ -131,7 +131,6 @@ public sealed record CatalogueClass(
     string Channel,
     string Focus,
     int LengthSeconds,
-    int OpensAtLevel,
     string ShelfId,
     string Summary,
     string World,

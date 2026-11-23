@@ -6,8 +6,8 @@ using OpenTelemetry.Trace;
 
 namespace Telo.Ride.Api.Tests;
 
-/// <summary>The signed-in probe API with its spans and metrics exported to memory.</summary>
-public sealed class TelemetryApi : SignedInProbeApi
+/// <summary>The probe API with its spans and metrics exported to memory.</summary>
+public sealed class TelemetryApi : ProbeApi
 {
     public SpanRecorder Spans { get; } = new();
 

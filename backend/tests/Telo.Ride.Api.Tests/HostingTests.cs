@@ -78,6 +78,7 @@ public sealed class HostingTests(HostedAppApi api) : IClassFixture<HostedAppApi>
 
     [Theory]
     [InlineData("/api/progress")]
+    [InlineData("/api/riders/me")]
     [InlineData("/health/unknown")]
     public async Task An_unknown_backend_address_is_refused_never_answered_with_the_app(string path)
     {
@@ -85,9 +86,9 @@ public sealed class HostingTests(HostedAppApi api) : IClassFixture<HostedAppApi>
 
         using var response = await client.GetAsync(path, Cancel);
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(Cancel);
-        Assert.Equal("unauthenticated", problem?.Extensions["code"]?.ToString());
+        Assert.Equal("not_found", problem?.Extensions["code"]?.ToString());
         AssertSecurityHeaders(response);
     }
 

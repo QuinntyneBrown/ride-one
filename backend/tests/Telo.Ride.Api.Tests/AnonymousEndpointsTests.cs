@@ -1,8 +1,8 @@
 // Acceptance test
-// Traces to: L2-127 AC1
-// Description: every endpoint the API maps, its controllers, the health checks and the fallbacks, is
-// asked without a session. Only the listed anonymous endpoints answer; every other one is refused with 401, so an
-// endpoint added later needs a session unless someone marks it anonymous and adds it to this list.
+// Traces to: L2-132 AC1; ADR 0039
+// Description: Telo Ride 1 has no account. Every endpoint the API maps, its controllers, the health checks and the
+// fallbacks, is asked without a session: none refuses with 401 or 403, none sets a cookie, and the class catalogue
+// answers 200.
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -13,38 +13,34 @@ namespace Telo.Ride.Api.Tests;
 
 public sealed class AnonymousEndpointsTests(HostedAppApi api) : IClassFixture<HostedAppApi>
 {
-    /// <summary>The anonymous endpoints of L2-127 AC1 and the design's table, as method and route.</summary>
-    private static readonly HashSet<string> Anonymous =
-    [
-        "POST /api/auth/code",
-        "POST /api/auth/code/confirm",
-        "POST /api/auth/sign-out",
-        "GET /api/classes",
-        "GET /api/classes/{id}",
-        "GET /health/live",
-        "GET /health/ready",
-        "GET /{*path:nonfile}",
-        "HEAD /{*path:nonfile}",
-    ];
-
     [Fact]
     [Trait("Category", "Critical")]
-    public async Task Only_the_listed_endpoints_answer_without_a_session()
+    public async Task Every_endpoint_answers_without_a_session_and_sets_no_cookie()
     {
         using var client = api.CreateClient(new() { AllowAutoRedirect = false });
-        var answered = new List<string>();
-        var refused = new List<string>();
-
+        var asked = new List<string>();
         foreach (var (key, path) in Endpoints())
         {
             using var request = new HttpRequestMessage(new HttpMethod(key[..key.IndexOf(' ')]), path);
             using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
-            (response.StatusCode == HttpStatusCode.Unauthorized ? refused : answered).Add(key);
+            Assert.False(response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden, $"{key} answered {(int)response.StatusCode}");
+            Assert.False(response.Headers.Contains("Set-Cookie"), $"{key} set a cookie");
+            asked.Add(key);
         }
 
-        Assert.Equal(string.Join("\n", Anonymous.Order(StringComparer.Ordinal)), string.Join("\n", answered.Distinct().Order(StringComparer.Ordinal)));
-        Assert.NotEmpty(refused);
-        Assert.DoesNotContain(refused, Anonymous.Contains);
+        Assert.Contains("GET /api/classes", asked);
+        Assert.Contains("GET /api/classes/{id}", asked);
+    }
+
+    [Fact]
+    [Trait("Category", "Critical")]
+    public async Task The_class_catalogue_answers_200_without_a_session()
+    {
+        using var client = api.CreateClient();
+        using var response = await client.GetAsync("/api/classes", TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.False(response.Headers.Contains("Set-Cookie"));
     }
 
     /// <summary>
@@ -70,8 +66,6 @@ public sealed class AnonymousEndpointsTests(HostedAppApi api) : IClassFixture<Ho
         {
             RoutePatternLiteralPart literal => literal.Content,
             RoutePatternParameterPart { IsCatchAll: true } => "a-page",
-            RoutePatternParameterPart parameter when parameter.ParameterPolicies.Any(p => p.Content == "guid") =>
-                Guid.NewGuid().ToString(),
             RoutePatternParameterPart => "a1",
             RoutePatternSeparatorPart separator => separator.Content,
             _ => "",

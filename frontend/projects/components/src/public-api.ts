@@ -2,14 +2,7 @@ export { AppHeader } from './app-header/app-header';
 export { AppHeaderBike } from './app-header/app-header-bike';
 export { AppHeaderBrand } from './app-header/app-header-brand';
 export { AppHeaderLink } from './app-header/app-header-link';
-export { AppHeaderStreak } from './app-header/app-header-streak';
-export { AppHeaderLevel } from './app-header/app-header-level';
 export { type DiagnosticsPacketCount, DiagnosticsPanel } from './diagnostics/diagnostics-panel';
-export {
-  FeedbackForm,
-  type FeedbackFormCopy,
-  type FeedbackFormStatus,
-} from './feedback/feedback-form';
 export { FullscreenToggle } from './fullscreen-toggle/fullscreen-toggle';
 export { Banner } from './banner/banner';
 export { LoadCard } from './world-loading/load-card';
@@ -19,7 +12,6 @@ export { Progress } from './progress/progress';
 export { ClassTeaser } from './class-teaser/class-teaser';
 export { Door } from './door/door';
 export { MoreLink } from './more-link/more-link';
-export { ProfileLevel } from './profile-level/profile-level';
 export { ConnectWorks } from './connect-works/connect-works';
 export { ConnectDevice, type ConnectDeviceState } from './connect-device/connect-device';
 export { Button, type ButtonSize, type ButtonVariant } from './button/button';
@@ -51,17 +43,8 @@ export { Hero } from './hero/hero';
 export { SiteFooter } from './site-footer/site-footer';
 export { SiteLink } from './site-link/site-link';
 export { SiteNav } from './site-nav/site-nav';
-export { SignInCodeForm } from './sign-in/sign-in-code-form';
-export { SignInForm } from './sign-in/sign-in-form';
-export { CodeEntry } from './code-entry/code-entry';
-export * from './delete-account/delete-account-form';
-export { DisplayNameForm } from './display-name/display-name-form';
-export { DisplayNamePrompt } from './display-name/display-name-prompt';
 export { SettingRow, type SettingRowIcon } from './setting-row/setting-row';
-export { LevelBadge } from './level-badge/level-badge';
-export { XpBar } from './xp-bar/xp-bar';
 export { ResultsHeader } from './results/results-header';
-export { XpEarned } from './results/xp-earned';
 export { Switch } from './switch/switch';
 export { SwitchRow } from './switch/switch-row';
 export { SideNav } from './side-nav/side-nav';
@@ -81,30 +64,4 @@ export {
   type DeviceCheckResultView,
   type DeviceCheckRunningView,
 } from './device-check/device-check';
-export {
-  IntervalLadder,
-  type LadderBounds,
-  type RoundStep,
-} from './custom-workout/interval-ladder';
-export { LevelSlider, type LevelSliderVariant } from './custom-workout/level-slider';
-export { PresetChips, type PresetChip } from './custom-workout/preset-chips';
-export { TrainingClose } from './custom-workout/training-close';
-export { TrainingHeader } from './custom-workout/training-header';
-export { TrainingModes } from './custom-workout/training-modes';
-export { TrainingStepper } from './custom-workout/training-stepper';
-export { PlanPreview, type PlanPreviewFact } from './custom-workout/plan-preview';
-export { VideoFrame } from './custom-workout/video-frame';
-export { VideoSync, type VideoFrameDrawn } from './custom-workout/video-sync';
-export { RideHeader, type RideBikeTone, type RideRun } from './custom-ride/ride-header';
-export { RideOverlay, type RideOverlayKind } from './custom-ride/ride-overlay';
-export { RideLeave } from './custom-ride/ride-leave';
-export { RideWorkoutLink } from './custom-ride/ride-workout-link';
-export { RideReadouts, type RideDelta } from './custom-ride/ride-readouts';
-export { RideInterval } from './custom-ride/ride-interval';
-export { RIDE_KINDS, type TraceSegment } from './custom-ride/ride-kind';
-export { RideTrace } from './custom-ride/ride-trace';
-export { RideView, type RideViewTab } from './custom-ride/ride-view';
-export { RideMetrics, type RideMetric } from './custom-ride/ride-metrics';
-export { RideVideo } from './custom-ride/ride-video';
-export { RideProgress } from './custom-ride/ride-progress';
-export { RideControl, type RideSentRow } from './custom-ride/ride-control';
+export { RIDE_KINDS } from './class-ride/ride-kind';

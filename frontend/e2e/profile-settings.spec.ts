@@ -1,9 +1,8 @@
 // Acceptance test
 // Traces to: L2-112 AC1, AC2
-// Description: Profile's Settings lists the paired bike with its state and "diagnostics", "Ride settings" with
-// "Quality, sound and display" to Settings, and "Custom workout" with "Build your own intervals" to Custom workout,
-// before the display name, Sign out and Delete my account. With no bike paired, the bike row reads "No bike yet" and
-// goes to Connect Bike. Diagnostics (slice 25.1), Settings (20.1) and Custom workout (21.1) are built by their slices.
+// Description: Profile's Settings lists the paired bike with its state and "diagnostics", and "Ride settings" with
+// "Quality, sound and display" to Settings. With no bike paired, the bike row reads "No bike yet" and goes to Connect
+// Bike. Telo Ride 1 has no account and no custom workout, so there are no other rows (ADR 0039).
 import { ECHELON_NOTIFY, echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
 import { ConnectBikePage } from './pages/connect-bike.page';
@@ -15,7 +14,7 @@ const WORKOUT_FRAME = [
   0xf0, 0xd1, 0x09, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x50, 0x00, 0x1f,
 ];
 
-test('Settings lists the bike, Ride settings and Custom workout before the account rows (L2-112 AC1) @critical', async ({
+test('Settings lists the bike and Ride settings, and nothing else (L2-112 AC1) @critical', async ({
   page,
   bluetooth,
 }) => {
@@ -23,14 +22,7 @@ test('Settings lists the bike, Ride settings and Custom workout before the accou
   const profile = new ProfilePage(page);
   await profile.open();
 
-  await expect(profile.rowTitles).toHaveText([
-    'Echelon EX-5s',
-    'Ride settings',
-    'Custom workout',
-    'Display name',
-    'Sign out',
-    'Delete my account',
-  ]);
+  await expect(profile.rowTitles).toHaveText(['Echelon EX-5s', 'Ride settings']);
   await expect(profile.rowBodies.first()).toHaveText('Not connected · diagnostics');
 
   // Home connects the remembered bike (L2-015); back on Profile the row says so.
@@ -44,10 +36,6 @@ test('Settings lists the bike, Ride settings and Custom workout before the accou
     'Ride settings Quality, sound and display',
   );
   await expect(profile.rideSettings).toHaveAttribute('href', '/settings');
-  await expect(profile.customWorkout).toHaveAccessibleName(
-    'Custom workout Build your own intervals',
-  );
-  await expect(profile.customWorkout).toHaveAttribute('href', '/profile/custom');
 });
 
 test('with no bike paired, the bike row reads No bike yet and goes to Connect Bike (L2-112 AC2)', async ({

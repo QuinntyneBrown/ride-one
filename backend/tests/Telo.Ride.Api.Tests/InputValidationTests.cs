@@ -1,7 +1,7 @@
 // Acceptance test
 // Traces to: L2-129 AC1, AC4
 // Description: a request with a field that breaks its rule is refused with 400, code validation_failed and errors
-// keyed by the field as the app sends it, before its handler runs: a number sent as text, a catalogue id that is not
+// keyed by the field as the app sends it, before its handler runs: text sent as a number, a catalogue id that is not
 // one, an id longer than any the catalogue holds. The refusal names no .NET type.
 using System.Net;
 using System.Net.Http.Json;
@@ -9,7 +9,7 @@ using System.Text.Json;
 
 namespace Telo.Ride.Api.Tests;
 
-public sealed class InputValidationTests(SignedInProbeApi api) : IClassFixture<SignedInProbeApi>
+public sealed class InputValidationTests(ProbeApi api) : IClassFixture<ProbeApi>
 {
     private static CancellationToken Cancel => TestContext.Current.CancellationToken;
 
@@ -29,23 +29,23 @@ public sealed class InputValidationTests(SignedInProbeApi api) : IClassFixture<S
 
     [Fact]
     [Trait("Category", "Critical")]
-    public async Task A_number_sent_as_text_is_refused_naming_its_field()
+    public async Task Text_sent_as_a_number_is_refused_naming_its_field()
     {
         using var client = api.CreateClient();
 
-        using var response = await client.PostAsJsonAsync("/api/rides", new { elapsedSeconds = "six minutes" }, Cancel);
+        using var response = await client.PostAsJsonAsync("/probe/echo", new { powerWatts = 250 }, Cancel);
 
-        var problem = await Refused(response, "elapsedSeconds");
-        Assert.Equal(["elapsedSeconds"], problem.GetProperty("errors").EnumerateObject().Select(field => field.Name));
+        var problem = await Refused(response, "powerWatts");
+        Assert.Equal(["powerWatts"], problem.GetProperty("errors").EnumerateObject().Select(field => field.Name));
     }
 
     [Fact]
     public async Task A_body_that_is_not_JSON_is_refused()
     {
         using var client = api.CreateClient();
-        using var content = new StringContent("{ \"kind\": ", System.Text.Encoding.UTF8, "application/json");
+        using var content = new StringContent("{ \"powerWatts\": ", System.Text.Encoding.UTF8, "application/json");
 
-        using var response = await client.PostAsync("/api/rides", content, Cancel);
+        using var response = await client.PostAsync("/probe/echo", content, Cancel);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = JsonDocument.Parse(await response.Content.ReadAsStringAsync(Cancel)).RootElement;
@@ -62,16 +62,6 @@ public sealed class InputValidationTests(SignedInProbeApi api) : IClassFixture<S
         using var response = await client.GetAsync(path, Cancel);
 
         await Refused(response, field);
-    }
-
-    [Fact]
-    public async Task Marking_an_unlock_seen_with_an_id_that_breaks_its_rule_is_refused()
-    {
-        using var client = api.CreateClient();
-
-        using var response = await client.PostAsync("/api/progress/unlocks/Vice%20City!/seen", null, Cancel);
-
-        await Refused(response, "mapId");
     }
 
     [Fact]

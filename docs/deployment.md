@@ -1,5 +1,8 @@
 # Deployment settings
 
+Rewritten for Telo Ride 1: the backend has no account, sign-in, email, feedback or recorded ride
+(ADR 0039), so their settings are gone.
+
 Every setting the deployed Telo Ride backend (`backend/src/Telo.Ride.Api`) reads, added in the same
 change as the code that reads it (`AGENTS.md`). The frontend is static files and reads none; the API
 serves them from its `wwwroot` (ADR 0026).
@@ -10,17 +13,11 @@ Secrets go in the host's secret store, never in `appsettings.json` or the reposi
 
 | Setting | Required | Example | What it does |
 |---------|----------|---------|--------------|
-| `ConnectionStrings:TeloRide` | Yes | `Server=tcp:<server>.database.windows.net,1433;Database=telo-ride;Authentication=Active Directory Default;Encrypt=True` | The Azure SQL database (ADR 0025). `/health/ready` answers 503 while it cannot be reached. A secret when it holds a password; prefer managed identity. |
+| `ConnectionStrings:TeloRide` | Yes | `Server=tcp:<server>.database.windows.net,1433;Database=telo-ride;Authentication=Active Directory Default;Encrypt=True` | The Azure SQL database (ADR 0025). It holds no table since `RemoveAccountsAndProgress` (ADR 0039); `/health/ready` still answers 503 while it cannot be reached. A secret when it holds a password; prefer managed identity. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | No | `https://otel-collector.example:4317` | Where traces and metrics go over OTLP. Absent, nothing is exported. |
 | `OTEL_EXPORTER_OTLP_HEADERS` | No | `api-key=<secret>` | Headers the collector needs, such as its key. A secret. |
 | `OTEL_SERVICE_NAME` | No | `telo-ride-api` | The service name on every span and metric; `telo-ride-api` when absent. |
 | `ASPNETCORE_ENVIRONMENT` | Yes | `Production` | Anything but `Development` keeps the developer exception page off, so no error carries a stack trace. |
-| `Auth:CodeHashKey` | Yes | `<32 or more random characters>` | The key of the HMAC that sign-in codes and client network addresses are stored under (L2-132). A secret; changing it makes every code already sent stop working. |
-| `Email:From` | Yes | `Telo Ride <no-reply@ride.example>` | The sender of sign-in code emails (ADR 0031). |
-| `Email:Smtp:Host` | Yes | `smtp.azurecomm.net` | The SMTP relay that delivers them. |
-| `Email:Smtp:Port` | No | `587` | Its port; 587 when absent. TLS is used whenever the relay offers it. |
-| `Email:Smtp:Username` | No | `<relay user>` | The relay's user, when it asks for one. |
-| `Email:Smtp:Password` | No | `<relay password>` | Its password. A secret. |
 
 ## Host
 
@@ -31,7 +28,7 @@ One Azure App Service runs the API and serves the app (ADR 0026). A person provi
   Its managed identity is a user of the database, and the `ConnectionStrings:TeloRide` above uses
   `Authentication=Active Directory Default`.
 - **Custom domain:** the site's address, with the App Service managed certificate. The app and the
-  API share it, so the session cookie is same-site.
+  API share it; the API sets no cookie (ADR 0039).
 - **Deploy identity:** an Entra ID app registration with a federated credential for
   `repo:<owner>/<repo>:ref:refs/heads/main`, Contributor on the App Service, and a user of the
   database (the deploy runs `migrate`). The database's firewall admits the deploy.
@@ -81,6 +78,6 @@ are:
 3. Deploy `out/` to the App Service, which starts the new version, and check `GET /health/ready`
    answers `Healthy`.
 
-To read the riders' feedback, run `dotnet out/Telo.Ride.Api.dll feedback` with
-`ConnectionStrings__TeloRide` set to the database: it writes every report, oldest first, as JSON
-Lines and exits. A report names its rider by id, never by email, and carries no setting of its own.
+The first `migrate` after slice 28.4 runs `RemoveAccountsAndProgress`, which drops the riders,
+their sessions, sign-in codes, rides, map progress, custom workouts and feedback reports. It cannot
+be undone with the data: export anything to keep before deploying.

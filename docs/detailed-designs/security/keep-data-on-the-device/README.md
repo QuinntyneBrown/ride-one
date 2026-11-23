@@ -35,19 +35,17 @@ Neighbouring features own the adjacent concerns:
 
 ### No account and no cookie (`L2-132` AC1)
 
-- **Routes** (`ride`, `ride.routes.ts`): exists and changes. Today the lazy parent route provides
-  `provideSession()`, guards every child with `authGuard`, and has a `sign-in` child. Telo Ride 1
-  has the four screens and Page not found only. The parent route keeps `provideBikeConnection()`
-  and loses the session provider, the guard and the sign-in route, as
+- **Routes** (`ride`, `ride.routes.ts`): exists. Since slice 28.4 (ADR 0039) the lazy parent route
+  has no session provider, no guard for a rider and no `sign-in` child; it keeps
+  `provideBikeConnection()`. Telo Ride 1 has the four screens and Page not found only, as
   [Open the app](../../the-class/open-the-app/README.md) describes.
 - **No field for identity**: none of the four screens in `docs/mocks/pages/` holds an input for
   an email, a name or a password, and no screen links to one.
 - **No cookie**: no code in `frontend/projects/` writes `document.cookie`, and with no backend in
   the requirements no response sets one. The class video is embedded from
   `www.youtube-nocookie.com` ([Restrict third parties](../restrict-third-parties/README.md)).
-- **Carried over**: `ride/src/app/sign-in/`, `ride/src/app/session/`, and `auth/`, `riders/` and
-  `riders/session.interceptor.ts` in `api` belong to Telo Ride's sign-in. They are not routed, not
-  bound and not extended, and each is removed in a change of its own.
+- **Removed**: Telo Ride's sign-in (`ride/src/app/sign-in/`, `ride/src/app/session/`, and `auth/`,
+  `riders/` and the session interceptor in `api`) left with slice 28.4 (ADR 0039).
 
 ### Stored on the device only (`L2-132` AC2)
 
@@ -72,13 +70,11 @@ Neighbouring features own the adjacent concerns:
 
 - **`app.config.ts`** (`ride`): exists. It provides zoneless change detection, the router and the
   browser's global error listeners, and no `HttpClient`.
-- **Carried over**: `HttpRidesApi` and `RideOutbox` (`api`, `rides/`), `SessionRideOutbox`
-  (`domain`, `storage/session-ride-outbox.ts`), `HttpRiderProgressApi` upload rides and progress for Telo Ride (the SignalR client went with ADR 0038). `ride.routes.ts` binds
-  `RIDER_PROGRESS_API` today; Telo Ride 1 binds none of them. `ClassRideStore`
-  (`ride`, `class-ride/class-ride-store.ts`) exists and today hands a finished ride to
-  `RIDE_OUTBOX`; for Telo Ride 1 it calls `RIDE_RECORD.add` only. Whether an HTTP client remains
-  behind `CLASSES_API` for the class definition is `<TO SUPPLY>` (`L2.md` open question 1).
-  Whatever is decided, the record and the remembered bike are in no request.
+- **Removed**: the rides and progress clients and the ride outbox left with slice 28.4 (ADR 0039).
+  `ClassRideStore` (`ride`, `class-ride/class-ride-store.ts`) hands a finished ride to Results in
+  the navigation's state and to nothing else; with slice 32.1 it also calls `RIDE_RECORD.add`. The
+  one HTTP client left reads the class catalogue behind `CLASSES_API`, until the class ships with
+  the app (ADR 0037, slice 30.1). The record and the remembered bike are in no request.
 - **Policy backstop**: `connect-src 'self'` of `L2-131` leaves the page no connection to another
   origin.
 - **Proof in the specs**: the `guard` fixture in `frontend/e2e/fixtures/test.ts` exists. It fails a

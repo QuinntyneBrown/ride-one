@@ -7,7 +7,7 @@ namespace Telo.Ride.Api.Tests;
 
 /// <summary>
 /// The API serving a catalogue of its own instead of the embedded one: one valid class and one of each way a class
-/// can break the rules of L2-080 AC4 and L2-043 AC1, in catalogue order.
+/// can break the rules of L2-080 AC4, in catalogue order.
 /// </summary>
 public sealed class StubCatalogueApi : TeloRideApiFactory
 {
@@ -21,14 +21,13 @@ public sealed class StubCatalogueApi : TeloRideApiFactory
         Class("plan-too-short", 600, [Segment(300, 8), Segment(240, 12)]),
         Class("plan-too-long", 600, [Segment(300, 8), Segment(360, 12)]),
         Class("bad-video", 600, [Segment(600, 8)]) with { VideoId = "not a video" },
-        Class("tier-7", 600, [Segment(600, 8)]) with { OpensAtLevel = 7 },
     ];
 
     protected override void ConfigureServices(IServiceCollection services) =>
         services.Replace(ServiceDescriptor.Singleton<IClassCatalogue>(new StubCatalogue()));
 
     public static ClassDefinition Class(string id, int length, IReadOnlyList<ClassSegment> segments) =>
-        new(id, id, "Telo Ride Studio", "Tempo", length, 1, "20-min", "A class.", "prairie", "QUoToFsMNig", 0, segments);
+        new(id, id, "Telo Ride Studio", "Tempo", length, "20-min", "A class.", "prairie", "QUoToFsMNig", 0, segments);
 
     public static ClassSegment Segment(int duration, int level) => new("steady", duration, level, 85);
 

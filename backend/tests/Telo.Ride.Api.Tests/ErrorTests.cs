@@ -9,7 +9,7 @@ using Telo.Ride.Api.Tests.Probe;
 
 namespace Telo.Ride.Api.Tests;
 
-public sealed class ErrorTests(SignedInProbeApi api) : IClassFixture<SignedInProbeApi>
+public sealed class ErrorTests(ProbeApi api) : IClassFixture<ProbeApi>
 {
     private static CancellationToken Cancel => TestContext.Current.CancellationToken;
 

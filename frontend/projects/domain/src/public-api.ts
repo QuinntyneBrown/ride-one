@@ -21,17 +21,9 @@ export {
 export { FetchWorldDownloader } from './storage/fetch-world-downloader';
 export { CacheStorageSavedWorlds } from './storage/cache-storage-saved-worlds';
 export { WORLD_CACHE } from './storage/world-cache';
-export {
-  DeviceRideOutbox,
-  FIRST_RETRY_MS,
-  LONGEST_RETRY_MS,
-  retryDelay,
-} from './storage/device-ride-outbox';
-export { IndexedDbRidesWaiting } from './storage/indexed-db-rides-waiting';
 export { SimulatedRiderProfile } from './bluetooth/simulated-rider-profile';
 export { WebBluetoothBikeConnection } from './bluetooth/web-bluetooth-bike-connection';
 export { BikeTelemetry, CADENCE_TIMEOUT_MS } from './engine/bike-telemetry';
-export { EnergyModel } from './engine/energy-model';
 export { HeartRateSource } from './engine/heart-rate-source';
 export { RideInProgress } from './engine/ride-in-progress';
 export { HeartRateStats } from './engine/heart-rate-stats';
@@ -40,7 +32,6 @@ export { ResistanceController } from './engine/resistance-controller';
 export { type PlanState, planStateAt } from './engine/plan-state';
 export { RideClock } from './engine/ride-clock';
 export { RideTicker } from './engine/ride-ticker';
-export { RideTotals } from './engine/ride-totals';
 export { RideRecorder } from './engine/ride-recorder';
 export { DRIFT_LIMIT_SECONDS, VideoClockSync } from './engine/video-clock-sync';
 export { WorkoutEngine } from './engine/workout-engine';
@@ -65,62 +56,6 @@ export { deviceCheckLevels, deviceCheckResult, deviceCheckRunning } from './engi
 export { CachedClassesApi } from './storage/cached-classes-api';
 export { CATALOGUE_KEY, CatalogueCache } from './storage/catalogue-cache';
 export { PlanSummary } from './engine/plan-summary';
-export { isEmailAddress } from './accounts/email-address';
-export {
-  CUSTOM_WORKOUT_LIMITS,
-  HIIT_PRESETS,
-  type HiitPreset,
-  addRound,
-  canStep,
-  chooseMode,
-  choosePreset,
-  makeRoundsSame,
-  newCustomWorkout,
-  presetOf,
-  removeRound,
-  setFlatLevel,
-  setOffset,
-  setRecoverLevel,
-  setVideoLink,
-  setVideoOn,
-  setWorkLevel,
-  stepCoolDown,
-  stepEffort,
-  stepFlatCadence,
-  stepFlatMinutes,
-  stepOffset,
-  stepRecovery,
-  stepWarmUp,
-  videoFact,
-  videoOf,
-} from './engine/custom-workout';
-export {
-  DEFAULT_VIDEO_LINK,
-  OFFSET_STEP,
-  VIDEO_LINK_ERROR,
-  clampOffset,
-  formatOffset,
-  parseOffset,
-  videoIdOf,
-} from './engine/video-link';
-export {
-  CUSTOM_CADENCE_AIMS,
-  type CustomWorkoutPreview,
-  type PlanProblem,
-  type PreviewFact,
-  customWorkoutPreview,
-  expandCustomWorkout,
-  planLength,
-  validatePlan,
-} from './engine/custom-plan';
-export {
-  type IntervalPlace,
-  customWorkoutLabel,
-  intervalPlace,
-  traceMaxWatts,
-} from './engine/custom-ride';
-export { PowerTrace } from './engine/power-trace';
-export { restoreCustomWorkout } from './engine/restore-custom-workout';
 export { SENT_LOG_ROWS, bleLinkName, logSent } from './engine/sent-log';
 export { BikeConnectionHistory } from './diagnostics/bike-connection-history';
 export { BrowserDiagnostics } from './diagnostics/browser-diagnostics';
@@ -132,4 +67,3 @@ export {
   packetLogSummary,
   sizeLabel,
 } from './diagnostics/packet-log-summary';
-export { commandLabel } from './diagnostics/diagnostics-facts';

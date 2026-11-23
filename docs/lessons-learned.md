@@ -171,18 +171,97 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L144 | A store that starts async work from a callback (`onReconnected`) is unit-tested with a fake that awaits what the handlers return (`await Promise.all([...handlers].map((h) => h() as unknown))`), not with `vi.waitFor`, which polls in real time. | 14.1 | | |
 | L145 | To build the previous version for a comparison, stash only frontend paths (`git stash push -u -- projects e2e package.json package-lock.json`), so the `.cache` link stays, and check `git stash list` before building; a failed step in an `&&` chain otherwise skips the stash and the pop finds nothing. | 14.1 | | |
 | L146 | Before carrying code over from another repository, read its CI (`gh run list --branch <branch>`); copy from a green commit or plan the fix with the copy. | 28.2 | | |
-| L147 | Remove a feature from the outside in: a spec that its addresses are page not found, then routes and screens, then each library export nothing uses, building between. | 28.2 | 28.3 | Saved time |
-| L148 | A spec that used a removed feature as its vehicle moves onto a class ride (`startClassRideInWorld`) with its assertion unchanged. | 28.2 | 28.3 | Did not apply: every deleted spec proved only group or hub behaviour |
+| L147 | Remove a feature from the outside in: a spec that its addresses are page not found, then routes and screens, then each library export nothing uses, building between. | 28.2 | 28.3, 28.4 | Saved time |
+| L148 | A spec that used a removed feature as its vehicle moves onto a class ride (`startClassRideInWorld`) with its assertion unchanged. | 28.2 | 28.3, 28.4 | Saved time: six proofs moved off the custom ride |
 | L149 | Where `detailed-journeys.md` and `docs/specs/` disagree, the specs stand; correct the slice's row in the same change. | 28.2 | 28.1 | Saved time |
-| L150 | The film tools' Python: `KOKORO_DIR=$PWD/.cache/kokoro ../wattzup/.cache/video-venv/bin/python tools/video-audio/film_audio.py <folder>`, or make `.cache/video-venv` once. | 28.2 | 28.1, 28.3 | Saved time |
+| L150 | The film tools' Python: `KOKORO_DIR=$PWD/.cache/kokoro ../wattzup/.cache/video-venv/bin/python tools/video-audio/film_audio.py <folder>`, or make `.cache/video-venv` once. | 28.2 | 28.1, 28.3, 28.4 | Saved time |
 | L151 | A decision slice's film: copy the last film's folder, keep `hook`, `widths` and `close`, and write the middle as cards and lists in the ADR's words. | 28.1 | | |
-| L152 | A scripted cut ends at the next sibling's opening text, never at the first `}`: "from this method to the next `}\n`" stops inside the method's first block and leaves a broken file. | 28.3 | | |
-| L153 | Before deleting a removed feature's data or interface, list who else reads it. Remove its endpoints now and the data with its last reader, and write the split in the ADR. | 28.3 | | |
-| L154 | After removing a component that owned part of a screen's layout, look at a screenshot of the screen at 1440 px before going on. | 28.3 | | |
+| L152 | A scripted cut ends at the next sibling's opening text, never at the first `}`: "from this method to the next `}\n`" stops inside the method's first block and leaves a broken file. | 28.3 | 28.4 | Saved time |
+| L153 | Before deleting a removed feature's data or interface, list who else reads it. Remove its endpoints now and the data with its last reader, and write the split in the ADR. | 28.3 | 28.4 | Saved time: Diagnostics read the outbox's store |
+| L154 | After removing a component that owned part of a screen's layout, look at a screenshot of the screen at 1440 px before going on. | 28.3 | 28.4 | No effect: four screens looked right |
 | L155 | To compare with `main` without touching the work tree: `git worktree add --detach <scratchpad>/base main`, link `frontend/node_modules` into it, build and test there, then `git worktree remove` it. No stash (replaces L145). | 28.3 | | |
 | L156 | Under Playwright's paused clock, wait for something a dynamic import brings by stepping the clock inside the poll (`await page.clock.runFor(50)` before each read). | 28.3 | | |
+| L157 | Give a removal's backend half to a second agent that touches only `backend/` and `docs/deployment.md` and runs only `dotnet`; run verify once it reports, and ask it for the JSON fields it removed. | 28.4 | | |
+| L158 | A fixture that writes `history.state` waits for the first screen (`page.locator('main').waitFor`) before `history.replaceState`; the router's first navigation otherwise writes over it. | 28.4 | | |
+| L159 | Before removing a screen, `grep -l` its fixture and page object across `e2e/` and decide where each spec that only passes through it moves. | 28.4 | | |
+| L160 | List a library's dead exports with a script: each name `public-api.ts` exports that no `.ts` under `projects/` names but its own file, its spec and the barrel. Delete and run again. | 28.4 | | |
 
 ## Log
+
+### 28.4 Remove sign-in and progression (2026-11-23)
+
+**Applied from earlier**
+
+- **L2 port 4310; L3 format first; L17 judge verify by its exit status — saved time:** verify passed the first time
+  it ran, in 42 seconds.
+- **L25 all-or-nothing scripted edits — saved time:** every batch asserted each match across all its files before
+  writing any; no file was left half edited.
+- **L147 remove from the outside in — saved time:** `no-account.spec.ts` first (nine failures, each for its reason),
+  then the screens, then the exports; the build named Diagnostics' count of waiting rides and the world's import of
+  `RealPlace` from the map contract.
+- **L148 a moved spec keeps its assertion — saved time:** the custom ride had carried six other proofs. The update
+  that waits for a ride and the fit and tap sweeps moved to the class ride; Diagnostics' connected facts, the packet
+  log and the dialog's focus moved to Profile's bike row after Home connects the bike; the share on target moved from
+  the submitted ride to Results.
+- **L150 the film tools' Python — saved time. L152 a cut ends at the next sibling — saved time:** every cut ran from
+  one named opening to the next. **L153 list who else reads it — saved time:** the outbox's store was also read by
+  Diagnostics. **L154 look at a screenshot — no effect:** Home, Profile, the Class Library and Results at 1440 px,
+  from the film's shots, needed no change.
+- **L155 compare with `main` in a worktree — not used:** 28.3's entry had `main`'s numbers.
+
+**What slowed it down**
+
+- The custom ride was the vehicle of specs for six features that stay. Finding where a rider still reaches each
+  (Diagnostics now opens only from a paired bike's row) took longer than the removal.
+- `openResults` wrote the navigation state right after `goto('/')`. With the sign-in guard gone the router finished
+  its first navigation later than the write and replaced it, so Results went Home in two specs.
+- The long-ride spec had counted the submitted speed samples. Nothing is submitted, and the fake bike's cadence times
+  out, so the output cannot stand in for the count: the spec now proves the ride ends on Results at 3:00:00, and the
+  recorder's unit test proves it holds three numbers.
+
+**New lessons**
+
+- **L157 Give the backend's removal to a second agent** that touches only `backend/` and `docs/deployment.md` and runs
+  only `dotnet`, while the frontend is cut; run verify once it reports. It asked for one thing back: the JSON fields
+  it removed.
+- **L158 A fixture that writes `history.state` waits for the first screen** (`page.locator('main').waitFor`) before
+  `history.replaceState`: the router's own first navigation otherwise writes over it.
+- **L159 Before removing a screen, list the specs that only pass through it:** `grep -l` its fixture and page object
+  across `e2e/`, and decide where each proof moves before deleting anything.
+- **L160 List a library's dead exports with a script, not by eye:** for each name `public-api.ts` exports, search
+  every `.ts` under `projects/` but its own file, its spec and the barrel; delete what nothing names and run it again,
+  since each deletion frees more.
+
+**Specs and tests deleted without a replacement** (the behaviour they proved is gone; `no-account.spec.ts` proves
+what the rider sees now)
+
+- Behaviour specs: `sign-in`, `stay-signed-in`, `account`, `display-name`, `rider-level`, `streak`, `class-tiers`,
+  `record-a-ride` (its share on target moved to `results.spec.ts`), `ride-outbox`, `results-earned`,
+  `profile-headline`, `feedback`, the thirteen `custom-ride-*` and `custom-workout-*` specs; the locked-class tests of
+  `class-library` and `class-start-locked` (now `class-start-unknown`); Diagnostics with no bike picked (no screen
+  opens it now; its unit test stays) and a ride's last command in Diagnostics; the custom ride's step announcement;
+  and the sign-in, custom workout and custom ride rows of the fit, tap, Tab and reduced-motion tables. 322 specs
+  became 210, and 47 `@critical` paths became 39.
+- Frontend unit tests: `display-name`, `email-address`, `sign-in-message`, `sign-in-store`, `current-rider-store`,
+  `display-name-store`, `account-store`, `level-view`, `profile-meta`, `rider-progress-store`, `feedback-store`,
+  `ride-feedback-context`, `device-ride-outbox`, `custom-plan`, `custom-ride`, `custom-workout`,
+  `restore-custom-workout`, `video-link`, `power-trace`, `ride-trace-geometry`, `ride-totals`, `energy-model`; the
+  custom ride's cases of `step-announcement`, the named and new-rider cases of `home-greeting`, the level cases of
+  `class-door-view`, the XP cases of `results-view`, the waiting-rides cases of `diagnostics-facts`, and the ride id,
+  speed, distance and time zone cases of `ride-recorder`. 1833 tests became 1564.
+- Backend tests: `AccountErasureTests`, `AccountTests`, `AuthenticationTests`, `SessionTests`, `SameOriginTests`,
+  `SignInCodeTests`, `SignInCodeRulesTests`, `EmailAddressTests`, `DisplayNameTests`, `DisplayNameRuleTests`,
+  `ClassTierTests`, `ClassTierRulesTests`, `LevelTableTests`, `XpTests`, `XpCalculatorTests`, `StreakTests`,
+  `StreakRuleTests`, `ProgressTests`, `NextRideTests`, `RideTests`, `RideLimitTests`, `RideTotalsTests`,
+  `RidePlausibilityRuleTests`, `ConcurrentRideTests`, `MapStandingTests`, `MapUnlockTests`, `StarRulesTests`,
+  `StarsAndBestTests`, `UnlockRulesTests`, `UnlocksTests`, `CustomWorkoutTests`, `WorkoutPlanRulesTests`,
+  `FeedbackTests`, `FeedbackTelemetryTests`, and the unlock-seen row of `InputValidationTests`. 382 tests became 55.
+
+**Left for a later slice**
+
+- Heart rate (`HEART_RATE_STRAP`, the strap, its decoder, `HeartRateSource`, `HeartRateStats`), which only the custom
+  ride showed: 28.5, as planned. Profile's `SettingRow` still draws the icons of the rows that left: 28.5, with Profile.
+- The empty `AppDbContext`, SQL Server and `/health/ready`: 28.8, with the backend.
 
 ### 28.3 Remove group classes and live races (2026-11-22)
 

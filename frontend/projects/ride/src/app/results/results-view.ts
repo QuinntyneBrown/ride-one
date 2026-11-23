@@ -1,4 +1,4 @@
-import type { ClassResult, RideSyncState, XpEarnedView } from '@telo/api';
+import type { ClassResult } from '@telo/api';
 
 /** Results as one screen draws it (docs/mocks/pages/results/). */
 export interface ResultsView {
@@ -13,10 +13,7 @@ export interface ResultsView {
   readonly podium: boolean;
   readonly of: string | null;
   readonly sub: string | null;
-  /**
-   * What a screen reader hears as Results opens (L2-141 AC2): the heading, the time, and the XP once recorded,
-   * "Class results: You finished 30:00. +167 XP earned."
-   */
+  /** What a screen reader hears as Results opens (L2-141 AC2): "Class results: You finished 30:00." */
   readonly announcement: string;
   /** "Ride it again" to Class Start. */
   readonly again: {
@@ -24,8 +21,6 @@ export interface ResultsView {
     readonly path: string;
     readonly query: Record<string, string>;
   };
-  /** The XP panel (L2-074). */
-  readonly xp: XpEarnedView;
 }
 
 /** Whole seconds as "0:57", "26:38" or, from an hour, "1:02:03". */
@@ -37,14 +32,12 @@ function clock(seconds: number): string {
 }
 
 /**
- * Results from the result the class hands over and where the ride stands with the backend (L2-074, L2-078, L2-079):
- * the time, its output and its share on target. The XP panel waits, waits offline, has not been recorded or shows the
- * backend's lines. Telo Ride 1 has no races, so there is no place, no standings, no stars and no unlocked map.
+ * Results from the result the class hands over (L2-078, L2-079): the time, its output and its share on target. Telo
+ * Ride 1 has no races and no account, so there is no place, no standings, no stars, no unlocked map and no XP
+ * (ADR 0039).
  */
-export function resultsView(result: ClassResult, sync: RideSyncState): ResultsView {
-  const xp = xpView(sync);
+export function resultsView(result: ClassResult): ResultsView {
   const big = clock(result.elapsedSeconds);
-  const earned = xp.total === null ? '' : ` ${xp.total} XP earned.`;
   return {
     context: `${result.title} · Solo`,
     heading: 'Class results',
@@ -53,23 +46,7 @@ export function resultsView(result: ClassResult, sync: RideSyncState): ResultsVi
     podium: false,
     of: null,
     sub: `${Math.round(result.outputKj)} kJ · ${Math.round(result.onTargetShare * 100)}% on target`,
-    announcement: `Class results: You finished ${big}.${earned}`,
+    announcement: `Class results: You finished ${big}.`,
     again: { label: 'Ride it again', path: `/classes/${result.classId}`, query: {} },
-    xp,
-  };
-}
-
-const XP_STATE = {
-  sending: 'waiting',
-  waitingOffline: 'offline',
-  notRecorded: 'notRecorded',
-} as const;
-
-function xpView(sync: RideSyncState): XpEarnedView {
-  if (sync.kind !== 'recorded') return { state: XP_STATE[sync.kind], total: null, lines: [] };
-  return {
-    state: 'ready',
-    total: `+${sync.answer.xpTotal}`,
-    lines: sync.answer.xpLines.map((line) => ({ label: line.label, xp: `+${line.xp}` })),
   };
 }

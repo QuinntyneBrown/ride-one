@@ -1,6 +1,5 @@
 import type { Locator, Page } from '@playwright/test';
 import { startClassRide } from './class-ride';
-import { startCustomRide } from './custom-ride';
 import { echelonBike } from './echelon';
 import type { FakeBluetooth } from './fake-bluetooth';
 import type { ApiFixture } from './api';
@@ -8,13 +7,11 @@ import { openResults, soloClass } from './results';
 import { ClassLibraryPage } from '../pages/class-library.page';
 import { ClassStartPage } from '../pages/class-start.page';
 import { ConnectBikePage } from '../pages/connect-bike.page';
-import { CustomWorkoutPage } from '../pages/custom-workout.page';
 import { HomePage } from '../pages/home.page';
 import { NotFoundPage } from '../pages/not-found.page';
 import { ProfilePage } from '../pages/profile.page';
 import { ResultsPage } from '../pages/results.page';
 import { SettingsPage } from '../pages/settings.page';
-import { SignInPage } from '../pages/sign-in.page';
 
 /** What opening a screen needs from the shared fixture. */
 export interface ScreenFixtures {
@@ -63,21 +60,11 @@ export const screens: Record<string, Opener> = {
     await settings.open();
     return settings.heading;
   }),
-  'the custom workout': remembered(async (page) => {
-    const custom = new CustomWorkoutPage(page);
-    await custom.open();
-    return custom.heading;
-  }),
   'Connect Bike': async ({ page }) => {
     const connect = new ConnectBikePage(page);
     await connect.open();
     return connect.title;
   },
-  'sign-in': remembered(async (page) => {
-    const signIn = new SignInPage(page);
-    await signIn.open();
-    return signIn.heading;
-  }),
   'Page not found': remembered(async (page) => {
     const notFound = new NotFoundPage(page);
     await notFound.open('/nowhere');
@@ -89,5 +76,4 @@ export const screens: Record<string, Opener> = {
   },
   'a class ride': async ({ page, bluetooth, api }) =>
     (await startClassRide(page, bluetooth, api)).clock,
-  'a custom ride': async ({ page, bluetooth }) => (await startCustomRide(page, bluetooth)).clock,
 };

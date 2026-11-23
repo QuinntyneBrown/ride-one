@@ -1,8 +1,8 @@
 // Acceptance test
-// Traces to: L2-080 AC1; L2-081 AC1 to AC4; L2-082 AC2, AC3; L2-043 AC2
-// Description: the Class Library reads its head and its three shelves, lists the catalogue's classes in order, and an
-// open card leads to its Class Start with its cover, length, resistance profile, title, channel and focus. The Class length tabs show one shelf or all, by pointer or arrow key. For
-// the new rider, the classes above level 1 are disabled buttons that say the level that opens them.
+// Traces to: L2-080 AC1; L2-081 AC1 to AC4
+// Description: the Class Library reads its head and its three shelves, lists the catalogue's classes in order, and a
+// card leads to its Class Start with its cover, length, resistance profile, title, channel and focus. The Class length
+// tabs show one shelf or all, by pointer or arrow key. Every class is open (ADR 0039; no-account.spec.ts).
 import { library } from './fixtures/library';
 import { expect, test } from './fixtures/test';
 import { ClassLibraryPage } from './pages/class-library.page';
@@ -55,39 +55,6 @@ test.describe('Class Library', () => {
     await expect(hiit.profileBars).toHaveCount(17);
     await expect(hiit.meta).toHaveText('GCN Training · HIIT');
     await expect(classes.card('20 Minute Power Intervals').time).toHaveText('20:00');
-  });
-
-  test('for the new rider, the classes above level 1 are locked and say the level that opens them (L2-082 AC2, AC3, L2-043 AC2)', async ({
-    page,
-  }) => {
-    const classes = new ClassLibraryPage(page);
-    await classes.open();
-
-    for (const [title, level] of [
-      ['30 Min Tempo Paceline', 5],
-      ['30 Min Vice City Pyramid', 10],
-      ['60 Min Dolomites Endurance', 10],
-      ['60 Min Coastal Endurance + Surges', 20],
-    ] as const) {
-      const locked = classes.card(title);
-      await expect(locked.root).toHaveJSProperty('tagName', 'BUTTON');
-      await expect(locked.root).toBeDisabled();
-      await expect(locked.lock).toHaveText(`Opens at level ${level}`);
-    }
-    for (const title of [
-      '20 Minute Power Intervals',
-      '20 Min Threshold Builder',
-      '30 Minute HIIT Cardio',
-    ]) {
-      await expect(classes.card(title).root).toHaveJSProperty('tagName', 'A');
-      await expect(classes.card(title).lock).toHaveCount(0);
-    }
-
-    // A locked card stays in the tab order, so its level is announced, and leads nowhere.
-    await classes.card('30 Min Vice City Pyramid').root.focus();
-    await expect(classes.card('30 Min Vice City Pyramid').root).toBeFocused();
-    await page.keyboard.press('Enter');
-    await expect(page).toHaveURL(/\/classes$/);
   });
 
   test('a Class length tab shows only its shelf, All shows every shelf, and the arrow keys move between tabs (L2-081 AC2)', async ({

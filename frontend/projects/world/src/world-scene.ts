@@ -44,7 +44,7 @@ import { SceneDriver } from './scene-driver';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WorldScene implements AfterViewInit {
-  /** The map's world (`MapDto.world`). */
+  /** The class's world (`ClassDto.world`). */
   readonly worldId = input.required<string>();
   readonly segments = input.required<readonly Segment[]>();
   readonly elapsed = input.required<number>();

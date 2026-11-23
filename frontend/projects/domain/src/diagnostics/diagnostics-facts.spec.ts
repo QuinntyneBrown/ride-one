@@ -2,7 +2,7 @@
 // Traces to: L2-113 AC2, AC3, AC4
 // Description: the facts Diagnostics shows, in order: the browser and its system, Web Bluetooth, the page, the bike
 // with its link facts while connected, the remembered bike and when it was last seen without one, "None picked yet"
-// with neither, the rides waiting once counted, and the app version; and the labels each fact is made of.
+// with neither, and the app version; and the labels each fact is made of.
 import type { BikeInfo, SentCommand } from '@telo/api';
 import {
   type DiagnosticsInput,
@@ -35,7 +35,6 @@ const CONNECTED: DiagnosticsInput = {
   last: { rideTime: 400, level: 8, source: 'plan', ackMs: 41 },
   remembered: BIKE,
   lastSeen: new Date(NOW),
-  waiting: 0,
   build: { version: '2.0.0', commit: '7f3c2a1' },
   now: NOW,
 };
@@ -50,7 +49,6 @@ describe('diagnosticsFacts', () => {
       { term: 'Connection', value: 'Connected · 6m 52s' },
       { term: 'Last command', value: 'RES 8 · plan · ack 41 ms' },
       { term: 'Reconnects', value: '0 this ride' },
-      { term: 'Rides waiting to send', value: '0' },
       { term: 'App version', value: '2.0.0 · client 7f3c2a1' },
     ]);
   });
@@ -79,7 +77,6 @@ describe('diagnosticsFacts', () => {
       { term: 'Web Bluetooth', value: 'Available', tone: 'ok' },
       { term: 'Page', value: 'https://ride.telo.app/profile/custom/ride' },
       { term: 'Bike', value: 'None picked yet', tone: 'warn' },
-      { term: 'Rides waiting to send', value: '0' },
       { term: 'App version', value: '2.0.0 · client 7f3c2a1' },
     ]);
   });
@@ -101,12 +98,6 @@ describe('diagnosticsFacts', () => {
   it('names a remembered bike it has no time for without one', () => {
     const facts = diagnosticsFacts({ ...CONNECTED, bike: null, lastSeen: null });
     expect(facts.find((f) => f.term === 'Bike')?.value).toBe('Echelon EX-5s');
-  });
-
-  it('leaves out the rides waiting until they are counted', () => {
-    expect(diagnosticsFacts({ ...CONNECTED, waiting: null }).map((f) => f.term)).not.toContain(
-      'Rides waiting to send',
-    );
   });
 });
 

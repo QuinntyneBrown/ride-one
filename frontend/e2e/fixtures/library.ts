@@ -27,7 +27,6 @@ export const library = {
       channel: 'Telo Ride Studio',
       focus: 'VO₂ max',
       lengthSeconds: 1200,
-      opensAtLevel: 1,
       shelfId: '20-min',
       summary: 'Six one-minute VO₂ max efforts, each with a minute to recover.',
       world: 'docklands',
@@ -124,7 +123,6 @@ export const library = {
       channel: 'Telo Ride Studio',
       focus: 'Threshold',
       lengthSeconds: 1200,
-      opensAtLevel: 1,
       shelfId: '20-min',
       summary: 'Four two-minute threshold blocks with a minute between them.',
       world: 'granite',
@@ -197,7 +195,6 @@ export const library = {
       channel: 'GCN Training',
       focus: 'HIIT',
       lengthSeconds: 1800,
-      opensAtLevel: 1,
       shelfId: '30-min',
       summary:
         'Eight 30-second maximal efforts with a recovery that shrinks each round. The classic.',
@@ -319,7 +316,6 @@ export const library = {
       channel: 'Telo Ride Studio',
       focus: 'Tempo',
       lengthSeconds: 2160,
-      opensAtLevel: 5,
       shelfId: '30-min',
       summary:
         'Four six-minute turns on the front at tempo, with two minutes in the wheels between them.',
@@ -393,7 +389,6 @@ export const library = {
       channel: 'Telo Ride Studio',
       focus: 'Pyramid',
       lengthSeconds: 1710,
-      opensAtLevel: 10,
       shelfId: '30-min',
       summary:
         'Efforts climb from 30 seconds to 90 and come back down, with a recovery after each.',
@@ -503,7 +498,6 @@ export const library = {
       channel: 'Telo Ride Scenic',
       focus: 'Zone 2',
       lengthSeconds: 3600,
-      opensAtLevel: 10,
       shelfId: '60-min',
       summary: 'One steady hour in zone 2: one level, soft rollers and long views.',
       world: 'dolomites',
@@ -528,7 +522,6 @@ export const library = {
       channel: 'Telo Ride Scenic',
       focus: 'Endurance',
       lengthSeconds: 3600,
-      opensAtLevel: 20,
       shelfId: '60-min',
       summary:
         'An hour of endurance riding with five six-minute tempo surges, one up each headland.',

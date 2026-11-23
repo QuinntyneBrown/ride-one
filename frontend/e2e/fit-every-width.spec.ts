@@ -1,8 +1,8 @@
 // Acceptance test
 // Traces to: L2-139 AC1, AC2
 // Description: every screen fits every width from 320 to 2560 px without scrolling sideways: Home,
-// the Class Library, Class Start, Profile, Settings, the custom workout, Connect Bike, sign-in, Page not found,
-// Results, a class ride and a custom ride, each at the narrowest and the widest. The page margin is 16 px on a
+// the Class Library, Class Start, Profile, Settings, Connect Bike, Page not found,
+// Results and a class ride, each at the narrowest and the widest. The page margin is 16 px on a
 // phone, 24 px from sm and 32 px from lg, and content is at most 80 rem wide, centred. Every width between is the
 // responsive sweep's (e2e/sweeps/), run only when a person asks.
 import { screens } from './fixtures/screens';
@@ -15,7 +15,7 @@ test.describe('Fit every width', () => {
       test(
         `${screen} does not scroll sideways at ${width} px (L2-139 AC1)`,
         {
-          tag: screen === 'a custom ride' && width === 320 ? '@critical' : [],
+          tag: screen === 'a class ride' && width === 320 ? '@critical' : [],
         },
         async ({ page, bluetooth, api }) => {
           await page.setViewportSize({ width, height: width === 320 ? 640 : 1440 });
