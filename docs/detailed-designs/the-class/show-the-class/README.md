@@ -52,8 +52,9 @@ Neighbouring features own the adjacent concerns:
 
 Slice 30.2 built The Class in the place of Telo Ride's Class Start, which is gone with its
 "Video link and sync" (`ClassSync`), `ClassStartVideo` and `AppHeaderBike`. Slice 30.1 built the
-class definition. Still to come on this screen: "What the bike will do" as designed (slice 30.3;
-until then the page projects the carried-over `ClassPlan`), the one-screen layout (30.4), the
+class definition. Slice 30.3 built "What the bike will do" as designed, in the place of the plan
+chart carried over from Telo Ride (`ClassPlan`, which stays in `components` only for World loading
+until slice 37.1 removes that). Still to come on this screen: the one-screen layout (30.4), the
 blocked browser (30.6), and the record with "Ride it again" (32.6).
 
 **The class definition**
@@ -112,8 +113,7 @@ blocked browser (30.6), and the record with "Ride it again" (32.6).
 - **`TheClassPage`** (`ride/src/app/the-class/the-class-page.ts`, `.html`, `.scss`, built;
   `wz-the-class-page`): the page. It provides `TheClassStore`, draws `ScreenHeader` with the bike
   status link (`a[wz-the-class-bike]`, `routerLink="/connect"`) and the Full screen button in its
-  `[slot=end]`, passes the store's view to `wz-the-class`, projects `ClassPlan` into its
-  `[slot=plan]`, and navigates on `start`: to the class ride (`/classes/intervals-to-the-beat/ride`
+  `[slot=end]`, passes the store's view to `wz-the-class`, and navigates on `start`: to the class ride (`/classes/intervals-to-the-beat/ride`
   until slice 31.1 moves it to `/ride`) for "Start class" (L2-084 AC7), to `/connect` for "Connect
   your bike" (AC6). When the store has no view it says "The class can’t be loaded. Reload
   Telo Ride 1 to try again." (`role="alert"`) with **Reload** (mock `the-class/cannot-load`,
@@ -136,7 +136,22 @@ blocked browser (30.6), and the record with "Ride it again" (32.6).
   (`ride/src/app/the-class/the-class-view.ts`, built): pure helpers with unit tests, one case per
   row of the tables below. `theClassView` builds the `TheClassView`: the meta line
   "GCN Training · Intervals" from `channel` and `focus`, the length "20:00" with "start to finish",
-  the cover, the still when the ride is in Ibiza, the options of "Ride with" and the start action.
+  the cover, the still when the ride is in Ibiza, the options of "Ride with", the start action and
+  `plan`, what the bike will do.
+- **`whatTheBikeWillDo`** (`ride/src/app/the-class/the-class-view.ts`, built by slice 30.3): a
+  pure helper with unit tests. From the plan's segments it gives the `WhatTheBikeWillDo` the card
+  is drawn from (L2-084 AC2, AC3): `average`, "~" with `PlanSummary.averagePower(segments)` and
+  " W average"; the `segments` themselves, for the profile; and `note`, from
+  `PlanSummary.efforts(segments)`:
+
+  | Efforts in the plan | Note |
+  |---|---|
+  | 17, from 0:15 to 1:15 (Intervals to the Beat) | "17 efforts · 0:15 to 1:15. Resistance changes on its own; you just pedal." |
+  | Several of one length | "2 efforts · 0:30. Resistance changes on its own; you just pedal." |
+  | One | "1 effort · 6:00. Resistance changes on its own; you just pedal." |
+  | None | "Resistance changes on its own; you just pedal." |
+
+  Only the first row is a class Telo Ride 1 ships; the others keep the helper honest for any plan.
 
   | `ble` | Finished rides | Browser | Label | Hint | Opens | Built |
   |---|---|---|---|---|---|---|
@@ -155,8 +170,8 @@ blocked browser (30.6), and the record with "Ride it again" (32.6).
 
   The record figures ("Rides", "Best output", "Last time"; L2-084 AC8) join the view with the
   record (slice 32.6).
-- **`TheClassView`**, **`StartAction`**, **`RideWithOption`** and **`Picture`**
-  (`api/src/classes/the-class-view.ts`, built): the view types the page and the presentation
+- **`TheClassView`**, **`StartAction`**, **`RideWithOption`**, **`Picture`** and
+  **`WhatTheBikeWillDo`** (`api/src/classes/the-class-view.ts`, built): the view types the page and the presentation
   components share, in `api` because `components` imports `api` for types only.
 - **`HOW_TO_RIDE`**, **`HowToRide`**, **`RideWith`**, **`COURSE_GRAPHICS`** and
   **`CourseGraphics`** (`api/src/classes/how-to-ride.ts`, built): the contracts of the choice.
@@ -172,7 +187,10 @@ blocked browser (30.6), and the record with "Ride it again" (32.6).
   mock's BEM classes (`the-class__video`, `the-class__title`, `the-class__duration`,
   `the-class__start`, `the-class__start-hint` and the rest). It takes `view`, emits `start`,
   `choose` and `videoFrame` (the element the player embeds in, `the-class__player`, once it is
-  drawn), and has the slot `[slot=plan]` for what the bike will do. It draws the video's box: the
+  drawn). It draws "What the bike will do" (`section.the-class__plan`, named by its `h2`
+  `the-class__plan-title`): `the-class__plan-watts` with the view's `plan.average`, `ClassProfile`
+  (`the-class__profile`) with `plan.segments` and the label "Resistance profile", and
+  `the-class__plan-note` with `plan.note` (L2-084 AC2, slice 30.3). It draws the video's box: the
   class cover (`photo photo--yt`, "Video: Intervals to the Beat, GCN Training") under the player,
   or the course's still (`photo`, "Ibiza Sunset Strip: a seafront road at sunset") when the view
   has one; when the video cannot load, the player's element is not rendered and the cover stands
@@ -200,15 +218,19 @@ blocked browser (30.6), and the record with "Ride it again" (32.6).
   creates `WorldLoadStore`. With "Ibiza Sunset Strip" it is the carried-over ride in the course:
   World loading, then the course with the class video inset. Journey 37 replaces that with
   riding in Ibiza as L2-174 to L2-177 specify.
-- **`ClassProfile`** (`components/src/class-library/class-profile.ts`, exists; `wz-class-profile`):
-  the resistance profile as one inline SVG with `role="img"`. `TheClass` passes it the segments and
-  the label "Resistance profile" (L2-084 AC2).
+- **`ClassProfile`** (`components/src/the-class/class-profile.ts`, exists; `wz-class-profile`):
+  the resistance profile as one inline SVG with `role="img"`, in a box as wide as the plan is long
+  (`0 0 1200 32`): one bar a segment, as wide as the segment lasts and as tall as its level against
+  the plan's highest. `TheClass` passes it the segments and the label "Resistance profile"
+  (L2-084 AC2) and sets its height through `--class-profile-height`, which the profile's own
+  stylesheet reads: 64 px, and 56 px from 1024 to 1279 px wide, as the mock draws it.
 - **`PlanSummary`** (`domain/src/engine/plan-summary.ts`, exists): `averagePower(segments)` is the
-  plan's time-weighted target power, rounded (L2-084 AC3): 254 W for this plan, so The Class shows
-  "~254 W average" beside the heading "What the bike will do". Under the profile it shows
-  "17 efforts · 0:15 to 1:15. Resistance changes on its own; you just pedal." (L2-084 AC2), a line
-  slice 30.3 builds; `structure(segments)`, which Class Start still shows as
-  "17 × 0:15 to 1:15 · 0:30 → 0:20 recover", goes with Class Start.
+  plan's time-weighted target power, rounded (L2-084 AC3): 253.55 W for this plan, so The Class
+  shows "~254 W average" beside the heading "What the bike will do". `efforts(segments)` (slice
+  30.3) counts the plan's work segments and gives the shortest and the longest in seconds: 17, 15
+  and 75 for this plan, so the line under the profile reads "17 efforts · 0:15 to 1:15. Resistance
+  changes on its own; you just pedal." (L2-084 AC2). `structure(segments)` is no longer shown on
+  The Class; `outline(segments)`, which uses it, stays for World loading until slice 37.1.
 - **`PowerModel`** (`domain/src/engine/power-model.ts`, exists): `target(cadenceAim, level)`, the
   target power of L2-023 AC3 that `PlanSummary.averagePower` weights by duration.
 - **`VIDEO_PLAYER_FACTORY`**, **`VideoPlayer`** (`api/src/video/video-player.ts`, exist) and

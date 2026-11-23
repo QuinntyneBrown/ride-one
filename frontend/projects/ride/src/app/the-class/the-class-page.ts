@@ -1,21 +1,15 @@
 import { ChangeDetectionStrategy, Component, DOCUMENT, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import type { StartAction } from '@telo/api';
-import {
-  Button,
-  ClassPlan,
-  InlineMessage,
-  ScreenHeader,
-  TheClass,
-  TheClassBike,
-} from '@telo/components';
+import { Button, InlineMessage, ScreenHeader, TheClass, TheClassBike } from '@telo/components';
 import { THE_CLASS_ID } from '../classes/the-class';
 import { FullscreenButton } from '../fullscreen/fullscreen-button';
 import { TheClassStore } from './the-class-store';
 
 /**
  * The Class at `/` (docs/mocks/pages/the-class/; L2-084, L2-019, L2-173): the home screen and the one class. Its
- * header has the wordmark, the bike's status as a link to Connect Bike, and Full screen, and no navigation. The start
+ * header has the wordmark, the bike's status as a link to Connect Bike, and Full screen, and no navigation. What the
+ * bike will do is part of the view (L2-084 AC2). The start
  * button opens the ride with a connected bike and Connect Bike without one. A class that breaks a rule is not
  * offered: the page says it can't be loaded, with Reload (L2-080 AC3).
  */
@@ -23,7 +17,6 @@ import { TheClassStore } from './the-class-store';
   selector: 'wz-the-class-page',
   imports: [
     Button,
-    ClassPlan,
     FullscreenButton,
     InlineMessage,
     RouterLink,

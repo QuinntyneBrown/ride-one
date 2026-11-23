@@ -32,7 +32,7 @@ test.describe('The one class', () => {
     await expect(start.title).toHaveText('Intervals to the Beat');
     await expect(start.meta).toContainText('GCN Training');
     await expect(start.meta).toContainText('Intervals');
-    await expect(start.planTotal).toHaveText('20:00');
+    await expect(start.duration).toHaveText('20:00');
     await expect(start.summary).toHaveText(theClass.summary);
     await expect.poll(async () => (await youtube.players()).length).toBe(1);
     const [player] = await youtube.players();

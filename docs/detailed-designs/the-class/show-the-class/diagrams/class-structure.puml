@@ -50,7 +50,7 @@ class ClassRule <<helper>> {
   +{static} broken(definition: ClassDefinition): BrokenClassRule | null
 }
 class PlanSummary <<helper>> {
-  +{static} structure(segments: readonly Segment[]): string
+  +{static} efforts(segments: readonly Segment[]): PlanEfforts
   +{static} averagePower(segments: readonly Segment[]): number
 }
 class TheClassStore {
@@ -83,6 +83,12 @@ class TheClassView {
   +rideWith: RideWith
   +options: readonly RideWithOption[]
   +start: StartAction
+  +plan: WhatTheBikeWillDo
+}
+class WhatTheBikeWillDo {
+  +average: string
+  +segments: readonly Segment[]
+  +note: string
 }
 class RideWithOption {
   +way: RideWith
@@ -122,6 +128,7 @@ Plan "1" *-- "33" Segment
 Segment --> SegmentKind
 TheClassStore ..> TheClassSource : reads
 TheClassStore ..> PlanSummary : summarises with
+TheClassView *-- WhatTheBikeWillDo
 TheClassStore --> TheClassView : builds
 TheClassStore ..> VideoPlayer : parks and destroys
 TheClassView *-- StartAction

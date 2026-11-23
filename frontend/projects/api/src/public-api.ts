@@ -26,7 +26,13 @@ export {
   type HowToRide,
   type RideWith,
 } from './classes/how-to-ride';
-export type { Picture, RideWithOption, StartAction, TheClassView } from './classes/the-class-view';
+export type {
+  Picture,
+  RideWithOption,
+  StartAction,
+  TheClassView,
+  WhatTheBikeWillDo,
+} from './classes/the-class-view';
 export { MONOTONIC_TIME, type MonotonicTime } from './time/monotonic-time';
 export { TICKER, type Ticker } from './time/ticker';
 export {

@@ -6,7 +6,7 @@ Patterns OS prototype **"Telo Ride 1"** (OS `vnjsCrjBAfcZGnW9rHMoch`, prototype
 prototype's four frames and the OS's `shared/` code; each state is a frame drawn with the args the
 prototype passes it. They are the source of truth for the UI (see `AGENTS.md`).
 
-Telo Ride 1 is one class, start to finish: pair the bike, ride *30 Minute HIIT Cardio* (GCN Training)
+Telo Ride 1 is one class, start to finish: pair the bike, ride *Intervals to the Beat* (GCN Training)
 along to its video while the plan sets resistance, and see your output. There is no Home, Race, class
 library, Profile or sign-in in this design. The set replaces the earlier mocks of the larger
 **"Ride"** prototype (`f5zb7cLTQFMdzC5JcFyupj`, in the same OS); they are in git history.
@@ -53,11 +53,13 @@ Every mock uses this cast, which is the design's own data (`shared/machines.ts`,
   - **returning**: 6 rides of the class, best output 342 kJ, last time 318 kJ.
 - **Bike:** *Echelon EX-5s*, identifier `EX5S-0bf669f1`, strong signal, over Web Bluetooth. Works
   with: EX-5s, EX-3, EX-8s, Connect Sport (full control) and other FTMS smart bikes (beta).
-- **The class:** *30 Minute HIIT Cardio* by GCN Training, focus HIIT, video `QUoToFsMNig` synced at
-  0:12. "Eight 30-second maximal efforts with a recovery that shrinks each round. The classic."
-  Plan: 5:00 warm-up at level 8; eight 0:30 efforts at level 24 (aim 98 rpm) with recoveries at level
-  6 (aim 72 rpm) of 3:00, 2:30, 2:30, 2:00, 2:00, 1:30, 1:30; 6:00 cool-down at level 6. 30:00 in
-  all, about 154 W on average.
+- **The class:** *Intervals to the Beat* by GCN Training, focus Intervals, video `il_OFz6o42I`
+  synced at 0:03. "Seventeen efforts from 15 seconds to 1:15, ridden to the beat, with five fast
+  sprints to finish." Plan (L2-080 AC2): 33 segments, 2:30 warm-up at level 14; 17 efforts of 0:15
+  to 1:15 at levels 19 to 24, the last five sprints of 0:20 at 110 rpm, with recoveries of 0:20 to
+  1:00 at levels 11 to 14; 2:30 cool-down at level 11. 20:00 in all, about 254 W on average. The
+  Class's mocks draw it (slice 30.3); Class Ride's and Class Done's still draw the prototype's
+  *30 Minute HIIT Cardio* (30:00, eight efforts, about 154 W) until their slices.
 - **Mid-ride moment:** 7:00 of 30:00, in the first recovery with 1:30 left (half done); 108 W against
   a 107 W target (on target), 73 rpm aiming 72, resistance 6 of 32. Every number comes from running
   the design's `useRide` simulation to 420 s.
@@ -155,9 +157,11 @@ design says nothing. None was settled quietly; the mocks follow the design.
   Beat's (L2-080, L2-084), and every state with a body draws **Ride with** (L2-173), the radio group
   between the summary and the length, in the new design-system block `ride-with`. Three states are
   new: `ibiza` (the course's still in the video's box), `video-unavailable` (the cover alone,
-  L2-084 AC9) and `cannot-draw` (Ibiza disabled, L2-173 AC6). Still the prototype's: the cover
-  picture, and "What the bike will do" with its chart, average and line, which slice 30.3 brings in
-  line. The still in `ibiza` is the course's present picture and shows other riders; the ride is alone.
+  L2-084 AC9) and `cannot-draw` (Ibiza disabled, L2-173 AC6). Slice 30.3 brought the rest in line:
+  the cover is the video's own (`assets/images/classes/intervals-to-the-beat.jpg`), and "What the
+  bike will do" reads "~254 W average", draws the plan's 33 segments in a 1200-second box, each bar
+  as wide as its segment lasts and as tall as its level against the highest (24), and ends "17
+  efforts · 0:15 to 1:15. Resistance changes on its own; you just pedal." (L2-084 AC2). The still in `ibiza` is the course's present picture and shows other riders; the ride is alone.
 
 ## Coverage
 

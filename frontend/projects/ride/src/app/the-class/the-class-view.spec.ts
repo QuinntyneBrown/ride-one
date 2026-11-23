@@ -5,7 +5,15 @@
 // offers the class video and Ibiza Sunset Strip, which says how far and how high it is, or why it cannot be chosen.
 // The class's words come from its definition, and the course's still stands in when the ride is in Ibiza.
 import { INTERVALS_TO_THE_BEAT } from '@telo/domain';
-import { rideWithOptions, startAction, theClassView } from './the-class-view';
+import type { Segment, SegmentKind } from '@telo/api';
+import { rideWithOptions, startAction, theClassView, whatTheBikeWillDo } from './the-class-view';
+
+const seg = (kind: SegmentKind, duration: number, level: number, cadenceAim: number): Segment => ({
+  kind,
+  duration,
+  level,
+  cadenceAim,
+});
 
 const state = {
   definition: INTERVALS_TO_THE_BEAT,
@@ -57,6 +65,41 @@ describe('rideWithOptions', () => {
       disabled: true,
     });
     expect(rideWithOptions(false)[0].disabled).toBe(false);
+  });
+});
+
+describe('whatTheBikeWillDo', () => {
+  it('reads the average, the plan and the efforts of Intervals to the Beat (L2-084 AC2, AC3)', () => {
+    const { segments } = INTERVALS_TO_THE_BEAT.plan;
+    expect(whatTheBikeWillDo(segments)).toEqual({
+      average: '~254 W average',
+      segments,
+      note: '17 efforts · 0:15 to 1:15. Resistance changes on its own; you just pedal.',
+    });
+    expect(theClassView(state).plan).toEqual(whatTheBikeWillDo(segments));
+  });
+
+  it.each([
+    [
+      'efforts of one length',
+      [seg('work', 30, 24, 100), seg('recover', 90, 6, 72), seg('work', 30, 24, 100)],
+      '~235 W average',
+      '2 efforts · 0:30. Resistance changes on its own; you just pedal.',
+    ],
+    [
+      'one effort',
+      [seg('warm-up', 300, 8, 80), seg('work', 360, 12, 90)],
+      '~183 W average',
+      '1 effort · 6:00. Resistance changes on its own; you just pedal.',
+    ],
+    [
+      'no effort',
+      [seg('steady', 1800, 12, 85)],
+      '~205 W average',
+      'Resistance changes on its own; you just pedal.',
+    ],
+  ])('reads a plan with %s from the plan', (_, segments, average, note) => {
+    expect(whatTheBikeWillDo(segments)).toMatchObject({ average, note });
   });
 });
 

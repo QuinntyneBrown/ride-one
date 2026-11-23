@@ -26,9 +26,16 @@ export class TheClassPage {
   readonly cover: Locator;
   readonly player: Locator;
   readonly still: Locator;
-  readonly planTotal: Locator;
+  /** "What the bike will do" (L2-084 AC2): the card, its heading, the average, the resistance profile and the line. */
+  readonly plan: Locator;
+  readonly planTitle: Locator;
+  readonly planWatts: Locator;
   readonly profile: Locator;
-  readonly planSummary: Locator;
+  readonly profileBars: Locator;
+  readonly effortBars: Locator;
+  readonly planNote: Locator;
+  /** The plan chart carried over from Telo Ride, with the length and the structure line; The Class no longer has it. */
+  readonly carriedOverPlan: Locator;
   /** "Ride with" (L2-173): the radio group and its two options. */
   readonly rideWith: Locator;
   readonly options: Locator;
@@ -63,9 +70,16 @@ export class TheClassPage {
     this.still = this.video.getByRole('img', {
       name: 'Ibiza Sunset Strip: a seafront road at sunset',
     });
-    this.planTotal = page.locator('.class-plan__total');
-    this.profile = page.locator('.class-plan').getByRole('img', { name: 'Resistance profile' });
-    this.planSummary = page.locator('.class-plan__summary');
+    this.plan = page.getByRole('region', { name: 'What the bike will do' });
+    this.planTitle = this.plan.getByRole('heading', { level: 2, name: 'What the bike will do' });
+    this.planWatts = this.plan.locator('.the-class__plan-watts');
+    this.profile = this.plan
+      .locator('.the-class__profile')
+      .getByRole('img', { name: 'Resistance profile' });
+    this.profileBars = this.profile.locator('rect');
+    this.effortBars = this.profile.locator('rect.class-profile__work');
+    this.planNote = this.plan.locator('.the-class__plan-note');
+    this.carriedOverPlan = page.locator('.class-plan');
     this.rideWith = page.getByRole('radiogroup', { name: 'Ride with' });
     this.options = this.rideWith.getByRole('radio');
     this.classVideo = this.rideWith.getByRole('radio', { name: 'Class video' });
@@ -100,6 +114,32 @@ export class TheClassPage {
   /** How wide an element is drawn, in CSS pixels: 1 for text hidden from sight but still read. */
   async width(element: Locator): Promise<number> {
     return (await element.boundingBox())?.width ?? 0;
+  }
+
+  /** The resistance profile's box (`viewBox`) and its bars as they are drawn in it, in the plan's order. */
+  async drawnProfile(): Promise<{
+    box: string | null;
+    bars: { element: string; x: number; width: number; height: number }[];
+  }> {
+    return {
+      box: await this.profile.getAttribute('viewBox'),
+      bars: await this.profileBars.evaluateAll((rects) =>
+        rects.map((rect) => ({
+          element: rect.getAttribute('class') ?? '',
+          x: Number(rect.getAttribute('x')),
+          width: Number(rect.getAttribute('width')),
+          height: Number(rect.getAttribute('height')),
+        })),
+      ),
+    };
+  }
+
+  /** Whether an element is drawn wholly inside the window's width, once it has been brought into view. */
+  async fitsTheWidth(element: Locator): Promise<boolean> {
+    await element.scrollIntoViewIfNeeded();
+    const box = await element.boundingBox();
+    const width = this.page.viewportSize()?.width ?? 0;
+    return box !== null && box.x >= 0 && box.x + box.width <= width;
   }
 
   /** Whether an option of "Ride with" shows its mark, the dot in its ring, so the choice is not told by colour alone. */

@@ -1,0 +1,67 @@
+{
+  "voice": "af_heart",
+  "bpm": 92.99,
+  "beatsPerBar": 4,
+  "gapBeats": 1,
+  "outroSeconds": 3,
+  "music": {
+    "file": "../assets/music/beautiful-boom-bap.mp3",
+    "offset": 0.009,
+    "duckDb": 16,
+    "betweenDb": 5,
+    "fadeSeconds": 2
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "bars": 4,
+      "lines": [
+        "What the bike will do: on The Class, the rider now reads the plan before they start."
+      ]
+    },
+    {
+      "id": "card",
+      "bars": 5,
+      "lines": [
+        "Under the video, one card. The average the bike will ask for, a resistance profile of the plan, and the efforts in words."
+      ]
+    },
+    {
+      "id": "figures",
+      "bars": 6,
+      "lines": [
+        "Nothing here is written by hand. The plan's target power, weighted by time, is two hundred and fifty-three point five five watts, shown as about 254. Its seventeen efforts run from fifteen seconds to a minute fifteen."
+      ]
+    },
+    {
+      "id": "profile",
+      "bars": 5,
+      "lines": [
+        "The profile draws one bar for each of the plan's thirty-three segments: as wide as the segment lasts, as tall as its level. A screen reader hears: Resistance profile."
+      ]
+    },
+    {
+      "id": "widths",
+      "bars": 4,
+      "lines": [
+        "The card from a phone to a desktop. Fitting The Class to one screen is the next slice."
+      ]
+    },
+    {
+      "id": "proof",
+      "bars": 5,
+      "lines": [
+        "The tests came first, and failed. Now one hundred and ninety-one specs and one thousand three hundred and sixty-five unit tests pass."
+      ]
+    },
+    {
+      "id": "close",
+      "bars": 12,
+      "lines": [
+        "Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing else.",
+        "It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's resistance for every interval while the rider pedals.",
+        "Connect the bike, take the class, see your number, and come back to beat it."
+      ]
+    }
+  ]
+}
