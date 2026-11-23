@@ -36,6 +36,16 @@ test.describe('Page not found', () => {
     await expect(start.title).toBeVisible();
   });
 
+  test('“Back to the class” with no bike remembered opens Connect Bike, as the app does (L2-145 AC2, L2-167)', async ({
+    page,
+  }) => {
+    const notFound = new NotFoundPage(page);
+    await notFound.open('/no-such-screen');
+    await notFound.backToClass.click();
+
+    await expect.poll(() => new TheClassPage(page).url()).toBe('/connect');
+  });
+
   for (const address of [
     '/race',
     '/race/ibiza-sunset-strip',

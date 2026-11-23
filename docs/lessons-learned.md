@@ -273,6 +273,18 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 36.5 Page not found (2026-11-23)
+
+**What slowed it down**
+
+- Nothing: the page, its words, the header with the wordmark and Full screen, and "Back to the class" were all
+  specified (`not-found.spec.ts`). The one gap was L2-145 AC2's "the app opens as in L2-167" for a rider with no bike:
+  a case now shows "Back to the class" leading to Connect Bike. It passed first run; no product code changed.
+
+**New lessons**
+
+- "As in" another requirement means both of its branches: here the bike remembered and not.
+
 ### 36.4 Theme and full screen (2026-11-23)
 
 **What slowed it down**
