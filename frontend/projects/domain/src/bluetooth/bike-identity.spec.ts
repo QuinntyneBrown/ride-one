@@ -28,4 +28,9 @@ describe('bikeIdentity', () => {
       expect(bikeIdentity(advertised, 'kK3fA9==')).toEqual({ name: 'kK3fA9==', identifier: null });
     },
   );
+
+  it('cuts a device name over 64 characters to 64 (L2-129 AC2)', () => {
+    expect(bikeIdentity('y'.repeat(100), 'id').name).toHaveLength(64);
+    expect(bikeIdentity(undefined, 'z'.repeat(100)).name).toHaveLength(64);
+  });
 });

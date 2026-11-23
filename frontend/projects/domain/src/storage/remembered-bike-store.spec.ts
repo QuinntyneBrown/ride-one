@@ -80,4 +80,27 @@ describe('RememberedBikeStore', () => {
 
     expect(store.get()).toBeNull();
   });
+
+  it('cuts a name over 64 characters to 64 when it saves and when it reads (L2-129 AC2)', () => {
+    const long = 'x'.repeat(100);
+    store.save({ id: 'kK3fA9==', name: long });
+    expect(JSON.parse(localStorage.getItem(REMEMBERED_BIKE_KEY)!).name).toHaveLength(64);
+
+    localStorage.setItem(REMEMBERED_BIKE_KEY, JSON.stringify({ id: 'kK3fA9==', name: long }));
+    expect(store.get()?.name).toHaveLength(64);
+  });
+
+  it('counts a record that is not an object, or has no identifier or name, as no bike (L2-129 AC3)', () => {
+    for (const bad of [
+      '"text"',
+      '[]',
+      '{"id":"","name":"A"}',
+      '{"id":"a"}',
+      '{"id":1,"name":"A"}',
+      '{bad',
+    ]) {
+      localStorage.setItem(REMEMBERED_BIKE_KEY, bad);
+      expect(store.get()).toBeNull();
+    }
+  });
 });

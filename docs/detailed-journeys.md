@@ -83,15 +83,15 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 34.3 | Heap checks | Heap stays stable over 3 hours and across ten rounds of The Class and Class Ride. | 2 | 34. Stay smooth on long rides | L2-138 AC1, AC3 | 100% |
 | 34.4 | Web vitals and readouts | LCP, INP and frame times on the reference tablet; readouts update once a second. | 2 | 34. Stay smooth on long rides | L2-134 AC2, L2-136 AC2–3 | 100% |
 | 35.1 | Restrict third parties | A Content Security Policy and headers that allow only the app and the YouTube player. | 2 | 35. Keep it private | L2-131 | 100% |
-| 35.2 | Treat bike and stored data as untrusted | Device names as text, cut to 64 characters; a malformed record means a new rider; console logs only. | 1 | 35. Keep it private | L2-115, L2-129 | 0% |
+| 35.2 | Treat bike and stored data as untrusted | Device names as text, cut to 64 characters; a malformed record means a new rider; console logs only. | 1 | 35. Keep it private | L2-115, L2-129 | 100% |
 | 36.1 | Fit every width | 320 to 2560 px with no sideways scroll, on all four screens. | 2 | 36. Use by touch, keyboard and screen reader | L2-139 | 0% |
 | 36.2 | Touch and keyboard | 44 px targets, 48 px resistance buttons, visible focus and "Skip to content". | 2 | 36. Use by touch, keyboard and screen reader | L2-140 | 0% |
 | 36.3 | Screen readers, contrast and motion | One `h1` a screen, state changes announced once, contrast in both themes, reduced motion. | 2 | 36. Use by touch, keyboard and screen reader | L2-141, L2-142 AC1, AC3 | 0% |
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
 
-**Total:** 59 slices, 119 days. **Complete:** 53 slices, 110 days (92%), 11 of them carried over.
-**To build:** 6 slices, 9 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
+**Total:** 59 slices, 119 days. **Complete:** 54 slices, 111 days (93%), 11 of them carried over.
+**To build:** 5 slices, 8 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
 the plan built riding in Ibiza (L2-174 to L2-177).
 
 ## What a slice waits for
