@@ -59,4 +59,18 @@ describe('EffortTally', () => {
     tally.add(900, 28, 60);
     expect(tally.watts()).toEqual([0, 0]);
   });
+
+  it('holds one total for each effort however long the ride (L2-138 AC2)', () => {
+    const segments = plan;
+    const tally = new EffortTally(segments);
+    const total = segments.reduce((sum, segment) => sum + segment.duration, 0);
+    for (let second = 0; second < total; second++) tally.add(250, second, second + 1);
+    for (let second = 0; second < 3_600; second++)
+      tally.add(250, total + second, total + second + 1);
+
+    expect(tally.watts()).toHaveLength(
+      segments.filter((segment) => segment.kind === 'work').length,
+    );
+    expect(JSON.stringify(Object.values(tally)).length).toBeLessThan(2_000);
+  });
 });
