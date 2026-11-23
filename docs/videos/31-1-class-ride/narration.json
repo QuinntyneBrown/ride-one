@@ -1,0 +1,81 @@
+{
+  "voice": "af_heart",
+  "bpm": 92.99,
+  "beatsPerBar": 4,
+  "gapBeats": 1,
+  "outroSeconds": 3,
+  "music": {
+    "file": "../assets/music/beautiful-boom-bap.mp3",
+    "offset": 0.009,
+    "duckDb": 16,
+    "betweenDb": 5,
+    "fadeSeconds": 2
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "bars": 4,
+      "lines": [
+        "Class Ride, the screen the rider is on while pedalling, built as it was designed."
+      ]
+    },
+    {
+      "id": "address",
+      "bars": 6,
+      "lines": [
+        "The ride is at slash ride, and only the start button opens it, with the bike connected. A bookmark or a reload opens The Class instead, and no ride starts for a bike that is not there."
+      ]
+    },
+    {
+      "id": "header",
+      "bars": 4,
+      "lines": [
+        "The header reads the class, the clock, Pause, Leave and Full screen. On a phone, only what fits."
+      ]
+    },
+    {
+      "id": "panel",
+      "bars": 6,
+      "lines": [
+        "Under the video, the segment card counts the recovery down. Power reads On target within ten percent of the segment's target, and otherwise the difference in watts, in words, never by colour alone."
+      ]
+    },
+    {
+      "id": "side",
+      "bars": 6,
+      "lines": [
+        "In a landscape window from seven hundred and sixty-eight pixels wide, nothing scrolls. Even on a phone on its side, the video takes the height left, above one row of four."
+      ]
+    },
+    {
+      "id": "ibiza",
+      "bars": 4,
+      "lines": [
+        "In Ibiza, the course takes the video's box, behind the same header and bike panel."
+      ]
+    },
+    {
+      "id": "widths",
+      "bars": 4,
+      "lines": [
+        "The same ride, from a phone to a desktop."
+      ]
+    },
+    {
+      "id": "proof",
+      "bars": 6,
+      "lines": [
+        "The tests came first. Fourteen failed, as expected; twelve passed on the code carried over. Now three hundred and nine specs and one thousand four hundred and thirty-four unit tests pass."
+      ]
+    },
+    {
+      "id": "close",
+      "bars": 12,
+      "lines": [
+        "Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing else.",
+        "It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's resistance for every interval while the rider pedals.",
+        "Connect the bike, take the class, see your number, and come back to beat it."
+      ]
+    }
+  ]
+}

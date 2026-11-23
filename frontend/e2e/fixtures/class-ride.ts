@@ -67,6 +67,41 @@ export async function startClassRide(
 }
 
 /**
+ * Starts a ride in Ibiza as a rider does (L2-173 AC5, L2-087 AC4): Ibiza Sunset Strip is the kept choice, The Class
+ * opens with the remembered Echelon, the bike connects, and the rider presses Start class. The carried-over ride in
+ * the course opens World loading at the ride's address, with the bike connected. On the running clock.
+ */
+export async function openRideInIbiza(page: Page, bluetooth: FakeBluetooth): Promise<void> {
+  await keptRideWith(page, 'ibiza');
+  await bluetooth.remember(echelonBike);
+  const home = new TheClassPage(page);
+  await home.open();
+  await connectBike(bluetooth);
+  await expect(home.start).toHaveText('Start class');
+  await home.start.click();
+  await expect(new WorldLoadingPage(page).root).toBeVisible();
+}
+
+/**
+ * The bike is switched off and its link drops, so it stays lost until `bikeBack`. Resolves to the length of the
+ * bike's log at the drop, which `bikeBack` reads from.
+ */
+export async function loseBike(bluetooth: FakeBluetooth): Promise<number> {
+  await bluetooth.switchOff();
+  await bluetooth.drop();
+  return bluetooth.log().length;
+}
+
+/**
+ * The bike lost at `since` is back: once the app has initialised it again (on its own retry, or at once when the
+ * rider presses the screen's Connect bike or Reconnect), it reports its resistance and `ble` is connected.
+ */
+export async function bikeBack(bluetooth: FakeBluetooth, since: number): Promise<void> {
+  await expect.poll(() => bluetooth.log().slice(since)).toEqual(ECHELON_INITIALISED);
+  await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(6));
+}
+
+/**
  * Opens Intervals to the Beat with the remembered Echelon and Ibiza Sunset Strip chosen (L2-173), and rides it in its world, on the running clock: World
  * loading builds Ibiza Sunset Strip and warms it up, the bike connects, the rider presses Start riding, and the world
  * has faded in over its panorama. The world is drawn, in software here, so a spec that takes WebGPU away draws it with
@@ -78,12 +113,9 @@ export async function startClassRideInWorld(
   api: ApiFixture,
 ): Promise<ClassRidePage> {
   void api;
-  await keptRideWith(page, 'ibiza');
-  await bluetooth.remember(echelonBike);
   const ride = new ClassRidePage(page);
   const loading = new WorldLoadingPage(page);
-  await ride.open(theClass.id);
-  await connectBike(bluetooth);
+  await openRideInIbiza(page, bluetooth);
   await expect(loading.cardTitle).toHaveText('Ibiza Sunset Strip is ready', { timeout: 60_000 });
   await loading.start.click();
   // The world fades in once `main`'s scene has measured the display's frame period, 30 frames on a busy machine.

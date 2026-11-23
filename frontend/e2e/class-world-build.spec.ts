@@ -13,15 +13,9 @@
 // warmed up at Low.
 // Given the warning, when the rider chooses Ride with the panorama, then the world stops loading and the class ride
 // starts.
-import {
-  ECHELON_NOTIFY,
-  echelonBike,
-  resistanceFrame,
-  targetResistanceWrite,
-} from './fixtures/echelon';
-import { keptRideWith } from './fixtures/how-to-ride';
+import { openRideInIbiza } from './fixtures/class-ride';
+import { targetResistanceWrite } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
-import { theClass } from './fixtures/the-class';
 import { WorldAssets } from './fixtures/world-assets';
 import { ClassRidePage } from './pages/class-ride.page';
 import { WorldLoadingPage } from './pages/world-loading.page';
@@ -32,10 +26,7 @@ test.describe('Building the world', () => {
   let assets: WorldAssets;
   let loading: WorldLoadingPage;
 
-  test.beforeEach(async ({ page, bluetooth }) => {
-    // The rider chose Ibiza Sunset Strip on The Class: the ride is in the course (L2-173 AC5).
-    await keptRideWith(page, 'ibiza');
-    await bluetooth.remember(echelonBike);
+  test.beforeEach(async ({ page }) => {
     assets = await WorldAssets.install(page);
     loading = new WorldLoadingPage(page);
   });
@@ -50,9 +41,9 @@ test.describe('Building the world', () => {
   }) => {
     await page.clock.install();
     assets.hold();
-    await new ClassRidePage(page).open(theClass.id);
+    // The rider chose Ibiza Sunset Strip on The Class and pressed Start class (L2-173 AC5).
+    await openRideInIbiza(page, bluetooth);
     await expect.poll(() => assets.requests.length).toBeGreaterThan(0);
-    await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(6));
     await page.clock.fastForward(20_000);
     await expect(loading.warning).toContainText(SLOW);
 

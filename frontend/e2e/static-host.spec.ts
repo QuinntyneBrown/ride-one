@@ -2,7 +2,7 @@
 // Traces to: L2-149 AC1, L2-009 AC2, L2-131 AC4; ADR 0043
 // Description: Telo Ride 1 is static files. The production build carries its host's configuration
 // (`staticwebapp.config.json`), and the spec server serves the build as that file says: an address that matches no file
-// is answered with the app, so the class ride opens by its address and an unknown address reaches Page not found; every
+// is answered with the app, so the ride's address is the app's (which opens The Class there, with no connected bike, L2-087 AC4) and an unknown address reaches Page not found; every
 // answer carries the headers of L2-131 and a year of Strict-Transport-Security; the app's shell and its service worker
 // are asked for again each time while the hashed files are kept for a year; and a file that is not there is 404, never
 // the app. The redirect from plain http is the host's own and is checked on the host by a person (docs/deployment.md).
@@ -10,7 +10,8 @@ import { echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
 import { NotFoundPage } from './pages/not-found.page';
 import { StaticHost } from './pages/static-host';
-import { ClassRidePage } from './pages/class-ride.page';
+import { RIDE_ADDRESS } from './pages/class-ride.page';
+import { TheClassPage } from './pages/the-class.page';
 
 const YEAR = 'max-age=31536000';
 
@@ -23,7 +24,7 @@ test.describe('Static host', () => {
       await webgl.disable();
       const host = new StaticHost(page);
 
-      const ride = await host.open('/classes/intervals-to-the-beat/ride');
+      const ride = await host.open(RIDE_ADDRESS);
       expect(ride.status).toBe(200);
       expect(ride.type).toBe('text/html');
       expect(ride.headers['strict-transport-security']).toBe(YEAR);
@@ -31,7 +32,7 @@ test.describe('Static host', () => {
       expect(ride.headers['content-security-policy']).toContain("frame-ancestors 'none'");
       expect(ride.headers['x-content-type-options']).toBe('nosniff');
       expect(ride.headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
-      await expect(new ClassRidePage(page).name).toContainText('Intervals to the Beat');
+      await expect(new TheClassPage(page).title).toHaveText('Intervals to the Beat');
 
       const unknown = await host.open('/no-such-screen/at-all');
       expect(unknown.status).toBe(200);

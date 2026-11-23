@@ -97,7 +97,7 @@ class ConnectWorks <<component>> {
   +bikes: readonly SupportedBike[]
 }
 
-class "blockedBrowserGuard" as guard <<function>> {
+class "connectedBikeGuard" as guard <<function>> {
   +canActivate(): true | UrlTree
 }
 
@@ -111,7 +111,6 @@ bikes "1" *-- "5" SupportedBike
 ConnectWorks ..> SupportedBike : lists
 BrowserNotice ..> BluetoothSupport : shown from state by the page
 ConnectBlocker ..> BluetoothSupport : shown from state by the page
-guard ..> isBlocked : a blocked browser opens The Class
 noticeHelper ..> BluetoothSupportState : reads
 BrowserNotice ..> noticeHelper : drawn from
 LinkCopy ..> Clipboard : copies the page address

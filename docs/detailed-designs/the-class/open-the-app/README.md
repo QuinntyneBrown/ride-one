@@ -52,7 +52,7 @@ their guards, in the table below, are still Telo Ride's until slices 31.1 and 32
   |---|---|---|
   | `connect` | Connect Bike | `ConnectBikePage` (exists, `connect/connect-bike-page`) |
   | `` (full match) | The Class | `theClassRoutes` (new, `the-class/the-class.routes`), behind `rememberedBikeGuard` |
-  | `ride` | Class Ride | `classRideRoutes` (exists, today at `classes/:id/ride`), behind `connectedBikeGuard` |
+  | `ride` | Class Ride | `classRideRoutes` (exists; at `ride` since slice 31.1), behind `connectedBikeGuard` |
   | `done` | Class Done | `classDoneRoutes` (new, replaces `results/results.routes`), behind `classDoneGuard` |
   | `**` | Page not found | `NotFoundPage` (exists, `not-found/not-found-page`) |
 

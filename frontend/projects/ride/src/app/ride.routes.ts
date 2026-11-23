@@ -9,10 +9,9 @@ import {
 } from '@telo/domain';
 import { provideAppCache } from './app-cache/provide-app-cache';
 import { provideAppUpdates } from './app-update/provide-app-updates';
-import { blockedBrowserGuard } from './bike/blocked-browser.guard';
+import { connectedBikeGuard } from './bike/connected-bike.guard';
 import { provideBikeConnection } from './bike/provide-bike-connection';
 import { rememberedBikeGuard } from './bike/remembered-bike.guard';
-import { THE_CLASS_ID } from './classes/the-class';
 
 /**
  * The four screens and page not found (ADR 0040), under one parent that provides the bike connection: one instance shared from Connect Bike to the ride,
@@ -43,12 +42,12 @@ export const rideRoutes: Routes = [
         title: 'Connect your bike · Telo Ride 1',
         loadComponent: () => import('./connect/connect-bike-page'),
       },
-      // The class ride, at its present address until slice 31.1 moves it to `/ride` (docs/mocks/pages/class-ride/).
-      // The address names the one class; no other class has one (L2-080 AC4). A blocked browser starts no ride: the
-      // address opens `/` there, before anything is asked of the bike (L2-010 AC2).
+      // Class Ride (docs/mocks/pages/class-ride/, L2-087). The start button on The Class opens it; opened without a
+      // connected bike, in a blocked browser too, the address opens `/` instead and nothing is asked of the bike
+      // (AC4, L2-010 AC2). No class has an address of its own (L2-080 AC4).
       {
-        path: `classes/${THE_CLASS_ID}/ride`,
-        canActivate: [blockedBrowserGuard, rememberedBikeGuard],
+        path: 'ride',
+        canActivate: [connectedBikeGuard],
         loadChildren: () => import('./class-ride/class-ride.routes').then((m) => m.classRideRoutes),
       },
       // Results, until Class Done replaces it (slice 32.2).

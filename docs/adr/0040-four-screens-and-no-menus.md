@@ -15,7 +15,8 @@ screen had used since ADR 0039. Every one of them is on the list of what Telo Ri
 ## Decision
 
 - **Four screens and page not found.** The routes are `/connect` (Connect Bike), `/` (the class),
-  `/classes/:id/ride` (the class ride), `/results` and page not found. `/classes`, `/classes/:id`,
+  `/classes/:id/ride` (the class ride; `/ride` since slice 31.1,
+  [ADR 0046](0046-class-ride-at-ride-behind-a-connected-bike.md)), `/results` and page not found. `/classes`, `/classes/:id`,
   `/profile`, `/settings` and everything below them are page not found, whose link reads "Back to
   the class" and leads to `/` (L2-145).
 - **`/` is the class, with no redirect.** It shows Class Start for the stand-in class

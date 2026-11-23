@@ -1,5 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { ClassHeader } from './class-header';
+import { RIDE_ADDRESS } from './class-ride.page';
 
 /**
  * The Class at `/` (docs/mocks/pages/the-class/): the header with the bike status, the video's box, the class's
@@ -119,9 +120,9 @@ export class TheClassPage {
     await this.page.goto('/');
   }
 
-  /** Opens the class ride's address, as a bookmark or a typed address does (`/ride` from slice 31.1). */
+  /** Opens the class ride's address, as a bookmark or a typed address does. */
   async openRide(): Promise<void> {
-    await this.page.goto('/classes/intervals-to-the-beat/ride');
+    await this.page.goto(RIDE_ADDRESS);
   }
 
   url(): string {

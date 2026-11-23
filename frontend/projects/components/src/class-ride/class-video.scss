@@ -1,12 +1,11 @@
 // Block class-video (docs/design-system/assets/components.css, Class Ride; components/video.html): 16:9 on a phone,
-// filling the column above the bike panel from lg.
+// filling the column above the bike panel in a landscape window from md, never under 8 rem (L2-087 AC5).
 :host {
   display: flex;
-  min-height: 0;
   flex-direction: column;
   gap: var(--space-3);
 
-  @media (min-width: 64rem) {
+  @media (min-width: 48rem) and (orientation: landscape) {
     flex: 1;
   }
 }
@@ -19,8 +18,8 @@
   border-radius: var(--radius-xl);
   background: var(--color-raised);
 
-  @media (min-width: 64rem) {
-    min-height: 0;
+  @media (min-width: 48rem) and (orientation: landscape) {
+    min-height: var(--space-32);
     flex: 1;
     aspect-ratio: auto;
   }

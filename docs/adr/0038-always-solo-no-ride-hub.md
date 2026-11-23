@@ -34,6 +34,8 @@ Ride 1 has no backend and that the hub goes with this slice.
   bookmark or a link from Telo Ride would carry it, opens the class ride for that class alone: the
   parameter is not read, no session is joined, and nothing tells the rider a group was expected.
   The address is not redirected or rewritten.
+  (Narrowed by [ADR 0046](0046-class-ride-at-ride-behind-a-connected-bike.md): the ride is at `/ride`, and opened
+  by its address, with or without `?session=…`, it opens The Class, from which the class is ridden solo.)
 - **The race results' tables go in a migration.** `RemoveLiveSessions` drops `SessionResults`,
   `SessionResultEntries` and the `SessionId` column of `Rides`. A submitted ride can no longer
   name the mode `online` or a session.

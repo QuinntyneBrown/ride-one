@@ -4,7 +4,7 @@
 // renderer to the class ride, whose stage shows the world, faded in, with the class video in the corner. (Ibiza
 // Sunset Strip has no panorama.) The world's track plays while no class video does.
 //
-// Given World loading with no bike connected, when the world is ready, then the facts read "No bike", an alert says the
+// Given World loading whose bike has dropped, when the world is ready, then the facts read "No bike", an alert says the
 // bike isn't connected with Connect bike, and Start riding stays disabled until the bike connects.
 // Given the world is ready and the bike connected, when the rider presses Start riding, then the class ride shows the
 // world with the video in the corner, faded in, drawn by the renderer World loading warmed up (no
@@ -13,11 +13,9 @@
 // Given the class video cannot play, when the class rides in its world, then the world's own track plays.
 // Given a ride in Ibiza opens, when the course loads, then the rider built in Blender (`riders/rider.glb`, ADR 0045)
 // is fetched with it from the app's own origin, the course is not ready until it has come, and it is drawn with it.
-import { connectBike } from './fixtures/class-ride';
-import { echelonBike, targetResistanceWrite } from './fixtures/echelon';
-import { keptRideWith } from './fixtures/how-to-ride';
+import { bikeBack, loseBike, openRideInIbiza } from './fixtures/class-ride';
+import { targetResistanceWrite } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
-import { theClass } from './fixtures/the-class';
 import { WorldAssets } from './fixtures/world-assets';
 import { WorldMusic } from './fixtures/world-music';
 import { ClassRidePage } from './pages/class-ride.page';
@@ -30,10 +28,9 @@ test.describe('Starting a world class', () => {
   let loading: WorldLoadingPage;
   let ride: ClassRidePage;
 
-  test.beforeEach(async ({ page, bluetooth }) => {
-    // The rider chose Ibiza Sunset Strip on The Class: the ride is in the course (L2-173 AC5).
-    await keptRideWith(page, 'ibiza');
-    await bluetooth.remember(echelonBike);
+  // In each, the rider chose Ibiza Sunset Strip on The Class and pressed Start class: the ride is in the course
+  // (L2-173 AC5), and World loading opens with the bike connected (L2-087 AC4).
+  test.beforeEach(async ({ page }) => {
     assets = await WorldAssets.install(page);
     loading = new WorldLoadingPage(page);
     ride = new ClassRidePage(page);
@@ -43,11 +40,12 @@ test.describe('Starting a world class', () => {
     await assets.dispose();
   });
 
-  test('with no bike the world keeps loading, and Start riding waits for the bike (L2-157 AC1, AC2, AC3)', async ({
+  test('with the bike lost the world keeps loading, and Start riding waits for the bike (L2-157 AC1, AC2, AC3)', async ({
     page,
     bluetooth,
   }) => {
-    await ride.open(theClass.id);
+    await openRideInIbiza(page, bluetooth);
+    const lost = await loseBike(bluetooth);
 
     await expect(loading.cardTitle).toHaveText('Ibiza Sunset Strip is ready', { timeout: 60_000 });
     await expect(loading.facts.first()).toHaveText('No bike');
@@ -61,7 +59,8 @@ test.describe('Starting a world class', () => {
       'Start riding turns on when the bike is connected and the world is ready.',
     );
 
-    await connectBike(bluetooth);
+    await bluetooth.switchOn();
+    await bikeBack(bluetooth, lost);
 
     await expect(loading.facts.first()).toHaveText('Echelon EX-5s');
     await expect(loading.alert).toHaveCount(0);
@@ -75,10 +74,11 @@ test.describe('Starting a world class', () => {
     bluetooth,
     webgl,
   }) => {
+    // The course is loaded and then drawn in software, and each of the two waits below allows 30 s by itself.
+    test.setTimeout(90_000);
     await webgl.countContexts();
     const music = await WorldMusic.install(page);
-    await ride.open(theClass.id);
-    await connectBike(bluetooth);
+    await openRideInIbiza(page, bluetooth);
     await expect(loading.cardTitle).toHaveText('Ibiza Sunset Strip is ready', { timeout: 30_000 });
     const contexts = await webgl.contexts();
     expect(contexts).toBeGreaterThan(0);
@@ -111,8 +111,7 @@ test.describe('Starting a world class', () => {
       const { pathname } = new URL(response.url());
       if (response.ok() && pathname.startsWith('/courses/')) answered.push(pathname);
     });
-    await ride.open(theClass.id);
-    await connectBike(bluetooth);
+    await openRideInIbiza(page, bluetooth);
 
     // The rider's file is asked for as the course's are, when the ride in Ibiza opens.
     await expect.poll(() => assets.paths()).toContain(RIDER);
@@ -140,8 +139,7 @@ test.describe('Starting a world class', () => {
     bluetooth,
   }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await ride.open(theClass.id);
-    await connectBike(bluetooth);
+    await openRideInIbiza(page, bluetooth);
     await expect(loading.cardTitle).toHaveText('Ibiza Sunset Strip is ready', { timeout: 30_000 });
 
     await loading.start.click();
@@ -158,8 +156,7 @@ test.describe('Starting a world class', () => {
   }) => {
     youtube.block();
     const music = await WorldMusic.install(page);
-    await ride.open(theClass.id);
-    await connectBike(bluetooth);
+    await openRideInIbiza(page, bluetooth);
     await expect(loading.start).toBeEnabled({ timeout: 60_000 });
 
     await loading.start.click();
@@ -172,16 +169,16 @@ test.describe('Starting a world class', () => {
     page,
     bluetooth,
   }) => {
-    await bluetooth.switchOff();
-    await ride.open(theClass.id);
+    await openRideInIbiza(page, bluetooth);
+    const lost = await loseBike(bluetooth);
     await expect(loading.connectBike).toBeVisible();
     await expect(loading.start).toBeDisabled();
-    expect(bluetooth.log()).toEqual([]);
+    expect(bluetooth.log().slice(lost)).toEqual([]);
 
     await bluetooth.switchOn();
     await loading.connectBike.click();
 
-    await connectBike(bluetooth);
+    await bikeBack(bluetooth, lost);
     await expect(loading.facts.first()).toHaveText('Echelon EX-5s');
     await expect(loading.start).toBeEnabled({ timeout: 60_000 });
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Intervals to the Beat');

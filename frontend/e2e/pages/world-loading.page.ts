@@ -8,7 +8,7 @@ export interface LoadStepView {
 }
 
 /**
- * World loading at `/classes/:id/ride` (docs/mocks/pages/world-loading/): the class over its world's panorama, and the
+ * World loading at `/ride` (docs/mocks/pages/world-loading/): the class over its world's panorama, and the
  * load card with the three steps, the overall progress, the facts and Start riding.
  */
 export class WorldLoadingPage {

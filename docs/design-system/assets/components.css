@@ -2443,15 +2443,17 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 .btn.class-ride__leave { padding-inline: var(--space-2); color: var(--color-muted); }
 .btn.class-ride__leave:hover, .btn.class-ride__leave[data-state="hover"] { color: var(--color-heart-fg); }
 
-.class-ride__body { display: grid; flex: 1; min-height: 0; grid-template-columns: minmax(0, 1fr); overflow-y: auto; }
-@media (min-width: 64rem) { .class-ride__body { overflow: hidden; } }
+/* One column that scrolls; in a landscape window from md nothing scrolls: the stage is as tall as the window leaves and
+   the video takes what the bike panel does not (L2-087 AC5). A window too short for the video's floor scrolls instead. */
+.class-ride__body { display: grid; flex: 1; min-height: 0; grid-template-columns: minmax(0, 1fr); align-content: start; overflow-y: auto; }
+@media (min-width: 48rem) and (orientation: landscape) { .class-ride__body { align-content: stretch; } }
 @media (min-width: 64rem) { .class-ride__body--group { grid-template-columns: minmax(0, 1fr) var(--classes-board-width); } }
 .class-ride__stage { display: flex; min-width: 0; flex-direction: column; gap: var(--space-3); padding: var(--space-3); }
 @media (min-width: 40rem) { .class-ride__stage { padding: var(--space-4); } }
-@media (min-width: 64rem) { .class-ride__stage { min-height: 0; } }
-/* The video: aspect-video rounded-xl; fills the column height on lg */
+@media (min-width: 48rem) and (orientation: landscape) { .class-ride__stage { min-height: 0; } }
+/* The video: aspect-video rounded-xl; fills the column height in a landscape window from md, never under 8rem */
 .class-video { position: relative; aspect-ratio: 16 / 9; width: 100%; overflow: hidden; border-radius: var(--radius-xl); background: var(--color-raised); }
-@media (min-width: 64rem) { .class-video { aspect-ratio: auto; min-height: 0; flex: 1; } }
+@media (min-width: 48rem) and (orientation: landscape) { .class-video { aspect-ratio: auto; min-height: var(--space-32); flex: 1; } }
 .class-video > .photo { position: absolute; inset: 0; }
 /* The local cover is YouTube's 4:3 hqdefault thumbnail, letterboxed: show only its 16:9 picture, as the player would */
 .photo--yt { object-view-box: inset(12.5% 0); }

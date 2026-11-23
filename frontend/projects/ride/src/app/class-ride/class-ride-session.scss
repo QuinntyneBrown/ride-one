@@ -1,4 +1,5 @@
-// Block class-ride (docs/design-system/assets/components.css, Class Ride): the header over the scrolling stage.
+// Block class-ride (docs/design-system/assets/components.css, Class Ride): the header over the stage. On a phone and in
+// portrait the stage is one column that scrolls; in a landscape window from md nothing scrolls (L2-087 AC5).
 .class-ride {
   position: relative;
   display: flex;
@@ -21,10 +22,10 @@
     outline: none; // focused by the skip link, never by a pointer
   }
 
-  // From lg the page fits the screen: the video fills the column above the bike panel.
-  @media (min-width: 64rem) {
+  // In a landscape window from md the stage is as tall as the window leaves, and the video's box takes what the bike
+  // panel does not. Nothing is cut off: a window too short for the box's floor scrolls here instead.
+  @media (min-width: 48rem) and (orientation: landscape) {
     align-content: stretch;
-    overflow: hidden;
   }
 }
 
@@ -39,7 +40,7 @@
     padding: var(--space-4);
   }
 
-  @media (min-width: 64rem) {
+  @media (min-width: 48rem) and (orientation: landscape) {
     min-height: 0;
   }
 }
@@ -74,7 +75,8 @@
 }
 
 // Leave is quiet beside Pause: muted, turning to the heart tone on hover (class-ride__leave).
-.class-ride__leave {
+// The class is doubled so it outweighs the button's own small size, whichever stylesheet loads last.
+.class-ride__leave.class-ride__leave {
   --btn-pad: var(--space-2);
   --btn-fg: var(--color-muted);
   --btn-fg-hover: var(--color-heart-fg);

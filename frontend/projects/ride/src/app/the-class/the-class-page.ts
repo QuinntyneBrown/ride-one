@@ -9,7 +9,6 @@ import {
   TheClass,
   TheClassBike,
 } from '@telo/components';
-import { THE_CLASS_ID } from '../classes/the-class';
 import { FullscreenButton } from '../fullscreen/fullscreen-button';
 import { browserNotice } from './browser-notice';
 import { LinkCopy } from './link-copy';
@@ -57,7 +56,7 @@ export default class TheClassPage {
    * (L2-173 AC5), or Connect Bike when no bike is connected.
    */
   protected start(opens: StartAction['opens']): void {
-    void this.router.navigate(opens === 'ride' ? ['/classes', THE_CLASS_ID, 'ride'] : ['/connect']);
+    void this.router.navigate(opens === 'ride' ? ['/ride'] : ['/connect']);
   }
 
   /** Reload: the app is read again, from the device or the network, and the class with it (L2-080 AC3). */

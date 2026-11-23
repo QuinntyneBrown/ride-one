@@ -4,17 +4,9 @@
 // Strip, and the load card building the shaders and warming up the first frames with the course's renderer (its files
 // held by the spec so the build can be seen), then Start riding. Ibiza Sunset Strip is built into the app and has no
 // panorama, so nothing is downloaded. Back to class leaves World loading.
-import {
-  ECHELON_INITIALISED,
-  ECHELON_NOTIFY,
-  echelonBike,
-  resistanceFrame,
-  targetResistanceWrite,
-} from './fixtures/echelon';
-import { connectBike } from './fixtures/class-ride';
-import { keptRideWith } from './fixtures/how-to-ride';
+import { targetResistanceWrite } from './fixtures/echelon';
+import { bikeBack, loseBike, openRideInIbiza } from './fixtures/class-ride';
 import { expect, test } from './fixtures/test';
-import { theClass } from './fixtures/the-class';
 import { WorldAssets } from './fixtures/world-assets';
 import { ClassRidePage } from './pages/class-ride.page';
 import { TheClassPage } from './pages/the-class.page';
@@ -27,10 +19,7 @@ test.describe('World loading', () => {
   let assets: WorldAssets;
   let loading: WorldLoadingPage;
 
-  test.beforeEach(async ({ page, bluetooth }) => {
-    // The rider chose Ibiza Sunset Strip on The Class: the ride is in the course (L2-173 AC5).
-    await keptRideWith(page, 'ibiza');
-    await bluetooth.remember(echelonBike);
+  test.beforeEach(async ({ page }) => {
     assets = await WorldAssets.install(page);
     loading = new WorldLoadingPage(page);
   });
@@ -44,7 +33,10 @@ test.describe('World loading', () => {
     { tag: '@critical' },
     async ({ page, bluetooth }) => {
       assets.hold();
-      await new ClassRidePage(page).open(theClass.id);
+      // The rider chose Ibiza Sunset Strip on The Class and pressed Start class (L2-173 AC5); the bike drops while
+      // the world loads.
+      await openRideInIbiza(page, bluetooth);
+      const lost = await loseBike(bluetooth);
 
       await expect(loading.eyebrow).toHaveText('Ibiza Sunset Strip · the sunset strip · Solo');
       await expect(loading.title).toHaveText('Intervals to the Beat');
@@ -71,10 +63,11 @@ test.describe('World loading', () => {
       await expect(loading.hint).toHaveText(
         'Start riding turns on when the bike is connected and the world is ready.',
       );
-      await expect.poll(() => bluetooth.log()).toEqual(ECHELON_INITIALISED);
       await expect(loading.facts.first()).toHaveText('No bike');
-      // The bike is connected once it answers its initialisation.
-      await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(6));
+      // The bike is connected again once it answers its initialisation.
+      await bluetooth.switchOn();
+      await loading.connectBike.click();
+      await bikeBack(bluetooth, lost);
       await expect(loading.facts.first()).toHaveText('Echelon EX-5s');
       await expect(loading.status).toHaveText('Building the shaders, 40 percent.');
       await expect(loading.hint).toHaveText('Ready in a few seconds. Pedal easy while you wait.');
@@ -108,9 +101,10 @@ test.describe('World loading', () => {
 
   test('Back to class leaves World loading while the world is being built and opens the class at `/` (L2-151 AC5)', async ({
     page,
+    bluetooth,
   }) => {
     assets.hold();
-    await new ClassRidePage(page).open(theClass.id);
+    await openRideInIbiza(page, bluetooth);
     await expect(loading.step(1).root).toHaveAttribute('aria-current', 'step');
     await expect.poll(() => assets.requests.length).toBeGreaterThan(0);
 

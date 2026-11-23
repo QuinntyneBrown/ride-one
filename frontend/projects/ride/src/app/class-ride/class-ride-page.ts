@@ -22,7 +22,7 @@ import { ClassRideSession } from './class-ride-session';
 import { WorldLoadStore } from './world-load-store';
 
 /**
- * `/classes/:id/ride`, ridden as the rider chose on The Class (L2-173 AC5). With "Class video" the class ride starts at
+ * `/ride`, ridden as the rider chose on The Class (L2-173 AC5). With "Class video" the class ride starts at
  * once with the video alone. With "Ibiza Sunset Strip" it is the carried-over ride in the course, until riding in
  * Ibiza is built as L2-174 to L2-177 specify: World loading (docs/mocks/pages/world-loading/) until the class's world
  * is ready and the rider presses Start riding, then the class ride at the same address (L2-151). World loading is the class over its world's
