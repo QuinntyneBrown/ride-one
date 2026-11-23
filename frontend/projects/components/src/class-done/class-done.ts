@@ -33,4 +33,9 @@ export class ClassDone {
   readonly bestFact = input<{ readonly label: string; readonly value: string } | null>(null);
   /** The class's efforts, a bar each, in plan order (L2-169). */
   readonly efforts = input<readonly EffortBar[]>([]);
+
+  /** The class that sets a bar's height: its share of the strongest effort's, in whole percent (the stylesheet has 0 to 100). */
+  protected shareClass(effort: EffortBar): string {
+    return `class-done__effort--share-${Math.round(effort.height)}`;
+  }
 }
