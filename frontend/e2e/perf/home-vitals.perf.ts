@@ -6,7 +6,7 @@
 // The page reports its own Web Vitals through PerformanceObserver; the DevTools Protocol throttles it.
 import { echelonBike } from '../fixtures/echelon';
 import { expect, test } from '../fixtures/test';
-import { ClassStartPage } from '../pages/class-start.page';
+import { TheClassPage } from '../pages/the-class.page';
 
 const LCP_MS = 2_500;
 const INP_MS = 200;
@@ -49,7 +49,7 @@ test('the class, cold on a mid-range phone over 4G, paints within 2.5 s and answ
   });
   await devtools.send('Emulation.setCPUThrottlingRate', { rate: 4 });
 
-  const start = new ClassStartPage(page);
+  const start = new TheClassPage(page);
   await start.open();
   await expect(start.main).toBeAttached();
   await page.waitForLoadState('networkidle');

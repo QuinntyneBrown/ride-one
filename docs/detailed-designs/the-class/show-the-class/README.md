@@ -4,12 +4,13 @@
 
 Telo Ride 1 offers exactly one class, Intervals to the Beat by GCN Training, with the id
 `intervals-to-the-beat`. It ships with the app (ADR 0037, ADR 0042). The Class is the home screen,
-at `/`. It shows the class video, the title and length, a chart of what the bike will do, and one
-start button. A returning rider also sees the
+at `/`. It shows the class video, the title and length, the choice of how to ride, a chart of what the
+bike will do, and one start button. A returning rider also sees the
 ride count, the best output and the last output.
 
 This feature defines the class and its plan, validates them, draws The Class and starts the ride.
-The rider chooses nothing: there is no other class and no way to pick one.
+There is no other class and no way to pick one; the one choice the rider has is how to ride it,
+with the class video or in Ibiza Sunset Strip (L2-173, ADR 0044).
 
 - **class**: timed workout the rider follows along to a video; Telo Ride 1 has one
 - **plan**: timed segments the class follows, 33 in all and 20:00 long
@@ -23,6 +24,8 @@ The rider chooses nothing: there is no other class and no way to pick one.
 - **record**: rider's ride count, best output and last output, kept on the device
 - **start button**: the one primary action of The Class, which reads "Start class", "Ride it
   again" or "Connect your bike"
+- **ride with**: the rider's choice of how to ride, `'video'` or `'ibiza'`, kept on the device
+- **still**: the picture of the course that stands in the video's box when the ride is in Ibiza
 
 Neighbouring features own the adjacent concerns:
 
@@ -47,12 +50,11 @@ Neighbouring features own the adjacent concerns:
 
 ## Description
 
-The codebase holds Telo Ride's Class Start at `/classes/:id` (`ClassStartPage`, `ClassStartStore`,
-`classStartRoutes`, `classUnlockedGuard`, and the components `ClassStartHeader`, `ClassStartVideo`,
-`ClassPlan`, `ClassSync`, `RideChoice` and `BackLink`). The Class replaces it. The blocks below
-either survive from it or are new. Slice 30.1 built the class definition; until The Class is built
-(slices 30.2 and 30.3), `ClassStartPage` and `ClassStartStore` show it at `/` and read it the same
-way.
+Slice 30.2 built The Class in the place of Telo Ride's Class Start, which is gone with its
+"Video link and sync" (`ClassSync`), `ClassStartVideo` and `AppHeaderBike`. Slice 30.1 built the
+class definition. Still to come on this screen: "What the bike will do" as designed (slice 30.3;
+until then the page projects the carried-over `ClassPlan`), the one-screen layout (30.4), the
+blocked browser (30.6), and the record with "Ride it again" (32.6).
 
 **The class definition**
 
@@ -103,59 +105,101 @@ way.
 
 **The screen**
 
-- **`theClassRoutes`** (`ride/src/app/the-class/the-class.routes.ts`, new): the route of the empty
-  path. It binds `provideTheClass()` and `provideClassVideo()` (both exist, in
-  `ride/src/app/classes/`) and loads `TheClassPage` with `loadComponent`, so the class and the
-  player's factory load with the screen.
-- **`TheClassPage`** (`ride/src/app/the-class/the-class-page.ts`, `.html`, `.scss`, new;
-  `wz-the-class-page`): the page. It provides `TheClassStore`, passes its view to `wz-the-class`,
-  projects the bike status link and the Full screen button into the header, and navigates on
-  `start`: to `/ride` for "Start class" and "Ride it again" (L2-084 AC7), to `/connect` for
-  "Connect your bike" (AC6).
-- **`TheClassStore`** (`ride/src/app/the-class/the-class-store.ts`, new, modelled on
-  `ClassStartStore`): the page-scoped state. It reads the class from `THE_CLASS`, which has
-  checked it with `ClassRule`, and exposes `view` as a computed signal over the class, `RIDE_RECORD.current`,
-  `BIKE_CONNECTION.ble` and `BLUETOOTH_SUPPORT.state`. A class that breaks a rule sets
-  `unavailable`; the page then shows no video, plan or start button, and says "The class can’t be
-  loaded. Reload Telo Ride 1 to try again." (`role="alert"`) with **Reload**, which reloads the
-  page (mock `the-class/cannot-load`, L2-080 AC3). `ClassStartStore` does this today.
-  `parkVideo(host)` keeps the behaviour of `ClassStartStore.parkVideo`: it resolves a player from
-  `VIDEO_PLAYER_FACTORY` and loads the video at `syncOffsetSeconds` with `controls: true` and
-  `autoplay: false` (L2-084 AC1). A factory that rejects, or a player whose `state` is `'error'`,
-  sets `videoUnavailable` and changes nothing else (AC9). The store destroys the player when the
-  rider leaves the page.
-- **`theClassView`** (`ride/src/app/the-class/the-class-view.ts`, new): pure helper with unit
-  tests, one case per row of the table below. It builds the `TheClassView`: the meta line
-  "GCN Training · Intervals" from `channel` and `focus`, the length "20:00" with "start to finish", the
-  record figures, the start action and the plan texts.
+- **`theClassRoutes`** (`ride/src/app/the-class/the-class.routes.ts`, built): the route of the
+  empty path. It binds `provideTheClass()`, `provideClassVideo()` and `provideHowToRide()` (all in
+  `ride/src/app/classes/`) and loads `TheClassPage` with `loadComponent`, so the class, the
+  player's factory and the choice load with the screen.
+- **`TheClassPage`** (`ride/src/app/the-class/the-class-page.ts`, `.html`, `.scss`, built;
+  `wz-the-class-page`): the page. It provides `TheClassStore`, draws `ScreenHeader` with the bike
+  status link (`a[wz-the-class-bike]`, `routerLink="/connect"`) and the Full screen button in its
+  `[slot=end]`, passes the store's view to `wz-the-class`, projects `ClassPlan` into its
+  `[slot=plan]`, and navigates on `start`: to the class ride (`/classes/intervals-to-the-beat/ride`
+  until slice 31.1 moves it to `/ride`) for "Start class" (L2-084 AC7), to `/connect` for "Connect
+  your bike" (AC6). When the store has no view it says "The class can’t be loaded. Reload
+  Telo Ride 1 to try again." (`role="alert"`) with **Reload** (mock `the-class/cannot-load`,
+  L2-080 AC3).
+- **`TheClassStore`** (`ride/src/app/the-class/the-class-store.ts`, built): the page-scoped
+  state. It reads the class from `THE_CLASS`, which has checked it with `ClassRule`, and exposes
+  `view`, a computed signal over the class, `BIKE_CONNECTION.ble`, the choice of how to ride and
+  whether the video can load; `view` is `null` for a class that breaks a rule. `bikeName` is the
+  connected bike's name for the header link, or `null` (L2-019). `rideWith` is
+  `rideWith(kept, drawable)`. `choose(way)` keeps the choice through `HOW_TO_RIDE` at once, and
+  parks the player for `'video'` or destroys it for `'ibiza'` (L2-173 AC2 to AC4); it ignores
+  Ibiza where the course cannot be drawn (AC6). `parkVideo(host)` takes the element the player
+  embeds in and, when the ride is with the video, resolves a player from `VIDEO_PLAYER_FACTORY`
+  and loads the video at `syncOffsetSeconds` with `controls: true` and `autoplay: false`
+  (L2-084 AC1). A factory that rejects, or a player whose `state` is `'error'`, sets the view's
+  `videoUnavailable` and changes nothing else (AC9). A counter of parks tells a player that
+  arrives after the rider changed the choice that it is not wanted. The store destroys the player
+  when the rider leaves the page.
+- **`theClassView`**, **`startAction`** and **`rideWithOptions`**
+  (`ride/src/app/the-class/the-class-view.ts`, built): pure helpers with unit tests, one case per
+  row of the tables below. `theClassView` builds the `TheClassView`: the meta line
+  "GCN Training · Intervals" from `channel` and `focus`, the length "20:00" with "start to finish",
+  the cover, the still when the ride is in Ibiza, the options of "Ride with" and the start action.
 
-  | `ble` | Finished rides | Browser | Label | Hint | Opens |
-  |---|---|---|---|---|---|
-  | `connected` | 0 | supported | "Start class" | none | `/ride` |
-  | `connected` | 1 or more | supported | "Ride it again" | none | `/ride` |
-  | not `connected` | any | supported | "Connect your bike" | "The class needs the bike to set resistance." | `/connect` |
-  | any | any | blocked | "Connect your bike", disabled | the same hint | nothing (L2-010 AC1) |
+  | `ble` | Finished rides | Browser | Label | Hint | Opens | Built |
+  |---|---|---|---|---|---|---|
+  | `connected` | 0 | supported | "Start class" | none | the class ride | 30.2 |
+  | `connected` | 1 or more | supported | "Ride it again" | none | the class ride | 32.6 |
+  | not `connected` | any | supported | "Connect your bike" | "The class needs the bike to set resistance." | `/connect` | 30.2 |
+  | any | any | blocked | "Connect your bike", disabled | the same hint | nothing (L2-010 AC1) | 30.6 |
 
-  The record figures are "Rides", "Best output" and "Last time", the outputs with " kJ"; a rider
-  with no finished rides gets none of the three (L2-084 AC8).
-- **`TheClassView`** (`api/src/classes/the-class-view.ts`, new): the view type the page and the
-  presentation component share, in `api` because `components` imports `api` for types only.
-- **`TheClass`** (`components/src/the-class/the-class.ts`, `.html`, `.scss`, new; `wz-the-class`):
-  the presentation component of the design-system block `the-class`, with the mock's BEM classes
-  (`the-class__video`, `the-class__title`, `the-class__stats`, `the-class__start`,
-  `the-class__start-hint`, `the-class__plan` and the rest). It takes `view`, emits `start` and
-  `videoFrame` (the element the player embeds in, as `ClassStartVideo.frame` does today), and has
-  the slots `[slot=bike]`, `[slot=end]` and `[slot=notice]` for the bike status link, the Full
-  screen button and the blocked-browser alert. Its header is `ScreenHeader` (`wz-screen-header`,
-  new, owned by [Show the wordmark](../../ui/show-the-wordmark/README.md)), which draws the
-  mock's `class-header` block with the wordmark; `TheClass` passes the bike status link to its
-  default slot and the Full screen button to its `[slot=end]`. It renders the start button itself in the details
-  column and in the pinned footer, of which the layout shows one (L2-171 AC5). The class cover
-  fills the video box until the player paints over it, with the text alternative
-  "Video: Intervals to the Beat, GCN Training". The mock bundles the cover as
-  `assets/images/classes/intervals-to-the-beat.jpg`, while `ClassStartVideo` reads it from `i.ytimg.com`;
-  which of the two The Class uses is `<TO SUPPLY>` (mock gap: the video that cannot play,
-  L2-084 AC9).
+  The start button's words never follow the choice of how to ride (L2-173 AC5).
+
+  | Option | Name | Line under it | Disabled |
+  |---|---|---|---|
+  | `video` | "Class video" | none | never |
+  | `ibiza`, course can be drawn | "Ibiza Sunset Strip" | "8.4 km · 159 m of climbing" | no |
+  | `ibiza`, course cannot be drawn | "Ibiza Sunset Strip" | "This browser can’t draw Ibiza." | yes |
+
+  The record figures ("Rides", "Best output", "Last time"; L2-084 AC8) join the view with the
+  record (slice 32.6).
+- **`TheClassView`**, **`StartAction`**, **`RideWithOption`** and **`Picture`**
+  (`api/src/classes/the-class-view.ts`, built): the view types the page and the presentation
+  components share, in `api` because `components` imports `api` for types only.
+- **`HOW_TO_RIDE`**, **`HowToRide`**, **`RideWith`**, **`COURSE_GRAPHICS`** and
+  **`CourseGraphics`** (`api/src/classes/how-to-ride.ts`, built): the contracts of the choice.
+  `HowToRideStore` (`domain/src/storage/how-to-ride-store.ts`) keeps `'video'` or `'ibiza'` as one
+  value in `localStorage` (`telo-ride.ride-with`); a value it does not know counts as never chosen.
+  `BrowserCourseGraphics` (`domain/src/browser/browser-course-graphics.ts`) answers `true` where
+  `navigator.gpu` exists or a WebGL 2 context can be made, asks once, and lets the context go.
+  `rideWith(kept, drawable)` (`domain/src/engine/ride-with.ts`) is the rule, with a unit test per
+  case: Ibiza only when it was kept and can be drawn, the class video otherwise (L2-173 AC1, AC6).
+  `provideHowToRide()` binds both tokens on The Class's route and the class ride's.
+- **`TheClass`** (`components/src/the-class/the-class.ts`, `.html`, `.scss`, built;
+  `wz-the-class`): the presentation component of the design-system block `the-class`, with the
+  mock's BEM classes (`the-class__video`, `the-class__title`, `the-class__duration`,
+  `the-class__start`, `the-class__start-hint` and the rest). It takes `view`, emits `start`,
+  `choose` and `videoFrame` (the element the player embeds in, `the-class__player`, once it is
+  drawn), and has the slot `[slot=plan]` for what the bike will do. It draws the video's box: the
+  class cover (`photo photo--yt`, "Video: Intervals to the Beat, GCN Training") under the player,
+  or the course's still (`photo`, "Ibiza Sunset Strip: a seafront road at sunset") when the view
+  has one; when the video cannot load, the player's element is not rendered and the cover stands
+  alone (AC9, mock `the-class/video-unavailable`). It renders the start button in the details
+  column (`the-class__action`) and in the pinned footer (`the-class__footer`), of which the layout
+  shows one (L2-171 AC5). The body scrolls at every width until slice 30.4 fits the lg layout to
+  one screen. The cover is YouTube's (`i.ytimg.com`, ADR 0014), which the service worker keeps
+  once it has been seen; the app bundles no cover.
+- **`TheClassBike`** (`components/src/the-class/the-class-bike.ts`, built;
+  `a[wz-the-class-bike]`): the header link's content (element `the-class__bike`). The page puts
+  it on its link to Connect Bike and projects the bike's name or "No bike"; it adds "connected"
+  for a screen reader and "· Change", or "· Connect", with the Bluetooth or Bluetooth-off icon,
+  hides the action from sight below 640 px and keeps the link 44 px tall (L2-019 AC1 to AC4).
+- **`RideWith`** (`components/src/ride-with/ride-with.ts`, built; `wz-ride-with`): the radio
+  group "Ride with" (design-system block `ride-with`, a WAI-ARIA radio group). It takes `options`
+  and `chosen` and emits `choose`. The chosen option has `aria-checked="true"`, a filled mark and
+  the tab stop; the arrow keys move the choice through `radioStep`
+  (`components/src/ride-with/radio-step.ts`, a pure helper with unit tests), passing over an
+  option that is `aria-disabled`; each option is at least 44 px tall (L2-173 AC7).
+- **`ScreenHeader`** (`components/src/screen-header/`, built by renaming `ClassStartHeader`;
+  `wz-screen-header`): the `class-header` block with the wordmark, owned by
+  [Show the wordmark](../../ui/show-the-wordmark/README.md).
+- **The class ride follows the choice** (`ride/src/app/class-ride/class-ride-page.ts`, ADR 0044).
+  With "Class video" it renders `ClassRideSession` at once, with the video alone, and never
+  creates `WorldLoadStore`. With "Ibiza Sunset Strip" it is the carried-over ride in the course:
+  World loading, then the course with the class video inset. Journey 37 replaces that with
+  riding in Ibiza as L2-174 to L2-177 specify.
 - **`ClassProfile`** (`components/src/class-library/class-profile.ts`, exists; `wz-class-profile`):
   the resistance profile as one inline SVG with `role="img"`. `TheClass` passes it the segments and
   the label "Resistance profile" (L2-084 AC2).
@@ -172,9 +216,10 @@ way.
   its YouTube implementation. `provideClassVideo()` binds the factory to a dynamic import of
   `@telo/video`, so the player's code loads only on a screen that shows the video.
 
-The Playwright page object `the-class.page.ts` (`frontend/e2e/pages/`, new, replacing
-`class-start.page.ts`) owns the selectors, and the existing `youtube.ts` fixture answers the
-player's requests.
+The Playwright page object `the-class.page.ts` (`frontend/e2e/pages/`, built, replacing
+`class-start.page.ts`) owns the selectors, the `youtube.ts` fixture answers the player's requests,
+and `how-to-ride.ts` gives a spec a rider who chose on an earlier visit. `startClassRide`
+(`fixtures/class-ride.ts`) starts a ride as a rider does, from The Class.
 
 ## Requirements
 
@@ -185,6 +230,8 @@ level-1 (L1) requirement, cited by identifier.
 |-------|--------------|-------------|
 | `L2-080` | `L1-014` | The app shall define one class, with the id `intervals-to-the-beat`: "Intervals to the Beat" by "GCN Training", focus "Intervals", 20:00 long, with the summary "Seventeen efforts from 15 seconds to 1:15, ridden to the beat, with five fast sprints to finish.", the YouTube video `il_OFz6o42I` and a sync offset of 0:03.0, the video time at which ride 0:00 starts. Its plan shall be the 33 segments of L2-080 AC2, the plan Ibiza Sunset Strip was built from (`tools/blender/courses/ibiza.json`): 17 efforts, each segment with a level and a cadence aim. The app shall validate that every level is 1 to 32, that every segment has a cadence aim, that there are exactly 17 work segments and that the segment lengths add up to 20:00; it shall not offer an invalid class, and The Class shall then say "The class can’t be loaded. Reload Telo Ride 1 to try again." with **Reload**. No other class shall be reachable, and the class shall show without a network once the app has been opened on the device. |
 | `L2-084` | `L1-014` | The Class, at `/`, shall show the header with the wordmark, the bike status (L2-019) and Full screen; the video player with its controls, parked at the sync offset (0:03); "GCN Training · Intervals", the title as the `h1`, and the summary; and "20:00" with "start to finish". "What the bike will do" shall read "~254 W average", a resistance profile of the plan (`role="img"`, "Resistance profile") and "17 efforts · 0:15 to 1:15. Resistance changes on its own; you just pedal.". The average shall be the plan's time-weighted target power (L2-023 AC3), rounded. With a connected bike the start button shall read "Start class" for a rider with no finished rides and "Ride it again" for a rider with at least one. With no connected bike in a supported browser it shall read "Connect your bike", be followed by "The class needs the bike to set resistance.", and open Connect Bike. When the rider presses "Start class" or "Ride it again" with the bike connected, Class Ride shall open and the ride shall start at 0:00. For a returning rider The Class shall read "Rides" with the ride count ("6"), "Best output" with the best ("342 kJ") and "Last time" with the last output ("318 kJ"); a rider with no finished rides shall see none of the three. When the video cannot load, the class cover shall stand in its box, and the rest of the screen, the start button included, shall work. |
+
+| `L2-173` | `L1-028` | The Class shall offer a radio group named "Ride with" with "Class video" and "Ibiza Sunset Strip", "Class video" chosen for a rider who has never chosen, and shall keep the choice on the device. With "Ibiza Sunset Strip" chosen a still of the course shall stand in the video's box with the alternative text "Ibiza Sunset Strip: a seafront road at sunset", the choice shall read "8.4 km · 159 m of climbing", and neither the 3D renderer nor the course's model shall be loaded. The ride shall be in Ibiza or with the class video as chosen, and the start button's words shall not change with the choice. Where the browser cannot draw the course, "Ibiza Sunset Strip" shall be disabled and read "This browser can’t draw Ibiza.", and "Class video" shall be chosen whatever was kept. Each option shall be at least 44 px tall, the arrow keys shall move the choice, and the chosen one shall be told by `aria-checked` and a mark. Slice 30.2 builds AC1 to AC7; AC5's ride in Ibiza is the carried-over one until journey 37. |
 
 ## Diagrams
 
@@ -205,8 +252,10 @@ definition is part of the app's own code (ADR 0042), so no container is drawn fo
 ### Components
 
 `TheClassPage` provides `TheClassStore`, which reads the class through `THE_CLASS`, whose
-`shippedClass` checks it with `ClassRule`, builds the view with `theClassView` and `PlanSummary`, and parks the video
-through `VIDEO_PLAYER_FACTORY`. `TheClass` in the `components` library draws the view.
+`shippedClass` checks it with `ClassRule`, reads the choice through `HOW_TO_RIDE` and
+`COURSE_GRAPHICS`, builds the view with `theClassView`, and parks the video through
+`VIDEO_PLAYER_FACTORY`. `TheClass` in the `components` library draws the view, with `RideWith`
+for the choice.
 
 ![C4 component view for showing the class](diagrams/c4-component.png)
 
@@ -229,6 +278,7 @@ rule leaves the screen with the message and **Reload**, and no start button (L2-
 
 The start button's label follows the `ble` state and the record (L2-084 AC4 to AC6). Pressing it
 opens Class Ride when the bike is connected (AC7) and Connect Bike otherwise (AC6); either way the
-store destroys the player as the page closes.
+store destroys the player as the page closes. Class Ride reads the kept choice and rides with
+the class video alone or in the course (L2-173 AC5).
 
 ![Sequence diagram for starting the class](diagrams/sequence-start-the-class.png)

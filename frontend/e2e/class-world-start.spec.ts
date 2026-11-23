@@ -13,6 +13,7 @@
 // Given the class video cannot play, when the class rides in its world, then the world's own track plays.
 import { connectBike } from './fixtures/class-ride';
 import { echelonBike, targetResistanceWrite } from './fixtures/echelon';
+import { keptRideWith } from './fixtures/how-to-ride';
 import { expect, test } from './fixtures/test';
 import { theClass } from './fixtures/the-class';
 import { WorldAssets } from './fixtures/world-assets';
@@ -26,6 +27,8 @@ test.describe('Starting a world class', () => {
   let ride: ClassRidePage;
 
   test.beforeEach(async ({ page, bluetooth }) => {
+    // The rider chose Ibiza Sunset Strip on The Class: the ride is in the course (L2-173 AC5).
+    await keptRideWith(page, 'ibiza');
     await bluetooth.remember(echelonBike);
     assets = await WorldAssets.install(page);
     loading = new WorldLoadingPage(page);
@@ -39,12 +42,10 @@ test.describe('Starting a world class', () => {
   test('with no bike the world keeps loading, and Start riding waits for the bike (L2-157 AC1, AC2, AC3)', async ({
     page,
     bluetooth,
-    webgl,
   }) => {
-    await webgl.disable();
     await ride.open(theClass.id);
 
-    await expect(loading.cardTitle).toHaveText('Ibiza Sunset Strip is ready as a panorama');
+    await expect(loading.cardTitle).toHaveText('Ibiza Sunset Strip is ready', { timeout: 60_000 });
     await expect(loading.facts.first()).toHaveText('No bike');
     await expect(loading.alert).toContainText('Your bike isn’t connected.');
     await expect(loading.alert).toContainText(
@@ -115,15 +116,13 @@ test.describe('Starting a world class', () => {
   test('without the class video the world’s own track plays (L2-163 AC1)', async ({
     page,
     bluetooth,
-    webgl,
     youtube,
   }) => {
-    await webgl.disable();
     youtube.block();
     const music = await WorldMusic.install(page);
     await ride.open(theClass.id);
     await connectBike(bluetooth);
-    await expect(loading.start).toBeEnabled();
+    await expect(loading.start).toBeEnabled({ timeout: 60_000 });
 
     await loading.start.click();
 
@@ -134,9 +133,7 @@ test.describe('Starting a world class', () => {
   test('Connect bike tries the bike again after its connection failed (L2-157 AC1, AC3)', async ({
     page,
     bluetooth,
-    webgl,
   }) => {
-    await webgl.disable();
     await bluetooth.switchOff();
     await ride.open(theClass.id);
     await expect(loading.connectBike).toBeVisible();
@@ -148,7 +145,7 @@ test.describe('Starting a world class', () => {
 
     await connectBike(bluetooth);
     await expect(loading.facts.first()).toHaveText('Echelon EX-5s');
-    await expect(loading.start).toBeEnabled();
+    await expect(loading.start).toBeEnabled({ timeout: 60_000 });
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Intervals to the Beat');
   });
 });

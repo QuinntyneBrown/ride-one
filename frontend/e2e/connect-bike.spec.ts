@@ -17,7 +17,7 @@ import {
 } from './fixtures/echelon';
 import { INDOOR_BIKE_DATA, INDOOR_BIKE_FRAME, ftmsBike } from './fixtures/ftms';
 import { expect, test } from './fixtures/test';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 import { ConnectBikePage } from './pages/connect-bike.page';
 import { Wordmark } from './pages/wordmark';
 
@@ -268,7 +268,7 @@ test.describe('Connect Bike', () => {
       // Still Connect Bike just short of half a second after the bike answered.
       expect(stepped).toBeLessThan(450);
       await step(450 - stepped);
-      const start = new ClassStartPage(page);
+      const start = new TheClassPage(page);
       expect(start.url()).toBe('/connect');
       await expect(connect.pairButton).toHaveText('Paired');
 
@@ -283,7 +283,7 @@ test.describe('Connect Bike', () => {
           await page.clock.runFor(50);
           return (await start.header.bike.textContent())?.trim();
         })
-        .toBe('Echelon EX-5s connected');
+        .toBe('Echelon EX-5s connected\u00a0· Change');
     },
   );
 });

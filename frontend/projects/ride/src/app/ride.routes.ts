@@ -47,13 +47,12 @@ export const rideRoutes: Routes = [
         path: 'results',
         loadChildren: () => import('./results/results.routes').then((m) => m.resultsRoutes),
       },
-      // `/` is the class: Class Start for the one class, until slice 30.2 draws The Class (ADR 0040).
+      // `/` is The Class, the home screen (docs/mocks/pages/the-class/).
       {
         path: '',
         pathMatch: 'full',
         canActivate: [rememberedBikeGuard],
-        loadChildren: () =>
-          import('./class-start/class-start.routes').then((m) => m.classStartRoutes),
+        loadChildren: () => import('./the-class/the-class.routes').then((m) => m.theClassRoutes),
       },
       // An address that matches no screen (L2-145). Always last.
       {

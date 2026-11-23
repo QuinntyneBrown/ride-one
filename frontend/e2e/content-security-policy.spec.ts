@@ -7,7 +7,7 @@
 // refusal. A script or a connection to any other origin, such as a tracker's, is refused before it leaves the page.
 import { echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 
 test.describe('Content Security Policy', () => {
   test.beforeEach(({ bluetooth }) => bluetooth.remember(echelonBike));
@@ -16,7 +16,7 @@ test.describe('Content Security Policy', () => {
     'the app is served with its policy and headers, and runs under them (L2-131 AC1, AC4)',
     { tag: '@critical' },
     async ({ page }) => {
-      const start = new ClassStartPage(page);
+      const start = new TheClassPage(page);
       const served = page.waitForResponse((response) => response.request().isNavigationRequest());
       await start.open();
       const headers = (await served).headers();
@@ -41,7 +41,7 @@ test.describe('Content Security Policy', () => {
     page,
     policy,
   }) => {
-    const start = new ClassStartPage(page);
+    const start = new TheClassPage(page);
     await start.open();
     await expect(start.title).toBeVisible();
 

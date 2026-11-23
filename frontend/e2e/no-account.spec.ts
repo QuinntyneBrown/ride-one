@@ -6,7 +6,7 @@
 import { startClassRide } from './fixtures/class-ride';
 import { echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 import { ConnectBikePage } from './pages/connect-bike.page';
 import { NotFoundPage } from './pages/not-found.page';
 import { ResultsPage } from './pages/results.page';
@@ -16,7 +16,7 @@ test.describe('No account', () => {
     page,
     api,
   }) => {
-    await new ClassStartPage(page).open();
+    await new TheClassPage(page).open();
 
     await expect(page).toHaveURL('/connect');
     await expect(new ConnectBikePage(page).title).toBeVisible();
@@ -39,7 +39,7 @@ test.describe('No account', () => {
     bluetooth,
   }) => {
     await bluetooth.remember(echelonBike);
-    const start = new ClassStartPage(page);
+    const start = new TheClassPage(page);
     await start.open();
 
     await expect(start.title).toHaveText('Intervals to the Beat');

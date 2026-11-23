@@ -4,7 +4,7 @@
 // Class still opens. The alerts that say why the bike cannot be reached are in connect-bike-alerts.spec.ts.
 import { expect, test } from './fixtures/test';
 import { ConnectBikePage } from './pages/connect-bike.page';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 
 test.describe('Browser support on Connect Bike', () => {
   test('lists the bikes it works with, one column on a phone and two from sm (L2-007)', async ({
@@ -43,7 +43,7 @@ test.describe('Browser support on Connect Bike', () => {
     bluetooth,
   }) => {
     await bluetooth.remove();
-    const start = new ClassStartPage(page);
+    const start = new TheClassPage(page);
 
     await start.open();
 

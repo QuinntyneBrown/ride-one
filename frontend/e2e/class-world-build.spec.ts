@@ -19,6 +19,7 @@ import {
   resistanceFrame,
   targetResistanceWrite,
 } from './fixtures/echelon';
+import { keptRideWith } from './fixtures/how-to-ride';
 import { expect, test } from './fixtures/test';
 import { theClass } from './fixtures/the-class';
 import { WorldAssets } from './fixtures/world-assets';
@@ -32,6 +33,8 @@ test.describe('Building the world', () => {
   let loading: WorldLoadingPage;
 
   test.beforeEach(async ({ page, bluetooth }) => {
+    // The rider chose Ibiza Sunset Strip on The Class: the ride is in the course (L2-173 AC5).
+    await keptRideWith(page, 'ibiza');
     await bluetooth.remember(echelonBike);
     assets = await WorldAssets.install(page);
     loading = new WorldLoadingPage(page);

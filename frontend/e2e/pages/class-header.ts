@@ -1,8 +1,8 @@
 import type { Locator, Page } from '@playwright/test';
 
 /**
- * The slim header (design-system block class-header) of Class Start and Page not found: the wordmark, the bike's
- * status on Class Start, and Full screen. It has no navigation (L2-167 AC4, ADR 0040).
+ * The slim header (design-system block class-header) of The Class and Page not found: the wordmark, the bike's
+ * status on The Class, and Full screen. It has no navigation (L2-167 AC4, ADR 0040).
  */
 export class ClassHeader {
   readonly root: Locator;
@@ -10,7 +10,7 @@ export class ClassHeader {
   /** The navigation Telo Ride drew, and any link; Telo Ride 1 has no menu. */
   readonly nav: Locator;
   readonly links: Locator;
-  /** The bike status at the end of the header, shown from lg (1024 px). */
+  /** The bike status on The Class, a link to Connect Bike (L2-019). */
   readonly bike: Locator;
   /** The streak and the level link Telo Ride drew; Telo Ride 1 has neither (ADR 0039). */
   readonly streak: Locator;
@@ -26,7 +26,7 @@ export class ClassHeader {
     this.product = this.lockup.locator('.wordmark__product');
     this.nav = this.root.getByRole('navigation');
     this.links = this.root.getByRole('link');
-    this.bike = this.root.locator('.app-header__bike');
+    this.bike = this.root.locator('.the-class__bike');
     this.streak = this.root.locator('.app-header__streak');
     this.level = this.root.locator('.app-header__level');
     this.fullScreen = this.root.getByRole('button', { name: 'Full screen', exact: true });

@@ -11,7 +11,7 @@ Container_Boundary(ride, "ride application") {
   Component(index, "index.html", "Document", "Viewport meta with viewport-fit=cover")
 }
 Container_Boundary(components, "components library") {
-  Component(video, "ClassStartVideo", "Angular component, wz-class-start-video", "The class video in a 16:9 box")
+  Component(video, "TheClass", "Angular component, wz-the-class", "The class video, or the course's still, in a 16:9 box")
   Component(plan, "ClassPlan", "Angular component, wz-class-plan", "What the bike will do")
   Component(button, "Button", "Angular component, wz-button", "The start button")
 }

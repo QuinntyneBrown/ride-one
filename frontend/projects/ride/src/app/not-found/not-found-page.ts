@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Button, ClassStartHeader } from '@telo/components';
+import { Button, ScreenHeader } from '@telo/components';
 import { FullscreenButton } from '../fullscreen/fullscreen-button';
 
 /**
@@ -9,7 +9,7 @@ import { FullscreenButton } from '../fullscreen/fullscreen-button';
  */
 @Component({
   selector: 'wz-not-found-page',
-  imports: [RouterLink, Button, ClassStartHeader, FullscreenButton],
+  imports: [RouterLink, Button, ScreenHeader, FullscreenButton],
   templateUrl: './not-found-page.html',
   styleUrl: './not-found-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

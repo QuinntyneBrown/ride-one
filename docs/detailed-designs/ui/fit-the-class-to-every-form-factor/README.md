@@ -60,8 +60,8 @@ or new.
 - **Video box** (new rule): `.the-class__video` has `aspect-ratio: 16 / 9` and full width below
   lg. From lg, `.the-class__media` is a size container (`container-type: size`) and the video's
   width is `min(100cqw, calc(100cqh * 16 / 9))`, so the box takes the height left and stays 16:9
-  (L2-171 AC1). The player inside it is `ClassStartVideo` (exists, `wz-class-start-video`), which
-  belongs to Show The Class.
+  (L2-171 AC1). The cover, the player and the course's still inside it are drawn by `TheClass`
+  (`wz-the-class`, built by slice 30.2), which belongs to Show The Class.
 - **Record row** (new rule): `.the-class__facts` is a wrapping flex row; `.the-class__stats` has
   `flex: 1 1 16rem`, so on a phone its three figures wrap under "30:00" and on a portrait tablet
   they sit beside it (L2-171 AC4). From lg the facts stack in the aside.

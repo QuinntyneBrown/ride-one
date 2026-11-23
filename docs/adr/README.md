@@ -45,3 +45,4 @@
 | [0041](0041-one-application-the-marketing-site-is-removed.md) | One application: the marketing site is removed | Accepted |
 | [0042](0042-one-class-and-one-course-shipped-with-the-app.md) | One class and one course, shipped with the app | Accepted |
 | [0043](0043-static-files-on-azure-static-web-apps.md) | Static files on Azure Static Web Apps: the backend is removed | Accepted |
+| [0044](0044-the-class-offers-two-ways-to-ride.md) | The Class offers two ways to ride, wired to the two rides the app has | Accepted |

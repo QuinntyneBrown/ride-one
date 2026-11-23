@@ -4,7 +4,7 @@ import { echelonBike } from './echelon';
 import type { FakeBluetooth } from './fake-bluetooth';
 import type { ApiFixture } from './api';
 import { openResults, soloClass } from './results';
-import { ClassStartPage } from '../pages/class-start.page';
+import { TheClassPage } from '../pages/the-class.page';
 import { ConnectBikePage } from '../pages/connect-bike.page';
 import { NotFoundPage } from '../pages/not-found.page';
 import { ResultsPage } from '../pages/results.page';
@@ -31,8 +31,8 @@ const remembered =
  * each at 320 and 2560 px, and the responsive sweep (e2e/sweeps/) at every breakpoint between.
  */
 export const screens: Record<string, Opener> = {
-  'Class Start': remembered(async (page) => {
-    const start = new ClassStartPage(page);
+  'The Class': remembered(async (page) => {
+    const start = new TheClassPage(page);
     await start.open();
     return start.title;
   }),

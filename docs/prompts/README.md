@@ -110,3 +110,4 @@ One ready-to-run prompt per slice of [`detailed-journeys.md`](../detailed-journe
 | 104 | 29.2 | [Say why the bike cannot be reached](29-2-say-why-the-bike-cannot-be-reached.md) | Pair the bike | 2 |
 | 105 | 30.1 | [The one class](30-1-the-one-class.md) | Open on The Class | 2 |
 | 106 | 28.8 | [Host as static files](28-8-host-as-static-files.md) | Make it Telo Ride 1 | 3 |
+| 107 | 30.2 | [The Class](30-2-the-class.md) | Open on The Class | 3 |

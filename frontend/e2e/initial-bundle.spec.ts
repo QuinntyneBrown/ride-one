@@ -7,7 +7,7 @@ import { echelonBike } from './fixtures/echelon';
 import { startClassRideInWorld } from './fixtures/class-ride';
 import { ScriptLog } from './fixtures/scripts';
 import { expect, test } from './fixtures/test';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 
 test(
   'the class opens without the 3D world’s code (L2-136 AC1)',
@@ -15,7 +15,7 @@ test(
   async ({ page, bluetooth }) => {
     await bluetooth.remember(echelonBike);
     const scripts = new ScriptLog(page);
-    const start = new ClassStartPage(page);
+    const start = new TheClassPage(page);
     await start.open();
     await expect(start.main).toBeAttached();
     await page.waitForLoadState('networkidle');

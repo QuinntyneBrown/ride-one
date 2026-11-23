@@ -1,0 +1,63 @@
+<div class="the-class">
+  <div class="the-class__scroll">
+    <main id="main" class="the-class__body" tabindex="-1">
+      <div class="the-class__media">
+        <div class="the-class__video">
+          @if (view().still; as still) {
+            <img class="photo" [src]="still.url" [alt]="still.alt" />
+          } @else {
+            <img class="photo photo--yt" [src]="view().cover.url" [alt]="view().cover.alt" />
+          }
+          <!-- The video that cannot load leaves the cover alone, with no player over it (L2-084 AC9). -->
+          @if (!view().videoUnavailable) {
+            <div class="the-class__player" [hidden]="view().still !== null"></div>
+          }
+        </div>
+      </div>
+      <section class="the-class__info" aria-labelledby="class-title">
+        <p class="the-class__meta">{{ view().meta }}</p>
+        <h1 class="the-class__title" id="class-title">{{ view().title }}</h1>
+        <p class="the-class__summary">{{ view().summary }}</p>
+        <wz-ride-with
+          class="the-class__ride-with"
+          [options]="view().options"
+          [chosen]="view().rideWith"
+          (choose)="choose.emit($event)"
+        />
+        <div class="the-class__facts">
+          <p class="the-class__length">
+            <span class="the-class__duration">{{ view().length }}</span><span
+              class="the-class__duration-label"
+              >{{ view().lengthLabel }}</span
+            >
+          </p>
+        </div>
+        <div class="the-class__action">
+          <ng-container [ngTemplateOutlet]="go" />
+        </div>
+      </section>
+      <div class="the-class__plan"><ng-content select="[slot=plan]" /></div>
+    </main>
+  </div>
+  <div class="the-class__footer">
+    <div class="the-class__footer-inner">
+      <ng-container [ngTemplateOutlet]="go" />
+    </div>
+  </div>
+</div>
+<ng-template #go>
+  <button
+    wz-button
+    variant="primary"
+    size="xl"
+    [block]="true"
+    type="button"
+    class="the-class__start"
+    (click)="start.emit()"
+  >
+    {{ view().start.label }}
+  </button>
+  @if (view().start.hint; as hint) {
+    <p class="the-class__start-hint">{{ hint }}</p>
+  }
+</ng-template>

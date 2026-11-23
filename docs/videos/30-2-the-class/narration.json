@@ -1,0 +1,81 @@
+{
+  "voice": "af_heart",
+  "bpm": 92.99,
+  "beatsPerBar": 4,
+  "gapBeats": 1,
+  "outroSeconds": 3,
+  "music": {
+    "file": "../assets/music/beautiful-boom-bap.mp3",
+    "offset": 0.009,
+    "duckDb": 16,
+    "betweenDb": 5,
+    "fadeSeconds": 2
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "bars": 4,
+      "lines": [
+        "The Class is built: Telo Ride 1's home screen, with the one class and one start button."
+      ]
+    },
+    {
+      "id": "screen",
+      "bars": 5,
+      "lines": [
+        "The header shows the bike, and leads to Connect Bike. Beside the parked video are the class's name, its summary and its twenty minutes."
+      ]
+    },
+    {
+      "id": "start",
+      "bars": 5,
+      "lines": [
+        "With the bike connected, the button reads Start class. With no bike it reads Connect your bike, and says why the class needs it."
+      ]
+    },
+    {
+      "id": "ridewith",
+      "bars": 5,
+      "lines": [
+        "New here is Ride with: the class video, or Ibiza Sunset Strip. The choice is kept on this device, and the course's still takes the video's box."
+      ]
+    },
+    {
+      "id": "states",
+      "bars": 5,
+      "lines": [
+        "A browser that cannot draw the course says so and keeps the class video. And when the video cannot load, its cover stands alone."
+      ]
+    },
+    {
+      "id": "rides",
+      "bars": 6,
+      "lines": [
+        "Start class follows the choice. The class video rides at once, with the video alone. Ibiza is still the ride carried over, with its loading screen, until its own journey builds it."
+      ]
+    },
+    {
+      "id": "widths",
+      "bars": 4,
+      "lines": [
+        "The Class from a phone to a desktop. Fitting it to one screen is a later slice."
+      ]
+    },
+    {
+      "id": "proof",
+      "bars": 5,
+      "lines": [
+        "Fourteen specs came first, and thirteen failed. Now one hundred and eighty-six specs and every unit test pass."
+      ]
+    },
+    {
+      "id": "close",
+      "bars": 12,
+      "lines": [
+        "Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing else.",
+        "It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's resistance for every interval while the rider pedals.",
+        "Connect the bike, take the class, see your number, and come back to beat it."
+      ]
+    }
+  ]
+}

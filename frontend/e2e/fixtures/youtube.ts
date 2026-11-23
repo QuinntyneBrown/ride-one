@@ -100,6 +100,17 @@ export class YouTubeFixture {
     return url.href === API || COVER.test(url.href);
   }
 
+  /**
+   * Forgets the players the page has created so far, so `players()` lists only those made from now on: a spec that
+   * starts a ride from The Class reads the ride's player, not the one The Class parked.
+   */
+  static forgetPlayers(page: Page): Promise<void> {
+    return page.evaluate(() => {
+      const players = (window as FakeWindow).__fakeYouTube;
+      if (players) players.length = 0;
+    });
+  }
+
   /** Blocks the IFrame API's script, as an extension or a network that bars YouTube does. */
   block(): void {
     this.blocked = true;

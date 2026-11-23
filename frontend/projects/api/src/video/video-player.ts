@@ -6,7 +6,7 @@ export type PlayerState = 'loading' | 'playing' | 'paused' | 'error';
 
 /**
  * How a video loads: where it starts, whether YouTube's controls show, whether it plays at once or waits parked at its
- * start (Class Start, L2-084 AC1), and the frame's accessible title.
+ * start (The Class, L2-084 AC1), and the frame's accessible title.
  */
 export interface PlayerOptions {
   readonly startSeconds: number;

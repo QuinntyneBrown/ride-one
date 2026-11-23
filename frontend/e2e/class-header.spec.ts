@@ -7,14 +7,14 @@
 import { echelonBike } from './fixtures/echelon';
 import { withoutFullscreen } from './fixtures/fullscreen';
 import { expect, test } from './fixtures/test';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 
 test.beforeEach(({ bluetooth }) => bluetooth.remember(echelonBike));
 
 test('Full screen enters full screen, and Exit full screen leaves it (L2-144 AC1) @critical', async ({
   page,
 }) => {
-  const start = new ClassStartPage(page);
+  const start = new TheClassPage(page);
   await start.open();
 
   await start.header.fullScreen.click();
@@ -31,22 +31,24 @@ test('where the browser has no Fullscreen API, the button is absent (L2-144 AC2)
   page,
 }) => {
   await withoutFullscreen(page);
-  const start = new ClassStartPage(page);
+  const start = new TheClassPage(page);
   await start.open();
 
   await expect(start.header.bike).toBeVisible();
   await expect(start.header.fullScreen).toHaveCount(0);
 });
 
-test('on a phone the header is one row with no navigation (L2-167 AC4)', async ({ page }) => {
+test('on a phone the header is one row with no navigation but the bike status (L2-167 AC4, L2-019 AC4)', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  const start = new ClassStartPage(page);
+  const start = new TheClassPage(page);
   await start.open();
 
   await expect(start.title).toBeVisible();
   await expect(start.header.nav).toHaveCount(0);
-  await expect(start.header.links).toHaveCount(0);
-  await expect(start.header.bike).toBeHidden();
+  await expect(start.header.links).toHaveCount(1);
+  await expect(start.header.bike).toBeVisible();
   const header = await start.header.root.boundingBox();
   const lockup = await start.header.lockup.boundingBox();
   const fullScreen = await start.header.fullScreen.boundingBox();
