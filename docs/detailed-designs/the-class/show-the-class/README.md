@@ -51,7 +51,7 @@ The codebase holds Telo Ride's Class Start at `/classes/:id` (`ClassStartPage`, 
 `ClassPlan`, `ClassSync`, `RideChoice` and `BackLink`). The Class replaces it. The blocks below
 either survive from it or are new.
 
-### The class definition
+**The class definition**
 
 - **`ClassDto`** (`api/src/classes/class-dto.ts`, exists, reduced): the class as the frontend holds
   it. Telo Ride 1 keeps `id`, `title`, `channel`, `focus`, `lengthSeconds`, `summary`, `plan` and
@@ -88,7 +88,7 @@ either survive from it or are new.
   `ClassRule.valid(dto)` is `true` when every segment's level is 1 to 32, the plan has exactly eight
   `work` segments and the durations add up to 1800 s (L2-080 AC3).
 
-### The screen
+**The screen**
 
 - **`theClassRoutes`** (`ride/src/app/the-class/the-class.routes.ts`, new): the route of the empty
   path. It binds `provideClasses()` and `provideClassVideo()` (both exist, in

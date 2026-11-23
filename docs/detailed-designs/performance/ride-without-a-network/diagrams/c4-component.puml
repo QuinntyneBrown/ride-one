@@ -1,0 +1,37 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Ride without a network
+
+System_Ext(bike, "Smart bike", "Echelon or FTMS; Bluetooth LE")
+System_Ext(youtube, "YouTube", "Privacy-enhanced player for the class video")
+System_Ext(host, "Static host", "Serves the app's files over HTTPS")
+ContainerDb(storage, "Browser storage", "localStorage", "The record and the remembered bike")
+
+Container_Boundary(ride, "ride application") {
+  Component(store, "ClassRideStore", "Page-scoped store", "Runs the ride with no network request; preloads Class Done")
+  Component(done, "Class Done page", "Lazy route /done", "Renders from navigation state and the record")
+}
+Container_Boundary(components, "components library") {
+  Component(cvideo, "ClassVideo", "wz-class-video", "Shows the cannot-play notice")
+}
+Container_Boundary(domain, "domain library") {
+  Component(engine, "RideClock, RideTicker, WorkoutEngine, RideTotals", "engine services", "Time, plan and totals from the device alone")
+  Component(wb, "WebBluetoothBikeConnection", "bluetooth service", "The link to the bike")
+  Component(record, "Record store", "storage service", "Writes the record")
+}
+Container_Boundary(video, "video library") {
+  Component(yt, "YouTubeVideoPlayer", "VideoPlayer", "state becomes error when the stream is lost")
+}
+
+Rel(store, engine, "Runs")
+Rel(store, wb, "Sends levels through")
+Rel(store, yt, "Reads state; does not wait on it")
+Rel(store, cvideo, "Raises videoUnavailable for")
+Rel(store, record, "Records the finished ride")
+Rel(store, done, "Preloads, then navigates to")
+Rel(record, storage, "Writes", "localStorage")
+Rel(wb, bike, "Reads and writes", "Web Bluetooth")
+Rel(yt, youtube, "Streams", "HTTPS")
+Rel(done, host, "Chunk fetched during the ride, not at the finish", "HTTPS")
+@enduml
