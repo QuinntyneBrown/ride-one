@@ -1,5 +1,4 @@
 import type { Page, Request } from '@playwright/test';
-import { catalogue } from './classes';
 
 /**
  * What a handler answers: a status (200 by default), a JSON body (none for 204) and any headers, such as Retry-After; or,
@@ -18,7 +17,8 @@ export type Handler = (request: Request) => ApiReply | Promise<ApiReply>;
  * Answers the app's requests to the backend (`/api/…` on localhost) with what the spec declared (L2-148 AC1). A request
  * no answer matches gets 501, and the shared fixture fails the spec. The latest answer for a method and path wins, so
  * a spec can change one mid-test; `requests` lists what the page sent, in order, and `sentBodies` the JSON it sent.
- * The class catalogue is the only request the app makes (ADR 0039), and every spec has it answered.
+ * Telo Ride 1 has no backend (ADR 0037): the app makes no such request, so no answer is declared and any it makes
+ * fails the spec.
  */
 export class ApiFixture {
   private readonly answers = new Map<string, Handler>();
@@ -31,8 +31,6 @@ export class ApiFixture {
 
   static async install(page: Page): Promise<ApiFixture> {
     const api = new ApiFixture();
-    // The class at `/` reads the class catalogue (L2-080).
-    api.answer('GET', '/api/classes', catalogue);
     // On the context, not the page: once the app cache's service worker controls the page, it makes the requests.
     await page.context().route(
       (url) =>

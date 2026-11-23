@@ -1,16 +1,16 @@
-"""Builds a map and renders its 20-second film out of the way, in Blender's background mode (ADR 0035).
+"""Builds the map and renders its 20-second film out of the way, in Blender's background mode (ADR 0035).
 
-All at once, for any number of maps (the film is written to blender/<id>.mp4):
+All at once (the film is written to blender/<id>.mp4):
 
-  blender --background --factory-startup --python tools/blender/render_film.py -- prairie oldtown
+  blender --background --factory-startup --python tools/blender/render_film.py -- ibiza
 
-Or in steps, which holds one map in memory at a time and lets a long render be split:
+Or in steps, which lets a long render be split:
 
-  blender --background --factory-startup --python tools/blender/render_film.py -- --stage <dir> prairie
+  blender --background --factory-startup --python tools/blender/render_film.py -- --stage <dir> ibiza
       builds the map (its glb, course and scene, as build_course.py does) and saves the film's scene as
-      <dir>/prairie.blend, set to render PNG frames into <dir>/prairie/
-  blender --background <dir>/prairie.blend --frame-start 1 --frame-end 300 --render-anim
-  ffmpeg -framerate 30 -i <dir>/prairie/%04d.png -c:v libx264 -pix_fmt yuv420p -crf 20 blender/prairie.mp4
+      <dir>/ibiza.blend, set to render PNG frames into <dir>/ibiza/
+  blender --background <dir>/ibiza.blend --frame-start 1 --frame-end 300 --render-anim
+  ffmpeg -framerate 30 -i <dir>/ibiza/%04d.png -c:v libx264 -pix_fmt yuv420p -crf 20 blender/ibiza.mp4
 """
 
 import sys

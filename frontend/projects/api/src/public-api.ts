@@ -15,13 +15,10 @@ export { REMEMBERED_BIKE, type RememberedBike } from './bike/remembered-bike';
 export type { ResistanceSource, SentCommand } from './bike/sent-command';
 export type { BikeSupportLevel, SupportedBike } from './bike/supported-bike';
 export type { TelemetrySample } from './bike/telemetry-sample';
-export type { ClassCatalogueDto, ShelfDto } from './classes/class-catalogue-dto';
 export { APP_LOGGER, type AppLogger } from './diagnostics/app-logger';
-export type { ClassDto } from './classes/class-dto';
-export { CLASSES_API, type ClassesApi } from './classes/classes-api';
-export { ClassesApiError, type ClassesApiErrorCode } from './classes/classes-api-error';
-export { HttpClassesApi } from './classes/http-classes-api';
-export type { VideoDto } from './classes/video-dto';
+export type { ClassDefinition, ClassVideo } from './classes/class-definition';
+export { ClassError, type ClassErrorCode } from './classes/class-error';
+export { THE_CLASS, type TheClassSource } from './classes/the-class';
 export { MONOTONIC_TIME, type MonotonicTime } from './time/monotonic-time';
 export { TICKER, type Ticker } from './time/ticker';
 export {

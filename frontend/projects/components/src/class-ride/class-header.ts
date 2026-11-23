@@ -4,7 +4,7 @@ import { formatClock } from '../metric/format-clock';
 
 /**
  * The class ride's header (design-system block class-header, docs/mocks/pages/class-ride/): the small lockup, the
- * class and its mode ("30 Minute HIIT Cardio · Solo", hidden below md), and the clock ("7:00 / 30:00", the total
+ * class and its mode ("Intervals to the Beat · Solo", hidden below md), and the clock ("5:30 / 20:00", the total
  * hidden on a phone) as a timer (L2-087 AC1, AC2). The page puts its buttons in the `end` slot.
  */
 @Component({

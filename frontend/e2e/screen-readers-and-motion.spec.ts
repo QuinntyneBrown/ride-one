@@ -1,6 +1,6 @@
 // Acceptance test
 // Traces to: L2-141 AC2, L2-142 AC2
-// Description: a screen reader hears each step of a ride once, as it starts (the class ride's "Work, 0:30"), and the
+// Description: a screen reader hears each step of a ride once, as it starts (the class ride's "Work, 0:45"), and the
 // result when Results opens. With the device asking for reduced motion, nothing on any screen moves but
 // an opacity fade: the interval and segment bars jump to their place.
 import { startClassRide } from './fixtures/class-ride';
@@ -19,19 +19,19 @@ test.describe('Screen readers', () => {
     const ride = await startClassRide(page, bluetooth, api);
     const app = new AppDocument(page);
 
-    await page.clock.fastForward('05:00');
+    await page.clock.fastForward('02:30');
     // The live region takes its words a beat after the step (100 ms), so a screen reader hears it as a change.
     await page.clock.runFor(1000);
 
     await expect(ride.segmentKind).toHaveText('Work');
-    await expect(app.announcement).toHaveText('Work, 0:30');
+    await expect(app.announcement).toHaveText('Work, 0:45');
   });
 
   test('Results says the result as it opens (L2-141 AC2)', async ({ page }) => {
     await openResults(page, soloClass());
 
     await expect(new AppDocument(page).announcement).toHaveText(
-      'Class results: You finished 30:00.',
+      'Class results: You finished 20:00.',
     );
   });
 });

@@ -1,6 +1,6 @@
 // Acceptance test
 // Traces to: L2-132 AC3, AC4
-// Description: a browser reads the class catalogue and one class, each with a query string. Every span, metric point
+// Description: a browser asks for liveness, readiness and an unknown backend address, each with a query string. Every span, metric point
 // and log record the API writes on the way, at its configured levels, is kept; none carries the query string, and a
 // route is recorded as its template, never as the address asked for.
 using System.Collections.Concurrent;
@@ -22,12 +22,12 @@ public sealed class PrivateTelemetryTests(PrivateTelemetryApi api) : IClassFixtu
 
     [Fact]
     [Trait("Category", "Critical")]
-    public async Task Reading_the_catalogue_leaves_no_query_string_in_telemetry_and_a_route_is_its_template()
+    public async Task Asking_the_backend_leaves_no_query_string_in_telemetry_and_a_route_is_its_template()
     {
         using var browser = api.CreateClient();
-        using (var catalogue = await browser.GetAsync($"/api/classes?{Query}", Cancel)) Assert.Equal(HttpStatusCode.OK, catalogue.StatusCode);
-        using (var one = await browser.GetAsync($"/api/classes/hiit-cardio-30?{Query}", Cancel)) Assert.Equal(HttpStatusCode.OK, one.StatusCode);
-        using (var missing = await browser.GetAsync($"/api/classes/no-such-class?{Query}", Cancel)) Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+        using (var live = await browser.GetAsync($"/health/live?{Query}", Cancel)) Assert.Equal(HttpStatusCode.OK, live.StatusCode);
+        using (var ready = await browser.GetAsync($"/health/ready?{Query}", Cancel)) Assert.Equal(HttpStatusCode.OK, ready.StatusCode);
+        using (var missing = await browser.GetAsync($"/api/no-such-class?{Query}", Cancel)) Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
 
         await api.Spans.Await(span => span.GetTagItem("http.response.status_code") is 404, TimeSpan.FromSeconds(5));
         api.FlushMetrics();
@@ -36,8 +36,8 @@ public sealed class PrivateTelemetryTests(PrivateTelemetryApi api) : IClassFixtu
         Assert.NotEmpty(written);
         Assert.DoesNotContain(written, text => text.Contains("hush-hush", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(written, text => text.Contains("no-such-class", StringComparison.Ordinal) && text.StartsWith("http.route", StringComparison.Ordinal));
-        Assert.Contains(written, text => text == "http.route=api/classes/{id}");
-        Assert.Contains(written, text => text.Contains("class_not_found", StringComparison.Ordinal));
+        Assert.Contains(written, text => text == "http.route=api/{**rest}");
+        Assert.Contains(written, text => text.Contains("not_found", StringComparison.Ordinal));
     }
 }
 

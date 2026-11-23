@@ -33,7 +33,7 @@
   }
 }
 
-// In the class's place when no catalogue can be read and none is kept: the message over Try again.
+// In the class's place when it breaks a rule and is not offered (the-class/cannot-load): the message over Reload.
 .class-start__unavailable {
   display: grid;
   justify-items: start;

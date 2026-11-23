@@ -1,10 +1,9 @@
 // Acceptance test
-// Traces to: L2-151 AC1, AC2, AC3, AC5; L2-152 AC1, AC2, AC3, AC6, AC7; L2-153 AC1, AC2; L2-156 AC1, AC2, AC4
-// Description: a solo world class opens World loading before the class ride: 30 Minute HIIT Cardio over Old Town
-// Criterium's panorama, and the load card downloading the world (its panorama, served by the spec so it can be held,
-// stopped part way and resumed), building the shaders and warming up the first frames with `main`'s renderer, then
-// Start riding. A world downloaded once is saved on the device, and Back to class stops the download.
-import { catalogue, hiitCardio } from './fixtures/classes';
+// Traces to: L2-151 AC1, AC2, AC5; L2-152 AC1, AC6, AC7; L2-153 AC1, AC2; L2-156 AC4
+// Description: a solo world class opens World loading before the class ride: Intervals to the Beat in Ibiza Sunset
+// Strip, and the load card building the shaders and warming up the first frames with the course's renderer (its files
+// held by the spec so the build can be seen), then Start riding. Ibiza Sunset Strip is built into the app and has no
+// panorama, so nothing is downloaded. Back to class leaves World loading.
 import {
   ECHELON_INITIALISED,
   ECHELON_NOTIFY,
@@ -14,21 +13,20 @@ import {
 } from './fixtures/echelon';
 import { connectBike } from './fixtures/class-ride';
 import { expect, test } from './fixtures/test';
-import { OLDTOWN_PANORAMA, WorldAssets, megabytes } from './fixtures/world-assets';
+import { theClass } from './fixtures/the-class';
+import { WorldAssets } from './fixtures/world-assets';
 import { ClassRidePage } from './pages/class-ride.page';
 import { ClassStartPage } from './pages/class-start.page';
 import { WorldLoadingPage } from './pages/world-loading.page';
 
-const TOTAL = megabytes(OLDTOWN_PANORAMA.length);
 const PLAN =
-  'GCN Training · HIIT · 5:00 warm-up, 8 × 0:30 efforts with 3:00 → 1:30 recoveries, 6:00 cool-down';
+  'GCN Training · Intervals · 2:30 warm-up, 17 × 0:15 to 1:15 efforts with 0:30 → 0:20 recoveries, 2:30 cool-down';
 
 test.describe('World loading', () => {
   let assets: WorldAssets;
   let loading: WorldLoadingPage;
 
-  test.beforeEach(async ({ page, bluetooth, api }) => {
-    api.answer('GET', '/api/classes', catalogue);
+  test.beforeEach(async ({ page, bluetooth }) => {
     await bluetooth.remember(echelonBike);
     assets = await WorldAssets.install(page);
     loading = new WorldLoadingPage(page);
@@ -39,35 +37,32 @@ test.describe('World loading', () => {
   });
 
   test(
-    'a solo world class downloads its world, builds its shaders and warms up, then Start riding takes focus (L2-151 AC1, AC2, L2-152 AC1, AC2, AC6, AC7, L2-153 AC1, AC2)',
+    'a solo world class builds its world’s shaders and warms up, then Start riding takes focus (L2-151 AC1, AC2, L2-152 AC1, AC6, AC7, L2-153 AC1, AC2)',
     { tag: '@critical' },
     async ({ page, bluetooth }) => {
       assets.hold();
-      await new ClassRidePage(page).open(hiitCardio.id);
+      await new ClassRidePage(page).open(theClass.id);
 
-      await expect(loading.eyebrow).toHaveText('Old Town Criterium · Cathedral Circuit · Solo');
-      await expect(loading.title).toHaveText('30 Minute HIIT Cardio');
+      await expect(loading.eyebrow).toHaveText('Ibiza Sunset Strip · the sunset strip · Solo');
+      await expect(loading.title).toHaveText('Intervals to the Beat');
       await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
-      await expect(loading.about).toHaveText(
-        'Cobbled streets on race day. Each of the eight sprints is a kick up to the cathedral.',
-      );
-      await expect(loading.planTotal).toHaveText('30:00');
+      await expect(loading.about).toContainText('The sun sinks into the sea off Sant Antoni');
+      await expect(loading.planTotal).toHaveText('20:00');
       await expect(loading.planSummary).toHaveText(PLAN);
-      await expect(loading.panorama).toHaveAccessibleName(
-        'The Old Town Criterium world: cobbled streets on race day, the cathedral at the top of the climb',
-      );
-      await expect(loading.cardTitle).toHaveText('Getting Old Town Criterium ready');
+      await expect(loading.panorama).toHaveCount(0);
+      await expect(loading.cardTitle).toHaveText('Getting Ibiza Sunset Strip ready');
       await expect(loading.steps).toHaveCount(3);
-      await expect(loading.step(0).label).toHaveText('Download the world: In progress');
-      await expect(loading.step(0).root).toHaveAttribute('aria-current', 'step');
-      await expect(loading.step(1).label).toHaveText('Build the shaders: Waiting');
+      await expect(loading.step(0).label).toHaveText('Download the world: Done');
+      await expect(loading.step(0).detail).toHaveText('Built into the app');
+      await expect(loading.step(1).label).toHaveText('Build the shaders: In progress');
+      await expect(loading.step(1).root).toHaveAttribute('aria-current', 'step');
       await expect(loading.step(2).label).toHaveText('Warm up the first frames: Waiting');
-      await expect(loading.progress).toHaveAccessibleName('Loading Old Town Criterium');
-      await expect(loading.progress).toHaveAttribute('aria-valuenow', '0');
-      await expect(loading.percent).toHaveText('0%');
+      await expect(loading.progress).toHaveAccessibleName('Loading Ibiza Sunset Strip');
+      await expect(loading.progress).toHaveAttribute('aria-valuenow', '40');
+      await expect(loading.percent).toHaveText('40%');
       // The bike has not answered yet: the load carries on and says so (L2-157 AC1, AC2).
       await expect(loading.status).toHaveText(
-        'Downloading the world, 0 percent. The bike is not connected.',
+        'Building the shaders, 40 percent. The bike is not connected.',
       );
       await expect(loading.start).toBeDisabled();
       await expect(loading.hint).toHaveText(
@@ -78,39 +73,33 @@ test.describe('World loading', () => {
       // The bike is connected once it answers its initialisation.
       await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(6));
       await expect(loading.facts.first()).toHaveText('Echelon EX-5s');
-      await expect(loading.status).toHaveText('Downloading the world, 0 percent.');
-      await expect(loading.hint).toHaveText(
-        'The first time takes longest. Next time this world opens from this device.',
-      );
+      await expect(loading.status).toHaveText('Building the shaders, 40 percent.');
+      await expect(loading.hint).toHaveText('Ready in a few seconds. Pedal easy while you wait.');
 
       await assets.release();
 
-      await expect(loading.cardTitle).toHaveText('Old Town Criterium is ready', {
+      await expect(loading.cardTitle).toHaveText('Ibiza Sunset Strip is ready', {
         timeout: 30_000,
       });
-      await expect(loading.step(0).label).toHaveText('Download the world: Done');
-      await expect(loading.step(0).detail).toHaveText(
-        `${TOTAL} MB · saved on this device for next time`,
-      );
       await expect(loading.step(1).label).toHaveText('Build the shaders: Done');
       await expect(loading.step(2).label).toHaveText('Warm up the first frames: Done');
       await expect(loading.progress).toHaveAttribute('aria-valuenow', '100');
       await expect(loading.percent).toHaveText('100%');
-      await expect(loading.status).toHaveText('Old Town Criterium is ready.');
+      await expect(loading.status).toHaveText('Ibiza Sunset Strip is ready.');
       await expect(loading.facts.last()).toHaveText(/^(WebGPU|WebGL 2)$/);
       await expect(loading.start).toBeEnabled();
       await expect(loading.start).toBeFocused();
-      await expect(loading.hint).toHaveText('Your 5:00 warm-up starts the moment you press Start.');
+      await expect(loading.hint).toHaveText('Your 2:30 warm-up starts the moment you press Start.');
       // Pedalling does not start a solo class: nothing is sent until the rider presses Start riding (L2-153 AC4).
-      expect(bluetooth.writes().map((write) => write.hex)).not.toContain(targetResistanceWrite(8));
+      expect(bluetooth.writes().map((write) => write.hex)).not.toContain(targetResistanceWrite(14));
 
       await loading.start.click();
 
       const ride = new ClassRidePage(page);
-      await expect(ride.name).toHaveText('30 Minute HIIT Cardio · Solo');
+      await expect(ride.name).toHaveText('Intervals to the Beat · Solo');
       await expect
         .poll(() => bluetooth.writes().map((write) => write.hex))
-        .toContain(targetResistanceWrite(8));
+        .toContain(targetResistanceWrite(14));
     },
   );
 
@@ -120,12 +109,12 @@ test.describe('World loading', () => {
     webgl,
   }) => {
     await webgl.disable();
-    await new ClassRidePage(page).open(hiitCardio.id);
+    await new ClassRidePage(page).open(theClass.id);
     await connectBike(bluetooth);
 
-    await expect(loading.cardTitle).toHaveText('Old Town Criterium is ready as a panorama');
+    await expect(loading.cardTitle).toHaveText('Ibiza Sunset Strip is ready as a panorama');
     await expect(loading.step(0).label).toHaveText('Download the panorama: Done');
-    await expect(loading.step(0).detail).toHaveText(`${TOTAL} MB`);
+    await expect(loading.step(0).detail).toHaveText('Built into the app');
     await expect(loading.step(1).label).toHaveText('Build the shaders: Not needed');
     await expect(loading.step(1).detail).toHaveText('Not needed for the panorama');
     await expect(loading.step(2).label).toHaveText('Warm up the first frames: Not needed');
@@ -141,64 +130,17 @@ test.describe('World loading', () => {
     );
   });
 
-  test('a world downloaded once is saved on this device, so the next load skips its download (L2-152 AC3)', async ({
-    page,
-    bluetooth,
-    webgl,
-  }) => {
-    await webgl.disable();
-    await new ClassRidePage(page).open(hiitCardio.id);
-    await connectBike(bluetooth);
-    await expect(loading.step(0).label).toHaveText('Download the panorama: Done');
-    await loading.back.click();
-    await expect(new ClassStartPage(page).start).toBeVisible();
-
-    assets.hold();
-    await new ClassStartPage(page).start.click();
-
-    await expect(loading.step(0).label).toHaveText('Download the panorama: Done');
-    await expect(loading.start).toBeEnabled();
-    expect(assets.requests).toHaveLength(1);
-  });
-
-  test('a stopped download shows why, and Try again resumes it from the bytes received (L2-156 AC1, AC2)', async ({
-    page,
-    webgl,
-  }) => {
-    await webgl.disable();
-    const half = Math.floor(OLDTOWN_PANORAMA.length / 2);
-    assets.stopAfter(half);
-    await new ClassRidePage(page).open(hiitCardio.id);
-
-    await expect(loading.cardTitle).toHaveText('Couldn’t load Old Town Criterium');
-    await expect(loading.step(0).label).toHaveText('Download the panorama: Failed');
-    await expect(loading.step(0).detail).toHaveText(`Stopped at ${megabytes(half)} of ${TOTAL} MB`);
-    await expect(loading.alert).toContainText('The download stopped.');
-    await expect(loading.alert).toContainText(
-      'Check your connection and try again, or ride with the panorama: the plan, clock and bike work the same.',
-    );
-    await expect(loading.panoramaRide).toBeVisible();
-    await expect(loading.start).toHaveCount(0);
-
-    await loading.tryAgain.click();
-
-    await expect(loading.cardTitle).toHaveText('Old Town Criterium is ready as a panorama');
-    expect(assets.requests).toHaveLength(2);
-    expect(assets.requests[1]!.headers()['range']).toBe(`bytes=${half}-`);
-  });
-
-  test('Back to class stops the download and opens the class at `/` (L2-151 AC5)', async ({
+  test('Back to class leaves World loading while the world is being built and opens the class at `/` (L2-151 AC5)', async ({
     page,
   }) => {
     assets.hold();
-    await new ClassRidePage(page).open(hiitCardio.id);
-    await expect(loading.step(0).root).toHaveAttribute('aria-current', 'step');
-    await expect.poll(() => assets.requests.length).toBe(1);
+    await new ClassRidePage(page).open(theClass.id);
+    await expect(loading.step(1).root).toHaveAttribute('aria-current', 'step');
+    await expect.poll(() => assets.requests.length).toBeGreaterThan(0);
 
     await loading.back.click();
 
     await expect(page).toHaveURL('/');
     await expect(new ClassStartPage(page).start).toBeVisible();
-    await expect.poll(() => assets.aborted(0)).toBe(true);
   });
 });

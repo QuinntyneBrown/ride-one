@@ -6,8 +6,8 @@ import { resultsView } from './results-view';
 // the line under it and the again action. Nothing is earned (ADR 0039).
 describe('resultsView', () => {
   const hiit: ClassResult = {
-    classId: 'hiit-cardio-30',
-    title: '30 Minute HIIT Cardio',
+    classId: 'intervals-to-the-beat',
+    title: 'Intervals to the Beat',
     elapsedSeconds: 1800,
     outputKj: 341.6,
     onTargetShare: 0.838,
@@ -15,7 +15,7 @@ describe('resultsView', () => {
 
   it('reads a solo class as its time, output and share on target (L2-078 AC1)', () => {
     expect(resultsView(hiit)).toEqual({
-      context: '30 Minute HIIT Cardio · Solo',
+      context: 'Intervals to the Beat · Solo',
       heading: 'Class results',
       lead: 'You finished',
       big: '30:00',

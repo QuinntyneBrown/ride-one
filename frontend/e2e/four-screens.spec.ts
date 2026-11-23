@@ -18,7 +18,7 @@ test.describe('Four screens and no menus', () => {
     const start = new ClassStartPage(page);
     await start.open();
 
-    await expect(start.title).toHaveText('30 Minute HIIT Cardio');
+    await expect(start.title).toHaveText('Intervals to the Beat');
     await expect(start.start).toBeVisible();
     expect(start.url()).toBe('/');
     await expect(start.header.lockup).toHaveAccessibleName('Telo Ride 1');
@@ -29,6 +29,7 @@ test.describe('Four screens and no menus', () => {
   for (const address of [
     '/classes',
     '/classes/hiit-cardio-30',
+    '/classes/intervals-to-the-beat',
     '/profile',
     '/profile/custom',
     '/settings',
@@ -46,7 +47,7 @@ test.describe('Four screens and no menus', () => {
 
       const start = new ClassStartPage(page);
       await expect.poll(() => start.url()).toBe('/');
-      await expect(start.title).toHaveText('30 Minute HIIT Cardio');
+      await expect(start.title).toHaveText('Intervals to the Beat');
     });
   }
 });

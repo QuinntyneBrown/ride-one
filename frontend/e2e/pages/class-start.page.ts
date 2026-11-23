@@ -9,9 +9,9 @@ export class ClassStartPage {
   readonly header: ClassHeader;
   readonly skipLink: Locator;
   readonly main: Locator;
-  /** What shows in the class's place when no catalogue can be read or is kept, with Try again. */
+  /** What shows in the class's place when the class breaks a rule (the-class/cannot-load), with Reload. */
   readonly unavailable: Locator;
-  readonly retry: Locator;
+  readonly reload: Locator;
   readonly title: Locator;
   readonly meta: Locator;
   readonly summary: Locator;
@@ -31,8 +31,8 @@ export class ClassStartPage {
     this.header = new ClassHeader(page);
     this.skipLink = page.getByRole('link', { name: 'Skip to content' });
     this.main = page.locator('main#main');
-    this.unavailable = page.locator('.class-start__unavailable');
-    this.retry = page.getByRole('button', { name: 'Try again' });
+    this.unavailable = page.locator('.class-start__unavailable').getByRole('alert');
+    this.reload = page.getByRole('button', { name: 'Reload' });
     this.title = page.getByRole('heading', { level: 1 });
     this.meta = page.locator('.class-start__meta');
     this.summary = page.locator('.class-start__summary');

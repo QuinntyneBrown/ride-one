@@ -2546,6 +2546,9 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 @media (max-width: 39.99rem) { .the-class__bike-action { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } }
 
 @media (min-width: 64rem) { .the-class .app__scroll { overflow: hidden; } }
+/* The class that cannot be loaded (the-class/cannot-load, L2-080 AC3): the message over Reload, in the body's place. */
+.the-class__unavailable { display: grid; justify-items: start; gap: var(--space-4); padding-block: var(--space-6); }
+.the-class__unavailable:focus { outline: none; }
 .the-class__body { margin-inline: auto; display: grid; max-width: var(--layout-container-max); grid-template-columns: minmax(0, 1fr); gap: var(--space-6); padding: var(--space-4) var(--layout-margin); }
 @media (min-width: 48rem) { .the-class__body { gap: var(--space-8); padding-block: var(--space-6); } }
 @media (min-width: 64rem) { .the-class__body { height: 100%; grid-template-columns: minmax(0, 1fr) var(--the-class-aside-width); grid-template-rows: minmax(0, 1fr) auto; column-gap: var(--space-10); row-gap: var(--space-5); } }

@@ -1,8 +1,8 @@
 // Acceptance test
 // Traces to: L2-129 AC1, AC4
 // Description: a request with a field that breaks its rule is refused with 400, code validation_failed and errors
-// keyed by the field as the app sends it, before its handler runs: text sent as a number, a catalogue id that is not
-// one, an id longer than any the catalogue holds. The refusal names no .NET type.
+// keyed by the field as the app sends it, before its handler runs: text sent as a number, a body that is not JSON.
+// The refusal names no .NET type.
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -50,27 +50,5 @@ public sealed class InputValidationTests(ProbeApi api) : IClassFixture<ProbeApi>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = JsonDocument.Parse(await response.Content.ReadAsStringAsync(Cancel)).RootElement;
         Assert.Equal("validation_failed", problem.GetProperty("code").GetString());
-    }
-
-    [Theory]
-    [InlineData("/api/classes/HIIT%20%3Cb%3E", "id")]
-    [InlineData("/api/classes/a-class-id-far-longer-than-any-the-catalogue-holds-or-ever-will-hold-x", "id")]
-    public async Task A_catalogue_id_that_breaks_its_rule_is_refused_naming_its_field(string path, string field)
-    {
-        using var client = api.CreateClient();
-
-        using var response = await client.GetAsync(path, Cancel);
-
-        await Refused(response, field);
-    }
-
-    [Fact]
-    public async Task A_catalogue_id_that_keeps_its_rule_but_names_nothing_is_still_not_found()
-    {
-        using var client = api.CreateClient();
-
-        using var response = await client.GetAsync("/api/classes/no-such-class", Cancel);
-
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }

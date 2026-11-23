@@ -63,6 +63,7 @@
         "L2-009",
         "L2-010",
         "L2-019",
+        "L2-080",
         "L2-084",
         "L2-144"
       ],
@@ -71,12 +72,13 @@
         "returning",
         "no-bike",
         "needs-chromium",
-        "needs-https"
+        "needs-https",
+        "cannot-load"
       ],
       "not_applicable": {
         "loading": "Telo Ride 1 has one class, bundled with the app; nothing loads before the page shows. The video player fills its box when YouTube answers.",
         "empty": "There is always the one class. A rider with no rides yet is the default state, which simply has no stats.",
-        "error": "The failures are their own states: no-bike, needs-chromium and needs-https."
+        "error": "The failures are their own states: no-bike, needs-chromium, needs-https and cannot-load."
       }
     },
     {

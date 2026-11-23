@@ -12,5 +12,5 @@ System_Boundary(telo, "Telo Ride 1") {
 
 Rel(rider, app, "Reads The Class and presses the start button", "Chrome or Edge")
 Rel(app, storage, "Reads the record from", "localStorage")
-Rel(app, youtube, "Embeds the class video, parked at 0:12, from", "HTTPS, youtube-nocookie.com")
+Rel(app, youtube, "Embeds the class video, parked at 0:03, from", "HTTPS, youtube-nocookie.com")
 @enduml

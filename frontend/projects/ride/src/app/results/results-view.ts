@@ -2,7 +2,7 @@ import type { ClassResult } from '@telo/api';
 
 /** Results as one screen draws it (docs/mocks/pages/results/). */
 export interface ResultsView {
-  /** "30 Minute HIIT Cardio · Solo". */
+  /** "Intervals to the Beat · Solo". */
   readonly context: string;
   /** The hidden heading: "Class results". */
   readonly heading: string;

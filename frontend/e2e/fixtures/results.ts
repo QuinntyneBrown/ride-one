@@ -11,13 +11,13 @@ export async function openResults(page: Page, state: object): Promise<void> {
   await page.reload();
 }
 
-/** 30 Minute HIIT Cardio, ridden alone to its end. */
+/** Intervals to the Beat, ridden alone to its end. */
 export function soloClass() {
   return {
     classResult: {
-      classId: 'hiit-cardio-30',
-      title: '30 Minute HIIT Cardio',
-      elapsedSeconds: 1800,
+      classId: 'intervals-to-the-beat',
+      title: 'Intervals to the Beat',
+      elapsedSeconds: 1200,
       outputKj: 341.6,
       onTargetShare: 0.838,
     },

@@ -1,26 +1,33 @@
-import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DestroyRef, Injectable, computed, inject } from '@angular/core';
 import {
   BIKE_CONNECTION,
-  CLASSES_API,
-  type ClassDto,
+  type ClassDefinition,
   REMEMBERED_BIKE,
+  THE_CLASS,
+  type TheClassSource,
   VIDEO_PLAYER_FACTORY,
   type VideoPlayer,
 } from '@telo/api';
 import { PlanSummary, bikeStatus } from '@telo/domain';
-import { THE_CLASS_ID } from '../classes/the-class';
+
+/** The class, or `null` for one that is refused because it breaks a rule (L2-080 AC3). */
+function read(source: TheClassSource): ClassDefinition | null {
+  try {
+    return source.get();
+  } catch {
+    return null;
+  }
+}
 
 /**
- * Class Start's state, provided on its page: the one class (`THE_CLASS_ID`), read from `CLASSES_API` (the device's
- * copy when the backend cannot be reached), what the page says of it, its video parked at the sync offset, and the
- * bike's status for the header. With no catalogue to read and none kept it is `unavailable`, and `retry()` asks
- * again. It goes, with the player, when the rider leaves.
+ * Class Start's state, provided on its page: the one class, read from `THE_CLASS` (it ships with the app, ADR 0037),
+ * what the page says of it, its video parked at the sync offset, and the bike's status for the header. A class that
+ * breaks a rule is not offered: the store is `unavailable` (L2-080 AC3). It goes, with the player, when the rider
+ * leaves.
  */
 @Injectable()
 export class ClassStartStore {
-  private readonly loaded = signal<ClassDto | null>(null);
-  private readonly classes = inject(CLASSES_API);
+  private readonly loaded = read(inject(THE_CLASS));
   private readonly destroyRef = inject(DestroyRef);
   private readonly connection = inject(BIKE_CONNECTION);
   /** The bike this browser remembers names the status before the connection has one (L2-015). */
@@ -30,51 +37,32 @@ export class ClassStartStore {
   private videoHost: HTMLElement | null = null;
   private destroyed = false;
 
-  /** The class, once it has arrived. */
-  readonly dto = this.loaded.asReadonly();
+  /** The class, or `null` when it is not offered. */
+  readonly definition = this.loaded;
 
-  /** The class could not be read and no copy is kept on the device. */
-  readonly unavailable = signal(false);
+  /** The class breaks a rule, so it is not offered. */
+  readonly unavailable = this.loaded === null;
 
   /** The header's bike status (L2-019). */
   readonly bike = computed(() =>
     bikeStatus(this.connection.ble(), (this.connection.bike() ?? this.remembered)?.name ?? null),
   );
 
-  /** "GCN Training · 30 min · HIIT" (L2-084 AC1). */
-  readonly meta = computed(() => {
-    const dto = this.loaded();
-    return dto ? `${dto.channel} · ${Math.round(dto.lengthSeconds / 60)} min · ${dto.focus}` : '';
-  });
+  /** "GCN Training · 20 min · Intervals", until slice 30.2 draws The Class (L2-084 AC1). */
+  readonly meta = this.loaded
+    ? `${this.loaded.channel} · ${Math.round(this.loaded.lengthSeconds / 60)} min · ${this.loaded.focus}`
+    : '';
 
-  /** "8 × 0:30 · 3:00 → 1:30 recover · ~154 W average" (L2-084 AC2). */
-  readonly planSummary = computed(() => {
-    const segments = this.loaded()?.plan.segments ?? [];
-    return `${PlanSummary.structure(segments)} · ~${PlanSummary.averagePower(segments)} W average`;
-  });
+  /** "17 × 0:15 to 1:15 · 0:30 → 0:20 recover · ~254 W average", until slice 30.3 (L2-084 AC2). */
+  readonly planSummary = this.loaded
+    ? `${PlanSummary.structure(this.loaded.plan.segments)} · ~${PlanSummary.averagePower(this.loaded.plan.segments)} W average`
+    : '';
 
   constructor() {
-    this.load();
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
       this.player?.destroy();
     });
-  }
-
-  /** Try again: asks for the class once more. */
-  retry(): void {
-    this.load();
-  }
-
-  private load(): void {
-    this.unavailable.set(false);
-    this.classes
-      .get(THE_CLASS_ID)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (dto) => this.loaded.set(dto),
-        error: () => this.unavailable.set(true),
-      });
   }
 
   /**
@@ -82,7 +70,7 @@ export class ClassStartStore {
    * called once the frame is drawn.
    */
   parkVideo(host: HTMLElement): void {
-    const dto = this.loaded();
+    const dto = this.loaded;
     if (!dto || this.videoHost) return;
     this.videoHost = host;
     this.playerFactory().then(

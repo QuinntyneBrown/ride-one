@@ -1,19 +1,11 @@
 import { worldForMap } from './map-world';
 
-describe('worldForMap (L2-064)', () => {
-  it.each([
-    ['oldtown', 'oldtown'],
-    ['prairie', 'prairie'],
-    ['coast', 'coast'],
-    ['docklands', 'docklands'],
-    ['dolomites', 'dolomites'],
-    ['granite', 'granite'],
-    ['vicecity', 'southbeach'],
-  ])('draws the %s map world as %s', (world, drawn) => {
-    expect(worldForMap(world).id).toBe(drawn);
+describe('worldForMap (L2-080)', () => {
+  it('draws the class’s world, Ibiza Sunset Strip', () => {
+    expect(worldForMap('ibiza')).toMatchObject({ id: 'ibiza', name: 'Ibiza Sunset Strip' });
   });
 
-  it('refuses a world no scene draws', () => {
-    expect(() => worldForMap('atlantis')).toThrow('Unknown world atlantis');
+  it.each(['atlantis', 'vicecity'])('refuses %s, a world no scene draws', (world) => {
+    expect(() => worldForMap(world)).toThrow(`Unknown world ${world}`);
   });
 });

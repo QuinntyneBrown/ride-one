@@ -16,7 +16,7 @@ export interface FakePlayer {
 
 const API = 'https://www.youtube.com/iframe_api';
 const COVER = /^https:\/\/i\.ytimg\.com\/vi\/([\w-]{11})\/(hq|mq)default\.jpg$/;
-/** The mocks' cover of 30 Minute HIIT Cardio, kept beside the fixture: CI's checkout leaves out docs/. */
+/** The mocks' class cover, kept beside the fixture: CI's checkout leaves out docs/. */
 const COVER_FILE = path.join(__dirname, 'class-cover.jpg');
 /** The mocks' covers of the other classes, by video id, scaled to 640 px; any other video gets COVER_FILE. */
 const COVERS = path.join(__dirname, 'covers');

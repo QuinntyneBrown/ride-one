@@ -13,17 +13,18 @@ skinparam class {
 ' --------------------------
 title Class structure — Show the class
 
-interface ClassDto {
+interface ClassDefinition {
   +id: string
   +title: string
   +channel: string
   +focus: string
   +lengthSeconds: number
   +summary: string
+  +world: WorldId
   +plan: Plan
-  +video: VideoDto
+  +video: ClassVideo
 }
-class VideoDto {
+class ClassVideo {
   +videoId: string
   +syncOffsetSeconds: number
 }
@@ -42,11 +43,11 @@ enum SegmentKind {
   recover
   cool-down
 }
-interface ClassesApi {
-  +get(id: string): Observable<ClassDto>
+interface TheClassSource {
+  +get(): ClassDefinition
 }
 class ClassRule <<helper>> {
-  +{static} valid(dto: ClassDto): boolean
+  +{static} broken(definition: ClassDefinition): BrokenClassRule | null
 }
 class PlanSummary <<helper>> {
   +{static} structure(segments: readonly Segment[]): string
@@ -61,6 +62,7 @@ class TheClassView {
   +meta: string
   +title: string
   +summary: string
+  +world: WorldId
   +length: string
   +stats: readonly ClassStat[] | null
   +start: StartAction
@@ -93,13 +95,13 @@ interface VideoPlayer {
   +destroy(): void
 }
 
-ClassesApi ..> ClassDto : returns
-ClassDto *-- Plan
-ClassDto *-- VideoDto
-Plan "1" *-- "17" Segment
+TheClassSource ..> ClassDefinition : returns
+TheClassSource ..> ClassRule : checks with
+ClassDefinition *-- Plan
+ClassDefinition *-- ClassVideo
+Plan "1" *-- "33" Segment
 Segment --> SegmentKind
-TheClassStore ..> ClassesApi : reads
-TheClassStore ..> ClassRule : validates with
+TheClassStore ..> TheClassSource : reads
 TheClassStore ..> PlanSummary : summarises with
 TheClassStore --> TheClassView : builds
 TheClassStore ..> VideoPlayer : parks and destroys

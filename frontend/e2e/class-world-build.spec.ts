@@ -4,7 +4,7 @@
 // at the starting quality level and says the frame rate it held. After 20 seconds without the world being ready it
 // warns, and offers Start at Low quality or Ride with the panorama.
 //
-// Given a solo world class whose world downloads, when World loading builds and warms up the world, then the shader
+// Given a solo world class, when World loading builds and warms up the world, then the shader
 // step reads the programs built for the graphics API, the warm-up step the frame rate held at Low, and the facts
 // "Auto quality · Low".
 // Given World loading has run 20 seconds without the world being ready, when the card shows, then it warns that this
@@ -13,7 +13,6 @@
 // warmed up at Low.
 // Given the warning, when the rider chooses Ride with the panorama, then the world stops loading and the class ride
 // starts.
-import { catalogue, hiitCardio } from './fixtures/classes';
 import {
   ECHELON_NOTIFY,
   echelonBike,
@@ -21,6 +20,7 @@ import {
   targetResistanceWrite,
 } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
+import { theClass } from './fixtures/the-class';
 import { WorldAssets } from './fixtures/world-assets';
 import { ClassRidePage } from './pages/class-ride.page';
 import { WorldLoadingPage } from './pages/world-loading.page';
@@ -31,8 +31,7 @@ test.describe('Building the world', () => {
   let assets: WorldAssets;
   let loading: WorldLoadingPage;
 
-  test.beforeEach(async ({ page, bluetooth, api }) => {
-    api.answer('GET', '/api/classes', catalogue);
+  test.beforeEach(async ({ page, bluetooth }) => {
     await bluetooth.remember(echelonBike);
     assets = await WorldAssets.install(page);
     loading = new WorldLoadingPage(page);
@@ -48,8 +47,8 @@ test.describe('Building the world', () => {
   }) => {
     await page.clock.install();
     assets.hold();
-    await new ClassRidePage(page).open(hiitCardio.id);
-    await expect.poll(() => assets.requests.length).toBe(1);
+    await new ClassRidePage(page).open(theClass.id);
+    await expect.poll(() => assets.requests.length).toBeGreaterThan(0);
     await bluetooth.notify(ECHELON_NOTIFY, resistanceFrame(6));
     await page.clock.fastForward(20_000);
     await expect(loading.warning).toContainText(SLOW);
@@ -57,10 +56,9 @@ test.describe('Building the world', () => {
     await loading.panoramaRide.click();
 
     const ride = new ClassRidePage(page);
-    await expect(ride.name).toHaveText('30 Minute HIIT Cardio · Solo');
-    await expect.poll(() => assets.aborted(0)).toBe(true);
+    await expect(ride.name).toHaveText('Intervals to the Beat · Solo');
     await expect
       .poll(() => bluetooth.writes().map((write) => write.hex))
-      .toContain(targetResistanceWrite(8));
+      .toContain(targetResistanceWrite(14));
   });
 });

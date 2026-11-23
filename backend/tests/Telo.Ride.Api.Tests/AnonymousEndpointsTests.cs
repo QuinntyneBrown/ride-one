@@ -1,8 +1,7 @@
 // Acceptance test
 // Traces to: L2-132 AC1; ADR 0039
 // Description: Telo Ride 1 has no account. Every endpoint the API maps, its controllers, the health checks and the
-// fallbacks, is asked without a session: none refuses with 401 or 403, none sets a cookie, and the class catalogue
-// answers 200.
+// fallbacks, is asked without a session: none refuses with 401 or 403, none sets a cookie, and liveness answers 200.
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -28,16 +27,16 @@ public sealed class AnonymousEndpointsTests(HostedAppApi api) : IClassFixture<Ho
             asked.Add(key);
         }
 
-        Assert.Contains("GET /api/classes", asked);
-        Assert.Contains("GET /api/classes/{id}", asked);
+        Assert.Contains("GET /health/live", asked);
+        Assert.Contains("GET /health/ready", asked);
     }
 
     [Fact]
     [Trait("Category", "Critical")]
-    public async Task The_class_catalogue_answers_200_without_a_session()
+    public async Task Liveness_answers_200_without_a_session_and_sets_no_cookie()
     {
         using var client = api.CreateClient();
-        using var response = await client.GetAsync("/api/classes", TestContext.Current.CancellationToken);
+        using var response = await client.GetAsync("/health/live", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.False(response.Headers.Contains("Set-Cookie"));

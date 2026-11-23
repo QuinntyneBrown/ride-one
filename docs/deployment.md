@@ -1,7 +1,8 @@
 # Deployment settings
 
 Rewritten for Telo Ride 1: the backend has no account, sign-in, email, feedback or recorded ride
-(ADR 0039), so their settings are gone.
+(ADR 0039), so their settings are gone. The class catalogue went with slice 30.1 (ADR 0037) and
+read no setting; what is left, health and the app's build, goes with slice 28.8.
 
 Every setting the deployed Telo Ride backend (`backend/src/Telo.Ride.Api`) reads, added in the same
 change as the code that reads it (`AGENTS.md`). The frontend is static files and reads none; the API
