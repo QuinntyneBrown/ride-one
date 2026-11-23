@@ -111,6 +111,7 @@ jobs:
           sparse-checkout: |
             frontend
             backend
+            tools/blender/courses
       - uses: actions/setup-node@v4
         with:
           node-version: 24
