@@ -128,6 +128,80 @@ describe('parseCourse (L2-166 AC5)', () => {
   ])('refuses %s', (_, value, message) => {
     expect(() => parseCourse(value)).toThrow(message);
   });
+
+  // A length, a count or a colour that is out of range makes the course malformed; it is never drawn from a bad
+  // value (L2-175 AC6). What a file leaves out stays the sunset's, as the shipped file does.
+  const stage = courseFile().stages;
+  const sky = ['#ffc27a', '#f7a070', '#e0708a'];
+  it.each([
+    ['a haze that is not a colour', { haze: 'sunset' }, "The course's haze is malformed."],
+    ['a haze of three digits', { haze: '#fa7' }, "The course's haze is malformed."],
+    [
+      'a sky with a colour that is not one',
+      { sky: [...sky, 'red'] },
+      "The course's sky is malformed.",
+    ],
+    ['a sky of one colour', { sky: ['#ffc27a'] }, "The course's sky is malformed."],
+    ['a sky that is not a list', { sky: '#ffc27a' }, "The course's sky is malformed."],
+    [
+      'a light of no colour',
+      { light: { colour: 'amber', intensity: 2 } },
+      "The course's light is malformed.",
+    ],
+    [
+      'a light of less than none',
+      { light: { colour: '#ff9a5a', intensity: -1 } },
+      "The course's light is malformed.",
+    ],
+    ['a fill of one colour', { fill: ['#ffd9c0'] }, "The course's fill is malformed."],
+    ['a rain beyond 1', { rain: 3 }, "The course's rain is malformed."],
+    ['a wet below 0', { wet: -0.2 }, "The course's wet is malformed."],
+    ['a wet that is not a number', { wet: 'soaked' }, "The course's wet is malformed."],
+    [
+      'lamps spaced by nothing',
+      { lamps: { every: 0, first: -68, across: 5.1, height: 6.65, colour: '#ffe2a8' } },
+      "The course's lamps are malformed.",
+    ],
+    [
+      'lamps of no colour',
+      { lamps: { every: 24, first: -68, across: 5.1, height: 6.65, colour: 'gold' } },
+      "The course's lamps are malformed.",
+    ],
+    [
+      'a light short of a number',
+      { lights: [1, 2, 0xffffff, 10] },
+      "The course's lights are malformed.",
+    ],
+    [
+      'a light of a colour past white',
+      { lights: [1, 2, 0x1ffffff, 10, 1] },
+      "The course's lights are malformed.",
+    ],
+  ])('refuses %s', (_, named, message) => {
+    expect(() => parseCourse({ ...courseFile(), ...named })).toThrow(message);
+  });
+
+  it('keeps what a file leaves out: no sky, haze, light, lamps, lights, rain or wet', () => {
+    expect(() => parseCourse(courseFile())).not.toThrow();
+  });
+
+  it.each([
+    ['a level of 0', [{ ...stage[0], level: 0 }, stage[1]]],
+    ['a level of 33', [{ ...stage[0], level: 33 }, stage[1]]],
+    ['a stage of no seconds', [{ ...stage[0], duration: 0 }, stage[1]]],
+    ['a cadence aim of nothing', [{ ...stage[0], cadenceAim: 0 }, stage[1]]],
+    ['a first stretch that does not start at the line', [{ ...stage[0], from: 4 }, stage[1]]],
+    ['a gap between two stretches', [stage[0], { ...stage[1], from: 44 }]],
+    ['a stretch that starts before the one before ends', [stage[0], { ...stage[1], from: 36 }]],
+    ['a plan that ends short of the finish', [stage[0], { ...stage[1], to: 76 }]],
+    ['a plan that runs past the finish', [stage[0], { ...stage[1], to: 84 }]],
+    ['stages that stop short of the class’s seconds', [stage[0], { ...stage[1], duration: 8 }]],
+    ['a stage that starts out of turn', [stage[0], { ...stage[1], start: 18 }]],
+  ])('refuses %s', (_, stages) => {
+    expect(() => parseCourse({ ...courseFile(), stages })).toThrow(
+      'A stage of the course is malformed.',
+    );
+  });
 });
 
 describe('courseLook (L2-166)', () => {

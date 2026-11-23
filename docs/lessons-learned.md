@@ -273,6 +273,45 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 37.3 The course as built (2026-11-23)
+
+**Applied from earlier**
+
+- **L3 format first; L17 judge verify by its exit status — saved time:** Prettier before each run; verify's exit
+  status decides the commit.
+- **L41 see the spec fail before the code — saved time:** the acceptance spec failed with the course drawn from a
+  haze of `sunset` (the page held the canvas and not the still), and 26 new unit rows failed because `parseCourse`
+  did not throw, before either was made to pass.
+- **L35 check what earlier slices built — saved time:** the length rule, the grid and the finish arch already held
+  in the shipped file and in `ibiza.glb`; only the gate on what a file names was missing.
+- **L25 asserted batches — saved time:** the doc edits went in one asserted batch.
+- **L1 own checkout with `npm ci` — did not apply as written:** this checkout had no `node_modules`, so `npm ci`
+  ran in place on the branch.
+
+**What slowed it down**
+
+- `ng test ride --include` takes a path relative to the `ride` project (`../../world/src/course.spec.ts`), not to
+  `frontend/`; the first run found no tests.
+- `npx prettier --write` on `docs/` reformatted whole tables; `format:check` covers `frontend/` only, so the docs
+  were restored and the edits made again.
+- On this Windows checkout `core.autocrlf=true` leaves CRLF in the working tree and `verify`'s format step fails on
+  files nobody touched (`tsconfig.json` among them); verify stops at that step, so lint, unit tests, the build and
+  the specs were run one by one.
+
+**Decisions**
+
+- **L2 open question 18: AC3 takes the built value** (0.855 % a level with ramps); the course is not rebuilt.
+- **L2-175 AC6 is enforced at `parseCourse`,** not in the look helpers: a sky, haze, light, fill, lamps, lights, rain
+  or wet the file names wrongly makes the course malformed; what it leaves out is the sunset's. The helpers'
+  fallbacks stay, unreachable for a parsed file.
+- **The stages must lie end to end** (seconds and metres, level 1 to 32, first at the grid, last at the course's
+  length) within half a second and half a metre.
+
+**New lessons**
+
+- To run one `world` spec: `npx ng test ride --watch=false --include='../../world/src/<name>.spec.ts'`.
+- Never run Prettier on `docs/`; check `git diff --stat` after any formatter.
+
 ### 37.2 Placed by the clock (2026-11-23)
 
 **Applied from earlier**
