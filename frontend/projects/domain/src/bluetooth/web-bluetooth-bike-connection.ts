@@ -24,6 +24,9 @@ import { GattWriteQueue } from './gatt-write-queue';
 /** FTMS (0x1826), the standard service the chooser offers beside Echelon's. */
 const FTMS = 0x1826;
 
+/** Echelon's bikes advertise a name that begins with this ("ECH-EX5S-141844", "ECHEX-3-141844"). */
+const ECHELON_NAME_PREFIX = 'ECH';
+
 /**
  * The link to a real bike over Web Bluetooth, the only code that touches `navigator.bluetooth` (AGENTS.md). It opens
  * the chooser filtered to the Echelon service and FTMS (L2-012), connects through the link the device's services
@@ -68,7 +71,15 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   async requestBike(): Promise<BikeInfo | null> {
     try {
       this.device = await navigator.bluetooth.requestDevice({
-        filters: [{ services: [EchelonProtocol.service] }, { services: [FTMS] }],
+        // An Echelon bike may advertise only its own name ("ECHEX-3-141844") and a sibling of the control service
+        // (0bf669f0-…), not the one it is controlled through, so a name filter finds it too; the service it is
+        // controlled through is asked for as optional so it can be read once connected.
+        filters: [
+          { services: [EchelonProtocol.service] },
+          { services: [FTMS] },
+          { namePrefix: ECHELON_NAME_PREFIX },
+        ],
+        optionalServices: [EchelonProtocol.service, FTMS],
       });
     } catch (error) {
       if (error instanceof DOMException && error.name === 'NotFoundError') return null;

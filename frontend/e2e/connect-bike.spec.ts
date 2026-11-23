@@ -148,7 +148,10 @@ test.describe('Connect Bike', () => {
     await expect(connect.pairButton).not.toHaveAttribute('aria-busy');
     await expect(connect.pairSpinner).toHaveCount(0);
     expect(bluetooth.requests()).toEqual([
-      { filters: [{ services: [ECHELON_SERVICE] }, { services: [FTMS] }] },
+      {
+        filters: [{ services: [ECHELON_SERVICE] }, { services: [FTMS] }, { namePrefix: 'ECH' }],
+        optionalServices: [ECHELON_SERVICE, FTMS],
+      },
     ]);
     expect(bluetooth.log()).toEqual([]);
 

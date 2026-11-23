@@ -38,7 +38,8 @@ test.describe('Pair a bike', () => {
       .poll(() => bluetooth.requests())
       .toEqual([
         {
-          filters: [{ services: [ECHELON_SERVICE] }, { services: [FTMS] }],
+          filters: [{ services: [ECHELON_SERVICE] }, { services: [FTMS] }, { namePrefix: 'ECH' }],
+          optionalServices: [ECHELON_SERVICE, FTMS],
         },
       ]);
   });
