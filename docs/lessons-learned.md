@@ -273,6 +273,28 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 37.9 One record whichever way (2026-11-23)
+
+**Applied from earlier**
+
+- **L41 see the spec fail first — could not:** the behaviour came with 32.1, which adds the finished ride in
+  `ClassRideStore.finish()` for either way; the acceptance spec passes on its first run and says so here.
+- **37.5's lesson on cores — saved time:** the course's files are held and nothing is drawn.
+
+**What slowed it down**
+
+- Nothing: it is one spec. It asserts the device keeps one record of three fields and no key of Ibiza's own, then
+  opens the app with the bike forgotten.
+
+**Decisions**
+
+- **No code:** the record never knew the way a ride was ridden, so there is nothing to remove.
+
+**New lessons**
+
+- When a slice only proves a rule an earlier slice made true, write its spec anyway and record that it never failed:
+  it guards the rule against the next change.
+
 ### 32.1 Keep the record (2026-11-23)
 
 **Applied from earlier**
