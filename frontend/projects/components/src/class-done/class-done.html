@@ -7,8 +7,14 @@
   <div class="class-done__scroll">
     <main id="main" class="class-done__body" tabindex="-1">
       <section class="class-done__score" aria-labelledby="class-done-title">
-        <h1 class="visually-hidden" id="class-done-title">Class done</h1>
-        <p class="class-done__output">
+        <h1
+          class="class-done__verdict"
+          [class.class-done__verdict--best]="best()"
+          id="class-done-title"
+        >
+          {{ verdict() }}
+        </h1>
+        <p class="class-done__output" [class.class-done__output--best]="best()">
           <span class="class-done__number">{{ output() }}</span>
           <span class="class-done__unit">kJ</span>
         </p>
@@ -21,6 +27,12 @@
             <dt class="class-done__fact-label">Average</dt>
             <dd class="class-done__fact-value">{{ average() }} W</dd>
           </div>
+          @if (bestFact(); as fact) {
+            <div class="class-done__fact">
+              <dt class="class-done__fact-label">{{ fact.label }}</dt>
+              <dd class="class-done__fact-value">{{ fact.value }}</dd>
+            </div>
+          }
         </dl>
       </section>
       <div class="class-done__actions"><ng-content select="[slot=actions]" /></div>

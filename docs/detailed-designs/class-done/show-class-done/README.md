@@ -58,6 +58,13 @@ The Class at least 44 px tall, and announces "Class done: 351 kJ in 20:00." With
 32.5; until then a visually hidden "Class done" heading stands in for the verdict. The mocks `class-done/default`,
 `first` and `not-best` were brought in line with the one class (20:00, 293 W and 265 W).
 
+Slice 32.3 added the verdict (`L2-077`): `ClassResult.previousBestKj` is the best before the ride, read by the ride's
+finish before it adds the ride to the record and carried in the navigation's state, so a reload still compares with
+the earlier best. `classDoneView` compares whole kJ: higher than the best is "New best output" (the `h1`, the output
+and the verdict in gold, and the fact "Previous best"); lower or equal is "Your best is still {best} kJ" with "Best";
+no best is "Class done. That’s your number to beat." with no fact. The announcement is the verdict then "351 kJ in
+20:00.".
+
 **During the ride**
 
 - **`EffortTotals`** (`domain/src/engine/effort-totals.ts`, new): engine service provided on

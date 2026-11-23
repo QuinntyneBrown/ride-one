@@ -273,6 +273,32 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 32.3 Best output (2026-11-23)
+
+**Applied from earlier**
+
+- **L41 see the spec fail first:** the view's cases failed to compile on `best`; the verdict spec failed on the old
+  hidden heading.
+- **Name the files Prettier writes (32.2):** only the files of the slice were formatted; nothing else was touched.
+
+**What slowed it down**
+
+- The ride adds itself to the record before Class Done opens, so Class Done cannot read "the best before" from the
+  record: the finish reads it first and carries it in the result.
+- A `sed` that wrote a regex lost its backslash and `/.$/` cut the last letter of the verdict: edit with the script
+  tool, not `sed`, when a pattern holds a backslash.
+
+**Decisions**
+
+- **The verdict is the view's, from whole kJ:** 342.4 kJ against a best of 342 is not a new best (L2-077 compares
+  "whole kJ").
+- **The announcement reads the verdict then the number,** so a screen reader hears the news first.
+
+**New lessons**
+
+- A screen that compares with "before" needs "before" in its input: a result carried in history state outlives the
+  record it was compared with.
+
 ### 32.2 Class Done (2026-11-23)
 
 **Applied from earlier**

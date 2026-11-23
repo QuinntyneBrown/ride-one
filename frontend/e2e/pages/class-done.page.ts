@@ -8,22 +8,28 @@ export class ClassDonePage {
   readonly heading: Locator;
   /** The output's number: "351". */
   readonly number: Locator;
+  /** The output line: the number and "kJ". */
+  readonly output: Locator;
   /** The output's unit: "kJ". */
   readonly unit: Locator;
   readonly time: Locator;
   readonly average: Locator;
   readonly done: Locator;
   readonly main: Locator;
+  /** "Previous best" or "Best" with its kJ; absent for the first ride. */
+  readonly bestFact: Locator;
 
   constructor(private readonly page: Page) {
     this.title = page.locator('.class-done__class');
     this.heading = page.getByRole('heading', { level: 1 });
     this.number = page.locator('.class-done__number');
+    this.output = page.locator('.class-done__output');
     this.unit = page.locator('.class-done__unit');
     this.time = this.fact('Time');
     this.average = this.fact('Average');
     this.done = page.getByRole('link', { name: 'Done', exact: true });
     this.main = page.locator('main');
+    this.bestFact = page.locator('.class-done__fact').filter({ hasText: /best/i });
   }
 
   /** The value of the fact with this label. */

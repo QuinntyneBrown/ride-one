@@ -10,7 +10,13 @@ export interface ClassDoneView {
   readonly time: string;
   /** The average watts as a whole number ("293"). */
   readonly average: string;
-  /** What a screen reader hears as Class Done opens (L2-141 AC2): "Class done: 351 kJ in 20:00." */
+  /** The `h1` (L2-077): "New best output", "Your best is still 342 kJ" or "Class done. That’s your number to beat." */
+  readonly verdict: string;
+  /** Whether this ride beat the best: the output and the verdict are gold, and the words carry it (L2-077 AC4). */
+  readonly best: boolean;
+  /** "Previous best" or "Best" with a whole kJ; none for the first ride. */
+  readonly bestFact: { readonly label: string; readonly value: string } | null;
+  /** What a screen reader hears as Class Done opens (L2-141 AC2): "New best output. 351 kJ in 20:00." */
   readonly announcement: string;
 }
 
@@ -24,10 +30,21 @@ function clock(seconds: number): string {
 
 /**
  * Class Done from the result the ride hands over (L2-078): the output in whole kJ (AC4), the running time, and the
- * average watts, round(output in kJ × 1000 ÷ running seconds) (AC3), 0 for a ride of no seconds.
+ * average watts, round(output in kJ × 1000 ÷ running seconds) (AC3), 0 for a ride of no seconds. The verdict compares
+ * the whole-kJ output with the best before the ride (L2-077): higher is a new best, otherwise the best stands, and
+ * the first ride has none to compare with.
  */
 export function classDoneView(result: ClassResult): ClassDoneView {
-  const output = String(Math.round(result.outputKj));
+  const kj = Math.round(result.outputKj);
+  const output = String(kj);
+  const previous = result.previousBestKj;
+  const best = previous !== null && kj > previous;
+  const verdict =
+    previous === null
+      ? 'Class done. That’s your number to beat.'
+      : best
+        ? 'New best output'
+        : `Your best is still ${previous} kJ`;
   const time = clock(result.elapsedSeconds);
   const average =
     result.elapsedSeconds > 0 ? Math.round((result.outputKj * 1000) / result.elapsedSeconds) : 0;
@@ -36,6 +53,12 @@ export function classDoneView(result: ClassResult): ClassDoneView {
     output,
     time,
     average: String(average),
-    announcement: `Class done: ${output} kJ in ${time}.`,
+    verdict,
+    best,
+    bestFact:
+      previous === null
+        ? null
+        : { label: best ? 'Previous best' : 'Best', value: `${previous} kJ` },
+    announcement: `${verdict.replace(/\.$/, '')}. ${output} kJ in ${time}.`,
   };
 }
