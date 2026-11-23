@@ -1,0 +1,111 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Show the class
+
+interface ClassDto {
+  +id: string
+  +title: string
+  +channel: string
+  +focus: string
+  +lengthSeconds: number
+  +summary: string
+  +plan: Plan
+  +video: VideoDto
+}
+class VideoDto {
+  +videoId: string
+  +syncOffsetSeconds: number
+}
+class Plan {
+  +segments: readonly Segment[]
+}
+class Segment {
+  +kind: SegmentKind
+  +duration: number
+  +level: number
+  +cadenceAim: number | null
+}
+enum SegmentKind {
+  warm-up
+  work
+  recover
+  cool-down
+}
+interface ClassesApi {
+  +get(id: string): Observable<ClassDto>
+}
+class ClassRule <<helper>> {
+  +{static} valid(dto: ClassDto): boolean
+}
+class PlanSummary <<helper>> {
+  +{static} structure(segments: readonly Segment[]): string
+  +{static} averagePower(segments: readonly Segment[]): number
+}
+class TheClassStore {
+  +view: Signal<TheClassView | null>
+  +unavailable: Signal<boolean>
+  +parkVideo(host: HTMLElement): void
+}
+class TheClassView {
+  +meta: string
+  +title: string
+  +summary: string
+  +length: string
+  +stats: readonly ClassStat[] | null
+  +start: StartAction
+  +planWatts: string
+  +planNote: string
+  +segments: readonly Segment[]
+  +videoUnavailable: boolean
+}
+class StartAction {
+  +label: string
+  +hint: string | null
+  +target: "ride" | "connect"
+  +disabled: boolean
+}
+class ClassStat {
+  +label: string
+  +value: string
+}
+class TheClass <<wz-the-class>> {
+  +view: InputSignal<TheClassView>
+  +start: OutputEmitterRef<void>
+  +videoFrame: OutputEmitterRef<HTMLElement>
+}
+class TheClassPage {
+  #start(target: "ride" | "connect"): void
+}
+interface VideoPlayer {
+  +state: Signal<PlayerState>
+  +load(host, videoId, options: PlayerOptions): Promise<void>
+  +destroy(): void
+}
+
+ClassesApi ..> ClassDto : returns
+ClassDto *-- Plan
+ClassDto *-- VideoDto
+Plan "1" *-- "17" Segment
+Segment --> SegmentKind
+TheClassStore ..> ClassesApi : reads
+TheClassStore ..> ClassRule : validates with
+TheClassStore ..> PlanSummary : summarises with
+TheClassStore --> TheClassView : builds
+TheClassStore ..> VideoPlayer : parks and destroys
+TheClassView *-- StartAction
+TheClassView *-- "0..3" ClassStat
+TheClassPage *-- TheClassStore : provides
+TheClassPage ..> TheClass : renders
+TheClass ..> TheClassView : draws
+@enduml

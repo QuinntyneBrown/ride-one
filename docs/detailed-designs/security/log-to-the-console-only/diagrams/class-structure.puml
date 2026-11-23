@@ -1,0 +1,58 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Log to the console only
+
+interface Logger {
+  +error(area: LogArea, error: unknown): void
+}
+
+enum LogArea {
+  app
+  bluetooth
+  storage
+  video
+}
+
+class ConsoleLogger {
+  +error(area: LogArea, error: unknown): void
+}
+
+class "describeError" as describeError <<function>> {
+  +describeError(error: unknown): string
+}
+
+class WebBluetoothBikeConnection {
+  +lastError: Signal<string | null>
+  +frames: Observable<Uint8Array>
+  -report(error: unknown): void
+}
+
+class "app.config.ts" as appConfig <<config>> {
+  provideBrowserGlobalErrorListeners()
+  LOGGER -> ConsoleLogger
+}
+
+class "eslint.config.js" as eslint <<config>> {
+  no-console: error
+  exempt: console-logger.ts, main.ts
+}
+
+ConsoleLogger ..|> Logger
+Logger ..> LogArea : names
+ConsoleLogger ..> describeError : formats with
+WebBluetoothBikeConnection --> Logger : reports to
+WebBluetoothBikeConnection ..> describeError : formats lastError with
+appConfig ..> ConsoleLogger : binds
+eslint ..> ConsoleLogger : allows console in
+@enduml

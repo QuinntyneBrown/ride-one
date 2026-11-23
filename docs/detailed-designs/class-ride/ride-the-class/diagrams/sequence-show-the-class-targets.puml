@@ -1,0 +1,51 @@
+@startuml
+title UML sequence behaviour — Show the class targets
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam rectangle {
+  BorderColor #344054
+  FontColor #101828
+}
+skinparam package {
+  BorderColor #667085
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+actor "Rider" as rider
+box "Frontend — Ride app (ride application)" #E0F2FE
+  participant "ClassRidePage" as page
+  participant "ClassRideStore" as store
+end box
+box "Frontend — Ride app (components library)" #E0F2FE
+  participant "ClassSegment" as seg
+  participant "ClassStat" as stat
+end box
+box "Frontend — Ride app (domain library)" #ECFDF3
+  participant "BikeTelemetry" as telemetry
+  participant "WorkoutEngine" as engine
+  participant "PowerModel" as model
+end box
+box "Device — Smart bike" #F2F4F7
+  participant "Smart bike" as bike
+end box
+rider -> bike : Pedal at 73 rpm on resistance 6
+bike -> telemetry : Notification with cadence and resistance
+telemetry -> telemetry : Estimate power: 108 W
+engine -> store : PlanState: Recover, 1:30 left, target power 107 W
+store -> model : onTarget(108, 107)
+alt within 10 % of the target (L2-089 AC2)
+  model --> store : true
+  store --> page : power = "108", hint "On target", tone on
+else outside 10 %
+  model --> store : false
+  store --> page : power value, hint the signed difference such as "-47 W"
+end
+store --> page : cadence = "73", hint "Aim 72", or no hint with no aim (L2-089 AC3)
+page -> stat : Power and Cadence, the words carry the state (L2-089 AC6)
+page -> seg : index, remaining, progress
+seg --> rider : "Recover", timer "1:30", progress bar, resistance profile (L2-089 AC1)
+stat --> rider : "108 W On target" and "73 rpm Aim 72"
+@enduml

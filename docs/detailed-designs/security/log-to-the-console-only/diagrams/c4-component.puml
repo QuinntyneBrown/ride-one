@@ -1,0 +1,26 @@
+@startuml
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title Components — Log to the console only
+
+Container_Boundary(ride, "ride application") {
+  Component(main, "main.ts", "Bootstrap", "Writes a failed bootstrap to console.error")
+  Component(config, "app.config.ts", "Composition root", "Adds the browser's global error listeners and binds LOGGER")
+}
+Container_Boundary(domainlib, "domain library") {
+  Component(logger, "ConsoleLogger", "Service, new", "Writes one plain-text line per error to console.error")
+  Component(describe, "describeError", "Pure function", "Renders an error as name: message")
+  Component(conn, "WebBluetoothBikeConnection", "Service", "Reports a Bluetooth error once; logs no packet")
+  Component(telemetry, "BikeTelemetry", "Service", "Decodes notifications; writes no console line")
+}
+Container_Boundary(apilib, "api library") {
+  Component(contract, "Logger and LOGGER", "Contract and token, new", "error(area, error)")
+}
+Rel(config, contract, "Binds LOGGER to ConsoleLogger")
+Rel(config, logger, "Provides")
+Rel(conn, contract, "Injects LOGGER")
+Rel(logger, contract, "Implements")
+Rel(logger, describe, "Formats the error with")
+Rel(conn, describe, "Formats lastError with")
+Rel(telemetry, conn, "Subscribes to frames of")
+@enduml
