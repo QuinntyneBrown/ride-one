@@ -11,35 +11,65 @@ skinparam class {
   BackgroundColor #F9FAFB
 }
 ' --------------------------
-title Class structure — Fit every width, by touch and keyboard
-hide empty members
+title Class structure — Fit every width, touch and keyboard
 
-class AppShell <<ride>> {
-  -main: Signal<ElementRef<HTMLElement>>
-  +focusMain(): void
+class "tokens.css" as Tokens <<stylesheet>> {
+  --layout-margin: 16 px, 24 px from sm, 32 px from lg
+  --layout-breakpoint-sm: 40rem
+  --layout-breakpoint-md: 48rem
+  --layout-breakpoint-lg: 64rem
+  --layout-breakpoint-xl: 80rem
+  --target-comfortable: 44 px
+  --target-ride: 48 px
+  --focus-ring-width: 2 px
+  --focus-ring-offset: 2 px
 }
-class SkipLink <<components>> {
-  +label: InputSignal<string> = "Skip to content"
-  +skip: OutputEmitterRef<void>
+class "styles.scss" as Styles <<stylesheet>> {
+  :focus-visible
+  .skip-link
+  .visually-hidden
 }
-class Container <<components>> {
-  +width: InputSignal<'default' | 'narrow' | 'form'>
+class "_app.scss" as AppPartial <<stylesheet>> {
+  .app
+  .app~__scroll
 }
-class "Any page" as Page <<ride>> {
-  -isLg: Signal<boolean>
+class "_page.scss" as PagePartial <<stylesheet>> {
+  .container
+  .page
+  .page~__title
+  .page~__lead
 }
-class BreakpointObserver <<Angular CDK>> {
-  +observe(queries: string[]): Observable<BreakpointState>
+class AppShell {
+  -document: Document
+  #skipToMain(event: Event): void
 }
-class Breakpoints <<ride>> {
-  +sm: "(min-width: 40rem)"
-  +md: "(min-width: 48rem)"
-  +lg: "(min-width: 64rem)"
-  +xl: "(min-width: 80rem)"
+class "Screen page" as Page <<component>> {
+  main#main tabindex="-1"
+  breakpoint rules in its own stylesheet
 }
-AppShell *-- SkipLink
-AppShell o-- Page : hosts via router outlet
-Page *-- Container
-Page ..> BreakpointObserver : toSignal(observe)
-Page ..> Breakpoints : uses queries
+class Button {
+  +variant: ButtonVariant
+  +size: ButtonSize
+  +block: boolean
+}
+class ClassResist {
+  .class-resist~__btn: 48 x 48 px
+}
+class FullscreenToggle {
+  +active: boolean
+  +toggled: void
+}
+
+AppShell ..> Page : focuses main#main
+AppShell ..> Styles : .skip-link
+Page ..> AppPartial : @use
+Page ..> PagePartial : @use
+Page --> Button : renders
+Page --> ClassResist : renders on Class Ride
+Page --> FullscreenToggle : renders
+AppPartial ..> Tokens : reads
+PagePartial ..> Tokens : --layout-margin
+Button ..> Tokens : control heights
+ClassResist ..> Tokens : --target-ride
+Styles ..> Tokens : focus ring
 @enduml

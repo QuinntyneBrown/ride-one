@@ -14,39 +14,50 @@ skinparam package {
   FontColor #101828
   BackgroundColor #F9FAFB
 }
-actor "Rider" as actor
+actor "Rider" as rider
 box "Frontend — Ride app (ride application)" #E0F2FE
-  participant "Ride page header" as header
+  participant "Class Ride or The Class" as screen
 end box
-box "Frontend — Ride app (domain library)" #E0F2FE
+box "Frontend — Ride app (domain library)" #ECFDF3
   participant "WebBluetoothBikeConnection" as conn
   participant "DeviceReconnector" as recon
+  participant "EchelonLink" as link
+  participant "ConsoleLogger" as logger
+end box
+box "Device — Browser" #F2F4F7
+  participant "console" as console
 end box
 box "Device — Smart bike" #F2F4F7
-  participant "Bike GATT server" as bike
+  participant "Echelon EX-5s" as bike
 end box
-alt gattserverdisconnected
-  bike -> conn : gattserverdisconnected
-else a Web Bluetooth call fails
-  conn -> conn : console.error(name: message); lastError as text (L2-017 AC5)
+bike --> conn : gattserverdisconnected, or a Web Bluetooth call fails
+conn -> logger : LOGGER.error("bluetooth", error) (L2-017 AC5)
+logger -> console : One line: area, name and message as text (L2-115 AC3)
+conn -> link : close(); the keepalive stops (L2-016 AC3)
+conn --> screen : ble is disconnected (L2-017 AC1)
+screen --> rider : The app's own message only: "No bike · Connect" or "Lost the bike"
+conn -> recon : start(attempt)
+loop every 3 s until connected or disconnect() (L2-017 AC1)
+  opt rider presses Reconnect (L2-017 AC3)
+    rider -> screen : Press Reconnect
+    screen -> conn : reconnectNow()
+    conn -> recon : retryNow(): cancel the wait, attempt at once
+  end
+  recon -> conn : attempt()
+  conn -> bike : gatt.connect() on the same device, no chooser
+  alt bike is switched on and pedalled (L2-017 AC2)
+    bike --> conn : Connected
+    conn -> link : open(), initialise(), await the first notification
+    conn -> link : setResistance(current target) before anything else (L2-017 AC4)
+    link -> bike : F0 B1 01 LL CS with response
+    conn -> link : connected(); the keepalive restarts
+    note over conn, link : During a ride WorkoutEngine.resend() then sends the current segment's level (L2-027 AC4)
+    conn --> screen : ble is connected
+    screen --> rider : Status and controls follow within 1 s (L2-019 AC5)
+  else bike still off
+    bike --> conn : NetworkError
+    conn -> logger : LOGGER.error("bluetooth", error)
+    conn --> recon : false; wait 3 s from the end of the attempt
+  end
 end
-conn -> conn : state = Disconnected (L2-017 AC1)
-conn --> header : Status red, hidden text " disconnected" (L2-019 AC3)
-conn -> recon : start(connect same device, no chooser)
-loop every 3 s until connected or the ride ends
-  recon -> conn : attempt
-  conn -> bike : gatt.connect()
-  bike --> conn : fails while the bike sleeps
-end
-opt rider presses Reconnect
-  actor -> header : Reconnect
-  header -> recon : retryNow() cancels the pending retry and tries at once (L2-017 AC3)
-end
-recon -> conn : attempt after the bike is switched on and pedalled
-conn -> bike : gatt.connect(), link open and init
-bike --> conn : First notification
-conn -> conn : state = Connected, reconnects + 1 (L2-017 AC2)
-conn -> bike : the last target resistance, before anything else (L2-017 AC4)
-conn --> header : Status connected
-header --> actor : Ride carries on without a reload
 @enduml

@@ -2,17 +2,15 @@
 !include <C4/C4_Container>
 LAYOUT_WITH_LEGEND()
 title Containers — Restrict third parties
+
 Person(rider, "Rider", "Rides a smart bike at home")
-System_Ext(youtube, "YouTube", "www.youtube.com, www.youtube-nocookie.com, i.ytimg.com")
-System_Ext(gmaps, "Google Maps Platform", "tile.googleapis.com")
-System_Ext(static, "Static web host", "staticwebapp.config.json global headers")
-System_Boundary(telo, "Telo Ride") {
-  Container(app, "Ride app", "Angular, Chrome or Edge", "Runs under the policy; self-hosted fonts; no trackers")
-  Container(api, "Telo Ride API", "ASP.NET Core, SignalR", "Sends nosniff, Referrer-Policy and frame-ancestors on every response")
+System_Ext(youtube, "YouTube", "Privacy-enhanced player for the class video")
+System_Ext(host, "Static host", "Serves the app's files over HTTPS")
+System_Boundary(telo, "Telo Ride 1") {
+  Container(app, "Ride app", "Angular, Chrome or Edge", "The four screens, Web Bluetooth, the protocol and the engine")
 }
+
 Rel(rider, app, "Uses", "HTTPS")
-Rel(static, app, "Serves files and headers", "HTTPS")
-Rel(app, api, "connect-src 'self'", "JSON/HTTPS, WebSocket")
-Rel(app, youtube, "script-src, frame-src, img-src", "HTTPS")
-Rel(app, gmaps, "connect-src, img-src", "HTTPS")
+Rel(host, app, "Serves files, fonts and the Content Security Policy to", "HTTPS")
+Rel(app, youtube, "Loads iframe_api, the youtube-nocookie frame and the i.ytimg.com cover from", "HTTPS")
 @enduml

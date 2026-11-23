@@ -14,32 +14,43 @@ skinparam package {
   FontColor #101828
   BackgroundColor #F9FAFB
 }
-actor "Developer" as actor
+actor "Rider" as rider
 box "Frontend — Ride app (ride application)" #E0F2FE
-  participant "app.config.ts" as config
-  participant "ConnectBikePage" as page
+  participant "provideBikeConnection()" as provide
+  participant "ConnectBikeStore" as store
 end box
-box "Frontend — Ride app (domain library)" #E0F2FE
+box "Frontend — Ride app (domain library)" #ECFDF3
   participant "SimulatedBikeConnection" as sim
-  participant "EchelonProtocol" as proto
-  participant "EchelonFrameDecoder" as dec
-  participant "BikeTelemetry" as tele
+  participant "SecondTicker" as ticker
+  participant "EchelonProtocol" as protocol
+  participant "BikeTelemetry" as telemetry
 end box
-actor -> config : Open a development build with ?simulate
-alt SIMULATOR_ENABLED and ?simulate present
-  config -> config : Bind BIKE_CONNECTION to SimulatedBikeConnection (L2-024 AC1)
+box "Device — Browser" #F2F4F7
+  participant "navigator.bluetooth" as ble
+end box
+rider -> provide : Opens the app with ?simulate
+alt development build
+  provide -> provide : SIMULATOR_ENABLED is true and the query has simulate
+  provide -> sim : Bind BIKE_CONNECTION (L2-024 AC1)
+  rider -> store : Presses "Pair Echelon EX-5s" on Connect Bike
+  store -> sim : pair() calls requestBike()
+  sim --> store : Echelon EX-5s, EX5S-0bf669f1, no chooser (L2-024 AC1)
+  store -> sim : connect()
+  sim -> ticker : Subscribe to seconds
+  sim --> store : ble is connected
+  store --> rider : The bike shows as connected
+  loop once a second
+    ticker -> sim : Next second
+    sim -> protocol : workout(elapsed, revolutions, cadence)
+    protocol --> sim : D1 frame
+    sim -> protocol : resistance(level)
+    protocol --> sim : D2 frame
+    sim -> telemetry : frames emits D1, then D2 (L2-024 AC1)
+  end
 else production build
-  config -> config : ?simulate ignored; WebBluetoothBikeConnection bound (L2-024 AC3)
-end
-actor -> page : Press search
-page -> sim : requestBike()
-sim --> page : Echelon EX-5s, no chooser
-page -> sim : connect()
-sim --> page : Connected
-loop once a second
-  sim -> proto : workoutData(...) and resistanceFrame(level)
-  proto --> sim : D1 and D2 frames
-  sim -> dec : frames, through the same decoder as a real bike
-  dec -> tele : TelemetrySample
+  provide -> provide : SIMULATOR_ENABLED is false; ?simulate is ignored (L2-024 AC3)
+  rider -> store : Presses "Pair Echelon EX-5s" on Connect Bike
+  store -> ble : requestDevice() through WebBluetoothBikeConnection
+  ble --> rider : The browser's chooser opens
 end
 @enduml

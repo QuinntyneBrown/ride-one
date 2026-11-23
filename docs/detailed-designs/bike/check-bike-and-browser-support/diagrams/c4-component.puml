@@ -2,29 +2,40 @@
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
 title Components — Check bike and browser support
-Person(rider, "Rider", "Rides a smart bike at home")
-Container_Boundary(app, "Ride app") {
-  Component(connect, "ConnectBikePage", "Angular page · ride", "First-run pairing screen at /connect")
-  Component(classStart, "ClassStartPage / CustomSetupPage", "Angular pages · ride", "Screens that start a ride")
-  Component(customRide, "CustomRidePage", "Angular page · ride", "Custom ride dashboard")
-  Component(works, "ConnectWorks", "Presentation component · components", "The Works with list")
-  Component(notice, "BrowserNotice", "Presentation component · components", "Notice under a header with one action")
-  Component(panel, "BrowserPanel", "Presentation component · components", "Full panel that replaces the ride view")
-  Component(support, "WebBluetoothSupport", "Service · domain/bluetooth", "Reads navigator.bluetooth and isSecureContext")
-  Component(block, "rideBlockReason", "Pure helper · domain/bluetooth", "Maps support state to a blocked-ride reason")
-  Component(list, "SUPPORTED_BIKES", "Constant · domain/bluetooth", "Bike models and their support level")
-  Component(token, "BLUETOOTH_SUPPORT", "Injection token · api", "BluetoothSupport contract")
+
+Container_Boundary(ride, "ride application") {
+  Component(classPage, "TheClassPage", "Angular page, new", "Shows the notice, the bike status and the disabled start button")
+  Component(connectPage, "ConnectBikePage", "Angular page, exists", "Shows the Works with list and replaces the device card with an alert")
+  Component(guard, "connectedBikeGuard", "CanActivateFn, new", "Sends /ride to The Class without a connected bike")
+  Component(provide, "provideBikeConnection", "Provider function, exists", "Binds the support check on the lazy parent route")
 }
-Rel(rider, connect, "Opens")
-Rel(rider, classStart, "Opens")
-Rel(connect, works, "Renders with SUPPORTED_BIKES")
-Rel(connect, list, "Reads")
-Rel(connect, token, "Injects")
-Rel(classStart, token, "Injects")
-Rel(customRide, token, "Injects")
-Rel(token, support, "Bound to in app.config.ts")
-Rel(classStart, block, "Derives disabled Start from")
-Rel(customRide, block, "Derives panel from")
-Rel(classStart, notice, "Renders")
-Rel(customRide, panel, "Renders")
+Container_Boundary(components, "components library") {
+  Component(notice, "BrowserNotice", "wz-browser-notice, new", "Alert under the header with one action")
+  Component(blocker, "ConnectBlocker", "wz-connect-blocker, new", "Alert that stands in for the device card")
+  Component(works, "ConnectWorks", "wz-connect-works, exists", "Works with list, one or two columns")
+}
+Container_Boundary(domain, "domain library") {
+  Component(support, "WebBluetoothSupport", "Service, exists", "Reads the secure context, navigator.bluetooth and the adapter")
+  Component(blocked, "isBlocked", "Pure helper, new", "True for unsupported-browser and insecure-context")
+  Component(bikes, "SUPPORTED_BIKES", "Constant, exists", "The five rows of the list, in order")
+  Component(clip, "BrowserClipboard", "Service, new", "Writes text through navigator.clipboard")
+}
+Container_Boundary(api, "api library") {
+  Component(supportToken, "BLUETOOTH_SUPPORT", "Contract and token, exists", "state, recheck, secureUrl")
+  Component(clipToken, "CLIPBOARD", "Contract and token, new", "copy")
+  Component(connToken, "BIKE_CONNECTION", "Contract and token, exists", "ble, the link state")
+}
+
+Rel(provide, support, "Binds to BLUETOOTH_SUPPORT")
+Rel(support, supportToken, "Implements")
+Rel(clip, clipToken, "Implements")
+Rel(classPage, supportToken, "Reads state and secureUrl")
+Rel(classPage, clipToken, "Copies the page address")
+Rel(classPage, blocked, "Disables the start button with")
+Rel(classPage, notice, "Renders when blocked")
+Rel(connectPage, supportToken, "Reads state, calls recheck")
+Rel(connectPage, blocker, "Renders when blocked")
+Rel(connectPage, works, "Passes the bikes to")
+Rel(connectPage, bikes, "Reads")
+Rel(guard, connToken, "Reads ble; calls nothing on Bluetooth")
 @enduml

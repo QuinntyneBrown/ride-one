@@ -2,144 +2,175 @@
 
 ## Overview
 
-The Ride app is most of Telo Ride: every screen, the Bluetooth link to the bike, the bike
-protocol, the workout engine and the ride sessions. Code of that size stays understandable only
-when each part has one home and the parts depend on each other in one direction. This feature
-defines the Angular workspace that gives each part its home and the lint rules that hold the
-direction.
+Telo Ride 1 is a frontend product: the four screens, the Bluetooth link, the protocol and the ride
+rules all run in the browser on the device (`L1-024`). This feature describes how that code is
+organised so that the rules stay enforceable: one Angular workspace, one application, four
+libraries with a fixed dependency direction, Web Bluetooth confined to one folder, and current
+Angular throughout. The structure is checked by lint, not by tests.
 
-- **workspace** — one Angular CLI project root (`frontend/angular.json`) holding several projects
-- **library** — workspace project compiled into the application from source, not published
-- **composition root** — the one place that binds every injection token to its implementation: `ride`'s `app.config.ts`
-- **dependency direction** — rule that names which project may import which
-- **zoneless** — Angular change detection driven by signals, without Zone.js
+Local terms:
 
-The feature belongs to the platform subsystem. It is a frontend-only slice that every other
-frontend feature builds on. ADR 0013 describes the earlier three-project workspace that this design
-extends with the `domain` library; ADR 0024 records the Telo Ride workspace.
+- **workspace**: Angular CLI workspace in `frontend/`, described by `angular.json`, that holds every frontend project
+- **application**: workspace project that is built and served, here `ride`
+- **library**: workspace project compiled from source by the application through a path alias
+- **dependency direction**: rule that states which project may import which
+- **composition root**: single place that binds injection tokens to implementations, here `app.config.ts`
+- **presentation component**: component that takes inputs, emits outputs and injects no app service, token or router
+
+Neighbouring features own the adjacent concerns:
+
+- [Test without hardware](../test-without-hardware/README.md) owns the Playwright fixtures and
+  the fake clocks (`L2-148`).
+- [Host and deliver](../host-and-deliver/README.md) owns the CI workflow that runs lint and the
+  production build (`L2-149`).
+- [Meet performance budgets](../../performance/meet-performance-budgets/README.md) owns the
+  `angular.json` budgets and the rule that each screen and the video player load on demand
+  (`L2-136`).
+- [Connect a bike](../../bike/connect-a-bike/README.md) owns the Bluetooth code that lives in
+  `domain`'s `bluetooth/` folder (`L2-011` to `L2-014`).
+- [Open the app](../../the-class/open-the-app/README.md) owns the routes of the four screens
+  (`L2-167`).
 
 ## Description
 
-- **`frontend/angular.json`** — workspace with six projects under `projects/`: libraries `api`,
-  `domain`, `components`, `world` and `video`, and application `ride`. `L2-146` AC1 names the
-  first four projects. `world` and `video` are further libraries of the kind `AGENTS.md` allows
-  when a concern earns its own: `world` is introduced by `race/render-the-race-world`, `video` by
-  `classes/start-a-class`.
-- **Path aliases** — `frontend/tsconfig.json` maps `@telo/api`, `@telo/domain`,
-  `@telo/components`, `@telo/world` and `@telo/video` to each library's `src/public-api.ts`. The alias names are introduced here.
-- **`api`** — contracts (TypeScript interfaces), DTO types, injection tokens, and the HTTP and
-  SignalR clients (`HttpAuthApi`, `HttpRidesApi`, `SignalRRideHubClient`). It imports nothing in
-  the workspace.
-- **`domain`** — the bike and its rules: `protocol/` (`EchelonProtocol`, `FtmsProtocol`),
-  `bluetooth/` (`WebBluetoothBikeConnection`, `SimulatedBike`), `engine/` (`WorkoutEngine`,
-  `RideClock`, `ResistanceController`, `PowerModel`) and `storage/` (`RideOutbox`,
-  `SettingsStore`). It imports `api` only.
-- **`components`** — presentation components named by design-system block. It imports `api` for
-  types only (`import type`).
-- **`world`** — World Ride rendering (Three.js, WebGPU with WebGL 2 fallback). It imports `api`
-  for types only. `ride` imports it only with dynamic `import()` from the race page, so it never
-  enters the initial chunk (`performance/meet-performance-budgets`).
-- **`video`** — the YouTube ride-along: `YouTubeVideoPlayer` implements the `VideoPlayer`
-  contract behind `VIDEO_PLAYER_FACTORY` from `api`. It imports `api` only. `ride` imports it
-  only with dynamic `import()` from the class and custom ride pages.
-- **`ride`** — routed pages, dialogs, route-scoped stores and `app.config.ts`. It imports the five
-  libraries. No library imports `ride`.
-- **Adding a library** — the change that adds a library, as `world` and `video` do, also updates the
-  dependency rule in `AGENTS.md` and the ESLint boundaries in `eslint.config.js`.
-- **`app.config.ts`** — the composition root. It calls `provideZonelessChangeDetection()`,
-  `provideRouter(routes, withComponentInputBinding())`, `provideHttpClient(withFetch(),
-  withInterceptors([...]))`, `provideServiceWorker('ngsw-worker.js')`, and binds every token, for
-  example `{ provide: BIKE_CONNECTION, useFactory: bikeConnectionFactory }`. The factory returns
-  `SimulatedBike` when the URL carries `?simulate`.
-- **Built in order** — slice 1.1 lays down the four baseline projects, the app shell, the
-  `MainShell` layout route with Home and Page not found, the lint, the budgets, the tokens and the
-  fonts. `app.config.ts` then holds only zoneless change detection, the router and the browser
-  error listeners; each provider and token binding below arrives with the first slice that needs
-  it, as `AGENTS.md` asks.
-- **Library `package.json`** — each library keeps a private `package.json` (`@telo/api`,
-  `@telo/domain`, `@telo/components`) with `"sideEffects": false`, so the bundler drops unused
-  exports of a barrel (ADR 0013).
-- **Attribute components** — a presentation component that must sit on a native element the app
-  owns (a router link, a button) is an attribute component, written as Angular Material writes
-  them: `a[wz-button]`, `a[wz-app-header-link]`. It styles its host as its block or element with
-  the mock's BEM class, and the app adds `routerLink` on the same element, so `components` never
-  imports the router (ADR 0024).
-- **Global styles** — `projects/ride/src/styles/`: `tokens.css` (copied from
-  `docs/design-system/tokens/tokens.css` without its `@font-face` rules), `fonts.css` (the
-  `@font-face` rules, pointing at `projects/ride/public/fonts/`, bundled and self-hosted per ADR
-  0005) and `styles.scss` (reset, focus ring, skip link and utilities). `_page.scss` holds the
-  page structure (`container`, `page`, `page__title`, `page__lead`); each page's stylesheet
-  `@use`s it, so its rules stay encapsulated in that page.
-- **Budgets** — `angular.json`'s production build warns above 264 kB of initial JavaScript and
-  CSS and fails above 280 kB; a component stylesheet warns above 6 kB and fails above 10 kB.
-  Angular core and the router, which every screen needs, are most of the initial chunk; every
-  page is a lazy chunk.
-- **Unit tests** — `ng test ride` runs every `*.spec.ts` under `projects/*/src/` with Vitest,
-  libraries included. They run locally through `tools/verify/verify.mjs`, never in CI.
-- **`frontend/eslint.config.js`** — one flat config for all projects:
-  - `no-restricted-imports` per project folder enforces the dependency direction (lint, not a
-    test, as ADR 0013 decided).
-  - `@typescript-eslint/consistent-type-imports` plus a restriction that allows only
-    `import type` from `@telo/api` inside `projects/components/` and `projects/world/`.
-  - A rule on `projects/ride/` allows `@telo/world` and `@telo/video` only through `import()`,
-    never a static import.
-  - A rule on `projects/video/` allows imports from `@telo/api` only.
-  - `no-restricted-properties` forbids `navigator.bluetooth` everywhere except
-    `projects/domain/src/bluetooth/**`.
-  - angular-eslint rules `prefer-on-push-component-change-detection`, `prefer-standalone`,
-    `component-selector` (prefix `wz`, kebab-case, on an element or an attribute),
-    `use-component-view-encapsulation`, and `component-max-inline-declarations` set to 0 for
-    templates and styles; the template rules include angular-eslint's accessibility set and
-    forbid inline styles.
-- **Prettier** — owns formatting; CI fails when `prettier --check` reports a change.
+### Projects (`L2-146` AC1)
+
+- **`frontend/angular.json`**: exists. One workspace with `newProjectRoot` `projects` and the
+  prefix `wz` on every project. It holds the application `ride` and the libraries `api`, `domain`,
+  `components` and `video`, which are the five projects `L2-146` AC1 names. It also holds the
+  library `world` and the application `marketing`, carried over from Telo Ride. Telo Ride 1 does
+  not use or extend them; each is removed in a change of its own, with an ADR where it reverses
+  ADR 0027 or ADR 0030.
+- **Path aliases** (`frontend/tsconfig.json`): exist. `@telo/api`, `@telo/domain`,
+  `@telo/components` and `@telo/video` each map to the library's `src/public-api.ts`. The
+  application compiles library source directly, so no library has a build target (ADR 0013,
+  ADR 0024). The `@telo/world` alias leaves with the `world` library.
+- **Library `package.json`**: exists in each library, private, with `"sideEffects": false`, so the
+  bundler drops unused exports of a barrel.
+- **`api`**: exists. Contracts, types and injection tokens, for example `BikeConnection` and
+  `BIKE_CONNECTION`, `RememberedBike` and `REMEMBERED_BIKE`, `VideoPlayer` and
+  `VIDEO_PLAYER_FACTORY`, `MonotonicTime` and `MONOTONIC_TIME`, `Ticker` and `TICKER`, `Fullscreen`
+  and `ScreenWakeLock`. Telo Ride 1 adds `RideRecord` and `RIDE_RECORD`, `FinishedRide` and
+  `FINISHED_RIDE`, and `Logger` and `LOGGER`. The carried-over HTTP and SignalR clients (`auth/`, `riders/`, `rides/`,
+  `progress/`, `live/`, `maps/`) are not part of Telo Ride 1. Whether `classes/` keeps an HTTP
+  client is `<TO SUPPLY>` (`L2.md` open question 1).
+- **`domain`**: exists. `protocol/` (`EchelonFrameDecoder`, `IndoorBikeDataDecoder`, the Echelon
+  and FTMS command builders), `bluetooth/` (`WebBluetoothBikeConnection`, `EchelonLink`,
+  `FtmsLink`, `GattWriteQueue`, `KeepaliveScheduler`, `DeviceReconnector`,
+  `SimulatedBikeConnection`), `engine/` (`WorkoutEngine`, `RideClock`, `ResistanceController`,
+  `BikeTelemetry`, and the accumulators `RideTotals`, `EffortTotals` and `OnTargetCounter`), `storage/` (`RememberedBikeStore`) and `browser/` (`BrowserFullscreen`,
+  `BrowserScreenWakeLock`). The screen features add to these folders, for example
+  `RideRecordStore` in `storage/`.
+- **`components`**: exists. One folder per design-system block, each a standalone component as
+  `name.ts`, `name.html` and `name.scss`. The blocks for the four screens are owned by the screen
+  features; blocks for Telo Ride's other screens are carried over.
+- **`video`**: exists. `YouTubeVideoPlayer` implements `VideoPlayer`. The application reaches it
+  only through a dynamic `import()` bound to `VIDEO_PLAYER_FACTORY`.
+- **`ride`**: exists. `app.config.ts`, `app.routes.ts`, `ride.routes.ts`, the shell `AppShell`
+  (selector `wz-root`) and one folder per page. The pages for Telo Ride 1 are reshaped or new and
+  are owned by the screen features.
+
+### Dependency direction (`L2-146` AC2)
+
+- **`frontend/eslint.config.js`**: exists. One flat config for every project.
+  `@typescript-eslint/no-restricted-imports` is configured per project folder:
+  - `projects/api/**`: no `@telo/*` import and no `@angular/router`.
+  - `projects/domain/**` and `projects/video/**`: `@telo/api` only.
+  - `projects/components/**`: `@telo/api` with `allowTypeImports: true`, and no `@telo/domain`,
+    `@telo/video` or `@angular/router`. `@typescript-eslint/consistent-type-imports` makes a
+    type-only import explicit.
+  - Every library: no relative path that leaves its project (`^(\.\./){3,}`) and no path under
+    `ride`.
+  - `projects/ride/**`: libraries by alias only, never by relative path.
+- **What changes**: the `world` and `marketing` blocks of the config, and each `@telo/world`
+  entry, leave with those projects. `AGENTS.md` still states the direction with `world` and
+  `marketing` in it; `L2-146` AC2 names neither. The change that removes each project updates
+  `AGENTS.md` and the config together.
+- **Lint, not a test**: the direction is enforced by `ng lint` only (ADR 0013). No architecture
+  test exists or is added.
+
+### Web Bluetooth in one folder (`L2-146` AC3)
+
+- **`no-restricted-properties`** (`eslint.config.js`): exists. It reports any read of
+  `navigator.bluetooth` with the message "Only domain/src/bluetooth/ touches
+  navigator.bluetooth.", and is switched off for `projects/domain/src/bluetooth/**/*.ts` only.
+- **`WebBluetoothBikeConnection`** and **`WebBluetoothSupport`** (`domain`, `bluetooth/`): exist.
+  They read `navigator.bluetooth` for Telo Ride 1; the carried-over `WebBluetoothHeartRateStrap`
+  in the same folder leaves with heart rate. Pages and stores inject `BIKE_CONNECTION` and
+  `BLUETOOTH_SUPPORT`.
+
+### Current Angular (`L2-146` AC4)
+
+- **`app.config.ts`**: exists. It calls `provideZonelessChangeDetection()`,
+  `provideRouter(routes, withComponentInputBinding())` and
+  `provideBrowserGlobalErrorListeners()`. `zone.js` is not a dependency of `package.json`.
+- **`ride.routes.ts`**: exists and changes. `app.routes.ts` loads it with `loadChildren`, and its
+  parent route binds the tokens the first screen brings through `provideBikeConnection()`
+  (`TICKER`, `REMEMBERED_BIKE`, `BIKE_CONNECTION`, `BLUETOOTH_SUPPORT` and, new there,
+  `MONOTONIC_TIME`), and gains the bindings of `RIDE_RECORD` and `FINISHED_RIDE`. Its children
+  become the four screens and Page not found, with `rememberedBikeGuard` on `/`,
+  `connectedBikeGuard` on `/ride` and `classDoneGuard` on `/done`.
+- **angular-eslint rules**: exist. `prefer-standalone`, `prefer-on-push-component-change-detection`,
+  `use-component-view-encapsulation`, `component-selector` and `directive-selector` with the prefix
+  `wz`, and `component-max-inline-declarations` at 0 for templates and styles. `tsconfig.json`
+  sets `strictStandalone` and `strictTemplates`.
+- **Signals**: state is held in `signal`, `computed` and `input()`; contracts expose `Signal<T>`
+  (for example `BikeConnection.ble`). No lint rule checks this criterion; review does.
+- **Formatting**: Prettier owns formatting (`npm run format:check`).
 
 ## Requirements
 
+The feature realizes the following level-2 (L2) requirement, which refines the level-1 (L1)
+requirement cited beside it.
+
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-146` AC1 | `L1-024` | `frontend/` shall build as one Angular workspace with the libraries `api`, `domain` and `components` and the application `ride`. |
-| `L2-146` AC2 | `L1-024` | Lint shall fail on any import outside these: `ride` imports `components`, `api` and `domain`; `domain` imports `api`; `components` imports `api` types only; `api` imports nothing in the workspace. |
-| `L2-146` AC3 | `L1-024` | Code that uses `navigator.bluetooth` shall live in `domain`'s `bluetooth/` folder only. |
-| `L2-146` AC4 | `L1-024` | Components shall be standalone, use signals and `OnPush`, and the app shall run zoneless. |
+| `L2-146` | `L1-024` | `frontend/` shall build as one Angular workspace in which Telo Ride 1 is the application `ride`, built on the libraries `api`, `domain`, `components` and `video`. Lint shall fail on any import outside these rules: `ride` imports the libraries; `domain` and `video` import `api`; `components` imports `api` types only; `api` imports nothing in the workspace. Code that uses `navigator.bluetooth` shall live in `domain`'s `bluetooth/` folder only. Components shall be standalone and shall use signals and `OnPush`, and the app shall run zoneless. |
 
 ## Diagrams
 
 ### System context
 
-A developer builds Telo Ride; the workspace is the shape of its frontend.
+Telo Ride 1 is the built workspace. It reaches the bike, YouTube and the browser from the device,
+and a static host serves it.
 
-![C4 system context for the frontend workspace](diagrams/c4-context.png)
+![C4 system context for structuring the frontend workspace](diagrams/c4-context.png)
 
 ### Containers
 
-The workspace produces the Ride app, which talks to the bike and to the Telo Ride API.
+The whole workspace builds into one container, the Ride app. Each external reach has one home in
+the workspace: Bluetooth in `domain/src/bluetooth/`, storage in `domain/src/storage/`, the player
+in `video`.
 
-![C4 container view for the frontend workspace](diagrams/c4-container.png)
+![C4 container view for structuring the frontend workspace](diagrams/c4-container.png)
 
 ### Components
 
-Inside the Ride app, the six projects depend in one direction: `ride` on all five libraries
-(`world` and `video` through dynamic imports), `domain` and `video` on `api`, `components` and
-`world` on `api` types.
+The five projects and their allowed imports. `ride` depends on every library, `domain` and `video`
+on `api`, `components` on `api` types only, and `api` on nothing.
 
-![C4 component view for the frontend workspace](diagrams/c4-component.png)
+![C4 component view for structuring the frontend workspace](diagrams/c4-component.png)
 
 ### Class structure
 
-`appConfig` binds tokens declared in `api` to implementations in `domain` and `api`; pages inject
-tokens, not implementations.
+`angular.json` holds the five projects, `tsconfig.json` aliases the libraries, and
+`eslint.config.js` enforces the direction and the Angular rules. Configuration files are modelled
+as classes with the `config` stereotype.
 
-![Class diagram for the frontend workspace](diagrams/class-structure.png)
+![Class diagram for structuring the frontend workspace](diagrams/class-structure.png)
 
-### Behaviour — bootstrap the app
+### Behaviour: reject a forbidden import
 
-`main.ts` bootstraps `AppShell` with `appConfig`, which sets up zoneless change detection and binds
-every token (`L2-146` AC4).
+The lint job loads `eslint.config.js` and checks each project folder against its rules. A value
+import from `api` in a presentation component, a read of `navigator.bluetooth` outside
+`bluetooth/`, or a component without `OnPush` fails the job.
+
+![Sequence diagram for rejecting a forbidden import](diagrams/sequence-reject-a-forbidden-import.png)
+
+### Behaviour: bootstrap the app
+
+`main.ts` bootstraps `AppShell` with `appConfig`, which runs zoneless. The router loads
+`ride.routes.ts`, which binds `BIKE_CONNECTION`; the page injects the token and renders
+presentation components.
 
 ![Sequence diagram for bootstrapping the app](diagrams/sequence-bootstrap-the-app.png)
-
-### Behaviour — lint rejects an import against the direction
-
-A `components` file that imports a `domain` service fails lint locally and in CI (`L2-146` AC2).
-
-![Sequence diagram for lint rejecting an import](diagrams/sequence-lint-dependency-rule.png)

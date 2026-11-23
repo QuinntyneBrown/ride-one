@@ -1,13 +1,13 @@
 @startuml
 !include <C4/C4_Container>
 LAYOUT_WITH_LEGEND()
-title Containers — Support screen readers and motion preferences
+title Containers — Support screen readers and motion
 
-Person(rider, "Rider", "May use a screen reader or prefer reduced motion")
-System_Ext(at, "Assistive technology", "Screen reader")
-System_Boundary(telo, "Telo Ride") {
-  Container(app, "Ride app", "Angular, Chrome or Edge", "Every screen, Web Bluetooth, protocol and workout engine")
+Person(rider, "Rider", "Rides a smart bike at home")
+System_Ext(host, "Static host", "Serves the app's files over HTTPS")
+System_Boundary(telo, "Telo Ride 1") {
+  Container(app, "Ride app", "Angular, Chrome or Edge", "The four screens, Web Bluetooth, the protocol and the engine")
 }
-Rel(rider, app, "Uses")
-Rel(at, app, "Reads", "Accessibility tree")
+Rel(rider, app, "Reads headings, timers, states and alerts in", "Accessibility tree")
+Rel(host, app, "Serves the markup, tokens and stylesheets to", "HTTPS")
 @enduml

@@ -12,73 +12,90 @@ skinparam class {
 }
 ' --------------------------
 title Class structure — Control resistance
-enum ResistanceSource {
+
+interface BikeConnection <<api>> {
+  +ble: Signal<BleState>
+  +setResistance(level: number): Promise<number>
+  +forgetTarget(): void
+}
+
+class BikeConnectionError <<api>> {
+  +code: "blocked" | "failed" | "read-only"
+}
+
+enum ResistanceSource <<api>> {
   plan
   manual
 }
-class SentCommand <<api>> {
-  +rideTime: number | null
-  +level: number
-  +source: ResistanceSource
-  +ackMs: number | null
-}
-class ResistanceController <<domain/engine>> {
-  +{static} MIN: number = 1
-  +{static} MAX: number = 32
+
+class ResistanceController <<engine>> {
   +target: Signal<number | null>
   +source: Signal<ResistanceSource>
   +canControl: Signal<boolean>
-  +last: Signal<SentCommand | null>
   +applyPlanLevel(level: number): Promise<void>
   +nudge(delta: 1 | -1): Promise<void>
-  +setManual(level: number): Promise<void>
-  -clamp(level: number): number
   -send(level: number, source: ResistanceSource): Promise<void>
 }
-class SentToBikeLog <<domain/engine>> {
-  +{static} CAPACITY: number = 50
-  +rows: Signal<SentCommand[]>
-  +last: Signal<SentCommand | null>
-  +add(cmd: SentCommand): void
+
+class WorkoutEngine <<engine>> {
+  +state: Signal<PlanState | null>
+  +follow(plan: Plan): void
+  +resend(): void
+  -step(): void
 }
-class WorkoutEngine <<domain/engine>> {
-  +segment: Signal<Segment | null>
-  +segmentStarted: Observable<Segment>
+
+class BikeTelemetry <<engine>> {
+  +resistance: Signal<number | null>
 }
-class Segment {
-  +kind: SegmentKind
-  +durationS: number
-  +level: number
-  +cadenceAim: number
-}
-interface BikeConnection <<api>> {
-  +setResistance(level: number): Promise<number>
-}
-class EchelonProtocol <<domain/protocol>> {
+
+class EchelonProtocol <<protocol>> {
+  +MIN_RESISTANCE = 1
+  +MAX_RESISTANCE = 32
   +setResistance(level: number): Uint8Array
 }
-class RideLevels <<components>> {
-  +level: input<number | null>
-  +disabled: input<boolean>
-  +pick: output<number>
+
+class FtmsProtocol <<protocol>> {
+  +mapLevel(level: number, range: ResistanceRange): number
+  +setTargetResistanceLevel(raw: number): Uint8Array
 }
-class RideStep <<components>> {
-  +resistance: input<number | null>
-  +disabled: input<boolean>
-  +raise: output<void>
-  +lower: output<void>
+
+class WebBluetoothBikeConnection <<bluetooth>> {
+  -target: number | null
+  +setResistance(level: number): Promise<number>
+  +forgetTarget(): void
 }
-class RideLog <<components>> {
-  +rows: input<SentCommand[]>
-  +link: input<string>
-  +connected: input<boolean>
+
+class GattWriteQueue <<bluetooth>> {
+  +enqueue(write: () => Promise<void>, minGapMs: number): Promise<number>
 }
-ResistanceController ..> BikeConnection : injects BIKE_CONNECTION
-ResistanceController --> SentToBikeLog : records
+
+class ClassRideStore <<ride>> {
+  +level: Signal<number | null>
+  +canControl: Signal<boolean>
+  +raise(): void
+  +lower(): void
+}
+
+class ClassResist <<components>> {
+  +level: number | null
+  +max: number
+  +disabled: boolean
+  +lower: OutputEmitterRef<void>
+  +raise: OutputEmitterRef<void>
+}
+
+WorkoutEngine --> ResistanceController : applyPlanLevel
+ResistanceController --> BikeConnection : BIKE_CONNECTION
+ResistanceController ..> BikeTelemetry : first nudge starts from
+ResistanceController ..> BikeConnectionError : read-only ends control
 ResistanceController --> ResistanceSource
-SentToBikeLog "1" *-- "0..50" SentCommand
-WorkoutEngine --> Segment
-ResistanceController ..> WorkoutEngine : subscribes segmentStarted
-BikeConnection ..> EchelonProtocol : WebBluetoothBikeConnection encodes
-RideLog ..> SentCommand
+WebBluetoothBikeConnection ..|> BikeConnection
+WebBluetoothBikeConnection ..> EchelonProtocol : Echelon link
+WebBluetoothBikeConnection ..> FtmsProtocol : FTMS link
+WebBluetoothBikeConnection *-- GattWriteQueue
+ClassRideStore --> ResistanceController
+ClassRideStore --> WorkoutEngine : follow, resend
+ClassRideStore ..> BikeConnection : forgetTarget on leave or finish
+ClassRideStore --> BikeTelemetry
+ClassResist <.. ClassRideStore : inputs via ClassRidePage
 @enduml

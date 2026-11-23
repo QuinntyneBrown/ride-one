@@ -2,143 +2,179 @@
 
 ## Overview
 
-Telo Ride runs in the rider's browser for an hour or more at a time, next to a Bluetooth link to
-their bike. Every origin the page can load code from or send data to widens what a compromised or
-mistaken script could do. This feature fixes the list of foreign origins to two services the
-product needs, and has the browser enforce that list.
+Telo Ride 1 collects nothing about the rider (`L1-021`). The only party other than the app's own
+origin that the browser contacts is YouTube, which supplies the class video. This feature fixes
+that boundary in two places. A Content Security Policy sent with every response tells the browser
+which origins the page may load from and connect to. The app itself is built so that it asks for
+nothing outside that list: no analytics, advertising or tracking script, and fonts served from its
+own origin.
 
-- **Content Security Policy (CSP)** — response header that tells the browser which origins a page
-  may load scripts, styles, frames, images and fonts from and connect to; the browser blocks
-  everything else
-- **third party** — origin other than Telo Ride's own: here only YouTube (the class and
-  custom-ride video player) and Google Maps Platform (photorealistic 3D Tiles, only with the
-  rider's own key)
-- **app origin** — origin that serves the Ride app's files; the Telo Ride API is reached on the
-  same origin under `/api` and `/hubs`
+Local terms:
 
-Telo Ride loads no analytics, advertising or tracking script, and its fonts are bundled and
-self-hosted ([ADR 0005](../../../adr/0005-bundled-self-hosted-fonts.md)). The Google key never
-reaches Telo Ride's backend; it stays in the browser and goes only to Google's Map Tiles API, as
-[Render the race world](../../race/render-the-race-world/README.md) describes.
+- **Content Security Policy**: response header that lists, per resource type, the origins a page may load from or connect to
+- **directive**: one entry of the policy, naming a resource type and its allowed sources
+- **third party**: origin other than the one that serves the app
+- **privacy-enhanced player**: YouTube embed served from `www.youtube-nocookie.com`
+- **header set**: the Content Security Policy together with `X-Content-Type-Options` and `Referrer-Policy`, sent on every response
 
-The frontend is static files ([Host and deliver](../../platform/host-and-deliver/README.md)).
-[ADR 0018](../../../adr/0018-static-content-security-policy.md) and [ADR
-0022](../../../adr/0022-hosted-on-azure-static-web-apps.md) record that a static host sends one
-fixed policy and that `frame-ancestors` works only as a header, not in a `<meta>` element. This
-design therefore sends the policy as a response header from the static host.
+Neighbouring features own the adjacent concerns:
+
+- [Host and deliver](../../platform/host-and-deliver/README.md) owns the static host that sends
+  the header set (`L2-149` AC1).
+- [Show The Class](../../the-class/show-the-class/README.md) and
+  [Ride the class](../../class-ride/ride-the-class/README.md) own the video on The Class and its
+  sync on Class Ride (`L2-084`, `L2-088`).
+- [Keep data on the device](../keep-data-on-the-device/README.md) owns the rule that the record
+  and the remembered bike are never sent anywhere (`L2-132`).
+- [Log to the console only](../log-to-the-console-only/README.md) owns the absence of a remote
+  logging service (`L2-115`).
+- [Test without hardware](../../platform/test-without-hardware/README.md) owns the fixture that
+  fails a spec on a request off localhost (`L2-148` AC1).
+- [Meet performance budgets](../../performance/meet-performance-budgets/README.md) owns loading
+  the player's code only on a screen that shows the video (`L2-136` AC1).
 
 ## Description
 
-### Policy and headers
+### The header set
 
-- **`staticwebapp.config.json`** (frontend hosting, ADR 0022) — `globalHeaders` on every response
-  the static host serves:
-  - `Content-Security-Policy` with the directives below;
-  - `X-Content-Type-Options: nosniff`;
-  - `Referrer-Policy: strict-origin-when-cross-origin`.
-- **Content Security Policy** directives:
+The policy below is the value the static host sends for Telo Ride 1.
 
-  | Directive | Value |
-  |-----------|-------|
-  | `default-src` | `'self'` |
-  | `script-src` | `'self' https://www.youtube.com 'wasm-unsafe-eval'` |
-  | `style-src` | `'self'` and the Angular component-style allowance, `<TO SUPPLY>` (see below) |
-  | `frame-src` | `https://www.youtube-nocookie.com` |
-  | `worker-src` | `'self' blob:` |
-  | `connect-src` | `'self' https://tile.googleapis.com blob:` |
-  | `img-src` | `'self' https://i.ytimg.com https://tile.googleapis.com blob:` |
-  | `font-src` | `'self'` |
-  | `object-src` | `'none'` |
-  | `base-uri` | `'self'` |
-  | `form-action` | `'self'` |
-  | `frame-ancestors` | `'none'` |
+| Directive | Value | Reason |
+|-----------|-------|--------|
+| `default-src` | `'self'` | Anything not listed falls back to the app's own origin. |
+| `script-src` | `'self' https://www.youtube.com` | The app's bundles and the YouTube IFrame API (`L2-131` AC1). |
+| `style-src` | `'self'` plus the allowance for Angular's component styles, `<TO SUPPLY>` | See *Component styles*. |
+| `frame-src` | `https://www.youtube-nocookie.com` | The player frame only (`L2-131` AC1). |
+| `connect-src` | `'self'` | No `fetch`, WebSocket or beacon to another origin (`L2-131` AC1). |
+| `img-src` | `'self' https://i.ytimg.com` | The app's images and the class cover (`L2-131` AC1). |
+| `font-src` | `'self'` | Self-hosted fonts (`L2-131` AC2). |
+| `object-src` | `'none'` | No plug-in content. |
+| `base-uri` | `'self'` | The `<base href="/">` of `index.html` cannot be redirected. |
+| `form-action` | `'self'` | The app has no form that posts. |
+| `frame-ancestors` | `'none'` | No site may frame the app (`L2-131` AC4). |
 
-  `connect-src 'self'` covers the API and the ride hub's WebSocket because both are on the app
-  origin. If the API is given its own origin, that origin is added and is `<TO SUPPLY>`.
-- **Component styles** — Angular injects component styles as `<style>` elements at run time.
-  `style-src 'self'` alone blocks them unless each carries a nonce, and a static host cannot mint a
-  nonce per response (ADR 0018). The allowance is `<TO SUPPLY>`: either `'unsafe-inline'` for
-  styles only, as ADR 0018 accepts, or a host that injects a per-response nonce written to
-  `ngCspNonce`.
-- **3D Tiles resources** — settled by slice 8.7. Google's tiles are Draco-compressed glTF:
-  Three.js's `DRACOLoader` decodes them in a worker it builds from a `blob:` URL, running the
-  decoder's WebAssembly (`worker-src 'self' blob:`, `'wasm-unsafe-eval'` in `script-src`, which
-  allows compiling WebAssembly but not `eval` of script). `GLTFLoader` reads a tile's embedded
-  textures through `blob:` URLs with `fetch` or an image (`blob:` in `connect-src` and
-  `img-src`). A `blob:` URL is made by the page's own code from bytes it already holds, so it
-  admits no foreign origin; the decoder's files are served from the app's origin (`/draco/`).
-- **`SecurityHeadersMiddleware`** (`Telo.Ride.Api`) — adds `X-Content-Type-Options: nosniff`,
-  `Referrer-Policy: strict-origin-when-cross-origin` and
-  `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'` to every API response,
-  so JSON and ProblemDetails bodies cannot be framed or sniffed as another type.
+- **`X-Content-Type-Options: nosniff`** and **`Referrer-Policy: strict-origin-when-cross-origin`**:
+  sent on every response, files as well as `index.html` (`L2-131` AC4).
+- **Where the header set is written**: new. The artefact that holds it depends on the static
+  host, which is `<TO SUPPLY>` (`L2.md` open question 1; `AGENTS.md` leaves the backend
+  undecided, and the change that decides it brings an ADR). The host is owned by
+  [Host and deliver](../../platform/host-and-deliver/README.md).
+- **What exists today**: the header set is written in
+  `backend/src/Telo.Ride.Api/Hosting/SecurityHeaders.cs`, in the carried-over backend that serves
+  the build (ADR 0026). Its policy is wider than Telo Ride 1 allows: it adds
+  `'wasm-unsafe-eval'` to `script-src`, `https://tile.googleapis.com` and `blob:` to `connect-src`
+  and `img-src`, and `worker-src 'self' blob:`, all for Telo Ride's World rendering and map tiles.
+  None of those is carried into the policy above.
+- **No `<meta>` policy**: `frame-ancestors` is ignored in a `<meta>` element (ADR 0018), so the
+  policy is a response header. `index.html` carries no policy of its own.
+- **Component styles**: Angular injects each component's styles as a `<style>` element at run
+  time. `style-src 'self'` alone blocks those elements. The existing policy allows them with
+  `'unsafe-inline'`, and ADR 0018 records that a static host cannot mint a per-response nonce for
+  `ngCspNonce`. `L2-131` AC1 allows styles only from the app's own origin and the YouTube player,
+  and `L2.md` lists no open question for the conflict. The allowance is therefore `<TO SUPPLY>`:
+  either `'unsafe-inline'` for styles only, with the requirement amended, or a host that injects a
+  nonce. Scripts are not affected by either choice.
+- **Local spec server**: `frontend/scripts/serve-dist.mjs` exists and sends only `content-type`.
+  It should send the same header set, so that a policy violation surfaces in the behaviour specs
+  before it surfaces on the host.
 
-### Ride app (frontend)
+### The app's own requests
 
-- **`ThirdPartyOrigins`** (`api` library) — constants for the four foreign origins the policy
-  lists. Code that builds a foreign URL takes its origin from here, so the code and the policy
-  name the same set.
-- **`YouTubePlayerLoader`** (`domain` library) — loads `https://www.youtube.com/iframe_api` once,
-  creates each player with host `https://www.youtube-nocookie.com`, and destroys the player when
-  its owner is destroyed.
-- **`GoogleTilesSource`** — streams tiles from `https://tile.googleapis.com` only when
-  `SettingsStore.googleMapsKey` holds a key the rider entered. Its library and final name belong
-  to [Render the race world](../../race/render-the-race-world/README.md).
-- **Bundled fonts** — `@font-face` rules in the global foundations stylesheet point at font files
-  in the app's own assets.
-- **End-to-end guard** — the Playwright fixture of [Test without hardware or
-  databases](../../platform/test-without-hardware-or-databases/README.md) fails any spec that
-  makes a request off localhost, so a new foreign request is caught before it ships.
+- **`YouTubeVideoPlayer`** (`video`, `youtube-video-player.ts`): exists, behind the `VideoPlayer`
+  contract and the `VIDEO_PLAYER_FACTORY` token in `api` (`video/video-player.ts`). Its constants
+  `API_URL` (`https://www.youtube.com/iframe_api`) and `EMBED_HOST`
+  (`https://www.youtube-nocookie.com`) are the only script and frame origins in the workspace
+  other than the app's own.
+- **`ClassVideo`** (`components`, `class-ride/class-video.ts`, selector `wz-class-video`): exists.
+  It builds the cover address `https://i.ytimg.com/vi/<videoId>/hqdefault.jpg`, with the video id
+  passed through `encodeURIComponent`. Class Ride uses it
+  ([Ride the class](../../class-ride/ride-the-class/README.md)). Whether The Class reads its cover
+  from `i.ytimg.com` or from a bundled image is `<TO SUPPLY>` in
+  [Show The Class](../../the-class/show-the-class/README.md); `img-src` admits both.
+- **Fonts**: exist. `projects/ride/src/styles/fonts.css` holds the `@font-face` rules, which point
+  at the eight WOFF2 files in `projects/ride/public/fonts/` (ADR 0005). The production build sets
+  `optimization.fonts` to `false` in `angular.json`, so the build inlines no font provider.
+- **`index.html`** (`ride`): exists. It references the favicon and the built bundles and no other
+  origin. No analytics, advertising or tracking snippet is added to it.
+- **`frontend/package.json`**: exists. It holds no analytics, advertising or tracking package.
+- **No other origin in code**: `connect-src 'self'` leaves the app no cross-origin `fetch`. Where
+  the class definition behind `CLASSES_API` comes from is `<TO SUPPLY>` (`L2.md` open question 1);
+  under this policy it is either bundled with the app or served from the app's own origin.
+
+### What is left out
+
+`class-start/class-sync.ts` in `components` builds a link to `youtube.com/watch`, and
+`ride/src/app/classes/class-cover.ts` builds a second cover address. Both belong to Telo Ride's
+class library and are not extended. Google's Map Tiles origin and the `MapTilesFixture` exception
+belong to Telo Ride's maps and leave with them.
+
+### The guard in the specs
+
+- **`guard`** (`frontend/e2e/fixtures/test.ts`): exists, as an automatic fixture. It routes every
+  request whose host is not `localhost` or `127.0.0.1`, lets through only what
+  `YouTubeFixture.answers(url)` accepts (the IFrame API script and the `i.ytimg.com` covers), aborts
+  the rest and fails the spec with `request off localhost: <url>`. For Telo Ride 1 the
+  `MapTilesFixture.answers` exception is removed, so YouTube is the only foreign origin a spec can
+  reach (`L2-131` AC3).
 
 ## Requirements
 
-The feature realizes the following level-2 (L2) requirements. Each L2 requirement refines a
-level-1 (L1) requirement, cited by identifier.
+The feature realizes the following level-2 (L2) requirement, which refines the level-1 (L1)
+requirement cited beside it.
 
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-131` | `L1-021` | The app's pages shall be served with a Content Security Policy that allows scripts and styles only from the app's own origin and the YouTube player, frames only from `www.youtube-nocookie.com`, connections only to the app's backend and Google's Map Tiles API, and images only from the app's origin, `i.ytimg.com` and Google's tiles. The app shall load no analytics, advertising or tracking script, and fonts shall be self-hosted. Any request to another origin shall be to YouTube or, with the rider's own key, Google Map Tiles (`L2-066`). Responses shall carry `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` and `frame-ancestors 'none'`. |
+| `L2-131` | `L1-021` | The app's pages shall be served with a Content Security Policy that allows scripts and styles only from the app's own origin and the YouTube player, frames only from `www.youtube-nocookie.com`, connections only to the app's own origin, and images only from the app's origin and `i.ytimg.com`. The app shall load no analytics, advertising or tracking script, and fonts shall be self-hosted. Any request to another origin shall be to YouTube. Responses shall carry `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` and `frame-ancestors 'none'`. |
 
 ## Diagrams
 
 ### System context
 
-Telo Ride reaches only two third parties: YouTube for video and, with the rider's own key, Google
-Maps Platform for 3D Tiles. The static web host delivers the app with its policy.
+The static host serves Telo Ride 1 and its header set. YouTube is the only other system the app
+loads from.
 
 ![C4 system context for restricting third parties](diagrams/c4-context.png)
 
 ### Containers
 
-The Ride app runs under the policy the static host sends, connects to the Telo Ride API on its own
-origin, and reaches YouTube and Google only through the directives that list them.
+The Ride app receives its files, fonts and policy from the static host and loads three things from
+YouTube: the IFrame API script, the player frame and the cover image.
 
 ![C4 container view for restricting third parties](diagrams/c4-container.png)
 
 ### Components
 
-`YouTubePlayerLoader` and `GoogleTilesSource` build foreign URLs from `ThirdPartyOrigins`; the
-policy permits exactly those origins and `'self'` for fonts. `SecurityHeadersMiddleware` adds the
-response headers on the API.
+`YouTubeVideoPlayer` and `ClassVideo` are the only components that name a foreign origin.
+`index.html` and `fonts.css` reference the app's own origin only.
 
 ![C4 component view for restricting third parties](diagrams/c4-component.png)
 
 ### Class structure
 
-`StaticWebAppConfig` holds the policy and the two other headers. `ThirdPartyOrigins` is the
-single list the loaders read, and `GoogleTilesSource` takes the key from `SettingsStore`.
+The header set holds the policy and two further headers. Each policy directive that admits a foreign
+origin maps to one piece of code: `script-src` and `frame-src` to `YouTubeVideoPlayer`, `img-src`
+to `ClassVideo`.
 
 ![Class diagram for restricting third parties](diagrams/class-structure.png)
 
-### Behaviour — serve the app with its policy
+### Behaviour: serve the app under the policy
 
-The static host sends the policy and headers with the app shell; the app's own files, the API and
-the YouTube player all load within it (`L2-131` AC1, AC2, AC4).
+The static host answers the first request with `index.html` and the header set. The browser then
+loads bundles, styles and fonts from the same origin and requests nothing else.
 
-![Sequence diagram for serving the app with its policy](diagrams/sequence-serve-the-app-with-its-policy.png)
+![Sequence diagram for serving the app under the policy](diagrams/sequence-serve-the-app-under-the-policy.png)
 
-### Behaviour — block a request to an origin off the list
+### Behaviour: load the class video
 
-The browser blocks any connection to an unlisted origin before it leaves the device. A tile
-request goes to Google only when the rider has given a key (`L2-131` AC3).
+On Class Ride the cover comes from `i.ytimg.com`, the IFrame API from `www.youtube.com` and the
+player frame from `www.youtube-nocookie.com`. The browser checks each against its directive before
+the request.
 
-![Sequence diagram for blocking a request to an origin off the list](diagrams/sequence-block-an-off-list-request.png)
+![Sequence diagram for loading the class video](diagrams/sequence-load-the-class-video.png)
+
+### Behaviour: block a foreign request
+
+In the deployed app the browser refuses a request to an origin the policy does not list. In a
+behaviour spec the `guard` fixture aborts the same request and fails the spec.
+
+![Sequence diagram for blocking a foreign request](diagrams/sequence-block-a-foreign-request.png)

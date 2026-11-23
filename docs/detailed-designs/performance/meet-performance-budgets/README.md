@@ -2,142 +2,154 @@
 
 ## Overview
 
-Telo Ride runs for an hour or more on a tablet or low-power laptop beside the bike. It loads over a
-mobile connection, draws its 3D world on integrated graphics, and answers every rider in a live
-session at once. This feature turns those expectations into measured
-budgets, names the parts that keep each budget, and names how each is measured.
+Telo Ride 1 runs in Chrome or Edge on a tablet or low-power laptop beside the rider's bike. The
+rider opens it to take one 30-minute class. On such a device, each kilobyte of script delays the
+first screen, and each long task during the ride delays a readout the rider is pedalling
+against. The product therefore sets budgets that can be measured, and a change that breaks one
+is not done.
 
-- **initial bundle** — JavaScript and CSS the browser downloads before the first screen renders
-- **Largest Contentful Paint (LCP)** — time until the largest visible element renders
-- **Interaction to Next Paint (INP)** — delay from a rider's input to the next frame
-- **quality step** — one notch of rendering detail (pixel ratio, shadow resolution, level of detail) that the 3D world gives up to keep its frame rate
-- **standings tick** — once-a-second moment at which the backend ranks a session and sends standings
-- **reference laptop** — the integrated-GPU laptop against which the race frame budget is measured; model `<TO SUPPLY>`
+This feature covers three budgets and the mechanisms that hold them:
 
-The feature belongs to the performance subsystem. It spans both the Ride app and the Telo Ride
-API. The 3D world itself is designed in `race/render-the-race-world`; this slice covers how its
-frame budget is held and measured.
+- a size budget for the code the browser loads first, with every screen and the video player
+  loaded only when used;
+- a loading budget for The Class, the screen a returning rider lands on;
+- a responsiveness budget for Class Ride while a ride runs.
+
+Local terms:
+
+- **initial bundle**: scripts and styles the browser loads before the first route renders
+- **lazy chunk**: script file the browser fetches when a route or a dynamic import first asks for it
+- **budget**: limit a build or a measurement fails when exceeded
+- **Largest Contentful Paint (LCP)**: time from navigation to the render of the largest element in the viewport
+- **Interaction to Next Paint (INP)**: time from a tap, click or key press to the next frame the browser paints
+- **long frame**: frame of the interface that takes longer than 100 ms to produce
+
+Neighbouring features own the adjacent concerns:
+
+- The once-a-second readouts and their 250 ms limit (`L2-134`) belong to
+  [keep the ride clock true](../keep-the-ride-clock-true/README.md).
+- Memory over a long ride and across repeated visits (`L2-138`) belongs to
+  [stay smooth on long rides](../stay-smooth-on-long-rides/README.md).
+- The workspace's projects and their dependency rules (`L2-146`) belong to
+  [structure the frontend workspace](../../platform/structure-the-frontend-workspace/README.md).
+- The CI pipeline and its 5-minute limit (`L2-149`) belong to
+  [host and deliver](../../platform/host-and-deliver/README.md).
+- The screens measured belong to [show the class](../../the-class/show-the-class/README.md) and
+  [ride the class](../../class-ride/ride-the-class/README.md).
 
 ## Description
 
-### Frontend
+The budgets are held by configuration and scripts, not by a runtime component. Each mechanism
+below is an artefact in the repository.
 
-- **Route-level lazy loading** — every route in `ride`'s `app.routes.ts` uses `loadComponent` or
-  `loadChildren`. Heavy, below-the-fold parts use `@defer`.
-- **World library** — the race's 3D world (Three.js, WebGPU with WebGL 2 fallback) is a separate
-  library imported with dynamic `import()` from `RacePage` only, so it is never in the initial
-  chunk.
-- **Bundle budgets** — `angular.json` sets `budgets` of type `initial` on the production
-  configuration. The Angular CLI measures raw bytes, so the budget value that corresponds to
-  300 KB gzipped is `<TO SUPPLY>` until the first production build measures the ratio. The
-  script `tools/verify/bundle-size.mjs` gzips the initial chunks listed in the build's
-  `stats.json` and fails above 300 KB. `node tools/verify/verify.mjs` and CI run it.
-  The raw `initial` budget warns at 288 kB and fails at 300 kB since slice 5.2: the first use of
-  `HttpClient` (the class catalogue client, bound on the lazy class ride route) adds about
-  20.7 kB raw, 5.3 kB transferred, to `main` wherever it is provided, because
-  `@angular/platform-browser` and `@angular/router` import `@angular/common/http`, so esbuild
-  places that module in the initial chunk. Every backend client needs it.
-- **`measureFramePeriod`** — `main`'s `frame-period.ts` in the world library. Before the world's
-  first frame it takes the median of about 30 frame intervals and snaps it to the nearest common
-  refresh rate: the display's frame period _P_ (16.7 ms at 60 Hz).
-- **`FrameBudget`** — `main`'s class in `render-quality.ts`, fed each frame's time by the renderer.
-  Every 2 seconds it takes the median frame of that window; a window whose median is over
-  1.2 × _P_ is slow. After two slow windows in a row it drops one quality level, or straight to
-  Low when the second window's median is 3 × _P_ or more, so the rider sees one change of look,
-  not one per level. It never drops below Low and never raises the level during the ride
-  (`L2-159` AC4). The renderer applies the new level on the next frame; its programs were
-  compiled while the world loaded, so the drop costs no hitch. Frame rate is protected by giving
-  up detail first (`L2-136` AC3).
-- **Web Vitals measurement** — a Lighthouse run (`tools/perf/home-vitals.mjs`) with a mobile
-  device profile and a 4G throttling profile measures Home cold. The device and network profile
-  values are `<TO SUPPLY>`. Like the heap checks, it runs only when a person asks.
+### Size and lazy loading (`L2-136` AC1)
 
-### Backend
+- **`app.routes.ts`** (exists). One route that loads `ride.routes.ts` with `loadChildren`, so
+  the initial bundle holds Angular, the router and the shell only.
+- **`ride.routes.ts`** (exists; changes). A parent route provides the bike connection, and each
+  screen under it loads with `loadComponent` or `loadChildren`. Telo Ride 1 keeps five routes:
+  `connect`, the empty path (The Class), `ride`, `done` and `**` (page not found). The routes of
+  the features Telo Ride 1 leaves out are removed in changes of their own. The route paths are
+  assumptions the mocks share (open question 7).
+- **`provideBikeConnection()`** (exists). Bound on the lazy parent route, so the Bluetooth code
+  loads with the first screen, not with the initial bundle.
+- **`provideClassVideo()`** (exists). It binds `VIDEO_PLAYER_FACTORY` to
+  `() => import('@telo/video')`. Only the routes of The Class and Class Ride provide it, and the
+  `video` library's chunk is fetched only when one of them asks for a player. Connect Bike,
+  Class Done and page not found never fetch it.
+- **`angular.json` budgets** (exist; change). The `ride` project's production configuration
+  sets an `initial` budget that warns at 304 kB and fails at 310 kB, and an
+  `anyComponentStyle` budget that warns at 6 kB and fails at 10 kB. The Angular CLI measures
+  raw bytes, while `L2-136` AC1 states 300 KB gzipped, so the raw budget is a guard against
+  growth and not the requirement itself. Its value for Telo Ride 1 is `<TO SUPPLY>`: it is set
+  from the first production build after the carried-over features are removed, and tightened
+  to that size. Raising it needs a reason in the change.
+- **`tools/verify/bundle-size.mjs`** (new). A Node script. It builds nothing; it reads the
+  production build's output in `frontend/dist/ride/browser`, takes the scripts and stylesheets
+  that `index.html` references (the initial bundle), gzips each with `node:zlib`, and exits
+  non-zero when the sum exceeds 300 KB. It prints each file's raw and gzipped size.
+- **`tools/verify/verify.mjs`** (exists; changes). Its step "production build and budget" runs
+  `npm run build`; the new script runs after it.
+- **`.github/workflows/ci.yml`** (exists; changes). The `build` job's step "The ride app, within
+  its budgets" runs `npm run build`, which fails on the `angular.json` budget. A step after it
+  runs `bundle-size.mjs`. The job's other steps (the marketing site, the API) are carried over
+  and are removed by the changes that remove those projects.
 
-- **ASP.NET Core metrics** — the built-in `http.server.request.duration` histogram, exported through
-  OpenTelemetry with the route template as its only route attribute.
-- **`TeloRideMetrics`** — class in `Telo.Ride.Infrastructure` holding instruments on the
-  `Telo.Ride` meter: the histogram `telo.ride.standings.delivery` (milliseconds from the standings
-  tick to the send completing) and the up-down counter `telo.ride.hub.connections`.
-- **`StandingsTicker`** — hosted service in `Telo.Ride.Api` that, once a second, sends a
-  `PublishStandingsCommand` per running session through MediatR. Its handler ranks the session
-  (designed in `multiplayer/share-progress-and-standings`) and sends `StandingsUpdated` to the
-  session's SignalR group.
-- **Load test** — a scripted load test under `tools/load/` drives 200 requests a second across the
-  API and 2,000 hub connections in sessions of 10 against one instance. The load-test tool and the
-  instance size are `<TO SUPPLY>`. It runs only when a person asks.
+### Loading The Class (`L2-136` AC2)
+
+- **`tools/perf/the-class-vitals.mjs`** (new). A Node script that serves the production build
+  with `frontend/scripts/serve-dist.mjs` (exists), opens `/` cold in Chromium with a remembered
+  bike in `localStorage`, and reads LCP and INP. It fails when LCP exceeds 2.5 s or any
+  measured interaction reaches 200 ms. The device profile ("a mid-range tablet": CPU slowdown
+  and viewport) and the 4G profile (latency and throughput) are `<TO SUPPLY>`: the specs name
+  them and give no values. The measuring library is `<TO SUPPLY>` for the same reason.
+- **What keeps LCP low** (exists in part). The class cover is the largest element of The Class
+  until the player paints. The YouTube player's script is not in the initial bundle and loads
+  after the screen has rendered. Fonts are bundled and self-hosted.
+- The measurement runs only when a person asks. It is not a CI step.
+
+### Responsiveness of Class Ride (`L2-136` AC3)
+
+- **`tools/perf/class-ride-frames.mjs`** (new). A Node script that opens the development build
+  with `?simulate`, starts the class on the simulated bike, and observes
+  `long-animation-frame` entries with a `PerformanceObserver` for a set length of ride. It fails
+  on any frame longer than 100 ms. The "reference tablet" profile and the length of ride
+  measured are `<TO SUPPLY>`: the specs name the device and give no values.
+- **What keeps frames short** (exists). Every component is `OnPush` and the app is zoneless, so
+  a tick renders only the components whose signals changed. A tick does a fixed amount of work:
+  one `planStateAt` call, one addition to each running total, one drift check.
+- The measurement runs only when a person asks.
 
 ## Requirements
 
+The feature realizes the following level-2 (L2) requirement, which refines the level-1 (L1)
+requirement cited beside it.
+
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-136` AC1 | `L1-022` | The production build's initial bundle shall be at most 300 KB gzipped, and the 3D world shall be loaded only when a race opens. |
-| `L2-136` AC2 | `L1-022` | Home, loaded cold on a mid-range phone over a 4G profile, shall reach Largest Contentful Paint within 2.5 s and keep Interaction to Next Paint under 200 ms. |
-| `L2-136` AC3 | `L1-022` | A race at 1920 × 1080 on the reference laptop (integrated GPU) shall hold at least 50 frames a second on average and shall not drop below 30 for more than one second; quality shall step down before frame rate does. |
-| `L2-137` AC1 | `L1-022` | At 200 requests a second across the API, 95 % of requests shall answer within 200 ms. |
-| `L2-137` AC2 | `L1-022` | In a session of 10 riders, standings shall reach every rider within 100 ms of the once-a-second tick at the 95th percentile. |
-| `L2-137` AC3 | `L1-022` | One API instance shall hold 2,000 concurrent hub connections within those budgets. |
+| `L2-136` | `L1-022` | The initial bundle of the production build shall be at most 300 KB gzipped, every screen shall be loaded when its route opens, and the video player's code shall be loaded only by a screen that shows the video. When The Class loads cold on a mid-range tablet over a 4G profile, Largest Contentful Paint shall be at most 2.5 s, and Interaction to Next Paint shall stay under 200 ms. When a ride runs on Class Ride on the reference tablet, the readouts shall stay within `L2-134` and no frame of the interface shall take longer than 100 ms. |
 
 ## Diagrams
 
 ### System context
 
-The rider uses Telo Ride; the budgets are properties of Telo Ride itself, measured by a person on
-request.
+The rider's browser loads Telo Ride 1 from the static host and the class video from YouTube.
+Both loads count against the budgets; the bike does not.
 
 ![C4 system context for meeting performance budgets](diagrams/c4-context.png)
 
 ### Containers
 
-The Ride app carries the bundle, Web Vitals and frame budgets; the Telo Ride API carries the
-request and standings budgets.
+The Ride app is served as static files. The browser fetches the initial bundle first and each
+lazy chunk when its route opens; the YouTube player loads only on a screen that shows the video.
 
 ![C4 container view for meeting performance budgets](diagrams/c4-container.png)
 
 ### Components
 
-On the frontend, lazy routes and the dynamically imported world library keep the initial bundle
-small, and the renderer feeds `FrameBudget` each frame's time. On the backend, `StandingsTicker`
-drives the standings and `TeloRideMetrics` records their delivery time.
+The route files split the app into lazy chunks and `provideClassVideo()` keeps the `video`
+library out of every chunk until a player is asked for.
 
 ![C4 component view for meeting performance budgets](diagrams/c4-component.png)
 
 ### Class structure
 
-The renderer owns one `FrameBudget`, judged against the period `measureFramePeriod` found, and
-reads the techniques of its level from `techniquesAt`.
-`StandingsTicker` sends one command per session and records into `TeloRideMetrics`.
+The budgets live in configuration and scripts. `angular.json` holds the raw budget, the new
+`bundle-size.mjs` holds the gzipped one, and `verify.mjs` and `ci.yml` run both.
 
 ![Class diagram for meeting performance budgets](diagrams/class-structure.png)
 
-### Behaviour — step quality down to hold the frame rate
+### Behaviour: load screens on demand
 
-Each frame the renderer hands `FrameBudget` the frame's time. When two 2-second windows in a row
-have a median frame over 1.2 × _P_, the budget drops one level for the rest of the race, or
-straight to Low when the second is 3 × _P_ or more; the renderer draws the new level's techniques
-from the next frame (`L2-159` AC4, `L2-136` AC3).
+A returning rider's first visit fetches the initial bundle and The Class's chunk. The `video`
+library and Class Ride's chunk are fetched only when The Class asks for a player and when the
+rider starts the class.
 
-![Sequence diagram for stepping quality down](diagrams/sequence-quality-step-down.png)
+![Sequence diagram for loading screens on demand](diagrams/sequence-load-screens-on-demand.png)
 
-### Behaviour — open a race and load the world
+### Behaviour: check the bundle budget
 
-The initial bundle holds no 3D code; opening a race imports the world library on demand
-(`L2-136` AC1).
+A push starts CI. The production build fails on the raw budget, and the size script fails when
+the gzipped initial bundle exceeds 300 KB.
 
-![Sequence diagram for loading the world on demand](diagrams/sequence-load-world-on-demand.png)
-
-### Behaviour — deliver standings within budget
-
-Each second the ticker ranks every running session and sends its standings; the delivery time is
-recorded for the 95th-percentile budget (`L2-137` AC2).
-
-![Sequence diagram for delivering standings](diagrams/sequence-standings-tick.png)
-
-## Open questions
-
-- **Slice 8.5 follows `L2-159` AC4 and `main`.** This design first named a `FrameBudgetMonitor`
-  averaging 120 frames and a `QualityGovernor` that stepped down below 50 frames a second and
-  raised a step again after a stretch well above it. `L2-159` AC4 judges two 2-second windows
-  against the display's frame period and never raises the level, and so does `main`'s
-  `FrameBudget`, which the world library carries (ADR 0030). `main` wins on rendering, so its far
-  slow window, 3 × _P_ or more, dropping straight to Low (its #896), joins `L2-159` AC4.
+![Sequence diagram for checking the bundle budget](diagrams/sequence-check-the-bundle-budget.png)

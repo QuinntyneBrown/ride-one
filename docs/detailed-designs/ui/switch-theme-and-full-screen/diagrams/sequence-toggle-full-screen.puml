@@ -1,5 +1,5 @@
 @startuml
-title UML sequence behaviour — Toggle full screen
+title UML sequence behaviour — Enter and leave full screen
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam roundcorner 12
@@ -14,31 +14,44 @@ skinparam package {
   FontColor #101828
   BackgroundColor #F9FAFB
 }
-actor "Rider" as actor
-participant "Browser" as browser
+actor "Rider" as rider
 box "Frontend — Ride app (ride application)" #E0F2FE
-  participant "Page header" as header
-  participant "BrowserFullscreen (domain)" as fs
+  participant "Screen page" as page
 end box
 box "Frontend — Ride app (components library)" #E0F2FE
   participant "FullscreenToggle" as toggle
 end box
-header -> fs : available()
-fs -> browser : document.fullscreenEnabled
-alt API not available (L2-144 AC2)
-  header -> header : Render no toggle
-else API available
-  header -> toggle : Render with active = false, label "Full screen"
-  actor -> toggle : Press "Full screen"
-  toggle -> header : toggled
-  header -> fs : enter()
-  fs -> browser : documentElement.requestFullscreen()
-  browser -> fs : fullscreenchange
-  fs --> header : active = true
-  header -> toggle : active = true, label "Exit full screen" (L2-144 AC1)
-  actor -> toggle : Press "Exit full screen"
-  toggle -> header : toggled
-  header -> fs : exit()
-  fs -> browser : document.exitFullscreen()
+box "Frontend — Ride app (domain library)" #ECFDF3
+  participant "BrowserFullscreen" as fs
+end box
+box "Device — Browser" #F2F4F7
+  participant "Document" as doc
+end box
+rider -> page : Open a screen
+page -> fs : Inject FULLSCREEN; read available()
+fs -> doc : fullscreenEnabled
+alt the Fullscreen API is available
+  doc --> fs : true
+  fs --> page : available() is true
+  page -> toggle : Render with active false
+  toggle --> rider : Button named "Full screen" (L2-144 AC1)
+  rider -> toggle : Press
+  toggle -> page : toggled
+  page -> fs : enter()
+  fs -> doc : documentElement.requestFullscreen()
+  doc --> fs : fullscreenchange
+  fs --> page : active() is true
+  page -> toggle : active true
+  toggle --> rider : Button named "Exit full screen" (L2-144 AC1)
+  rider -> toggle : Press, or press Esc
+  page -> fs : exit()
+  fs -> doc : exitFullscreen()
+  doc --> fs : fullscreenchange
+  fs --> page : active() is false
+  toggle --> rider : Button named "Full screen" again (L2-144 AC1)
+else the Fullscreen API is not available
+  doc --> fs : false
+  fs --> page : available() is false
+  page --> rider : Header without the button (L2-144 AC2)
 end
 @enduml

@@ -1,24 +1,30 @@
 @startuml
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
-title Components — Support screen readers and motion preferences
+title Components — Support screen readers and motion
 
-System_Ext(at, "Assistive technology", "Screen reader")
-Container_Boundary(app, "Ride app") {
-  Component(page, "Any page", "Angular page · ride", "One h1; timers with role=timer")
-  Component(title, "RideTitleStrategy", "TitleStrategy · ride", "Sets document.title per route")
-  Component(announcer, "CdkLiveAnnouncerAdapter", "Service · ride", "Implements Announcer")
-  Component(dialog, "CDK Dialog", "Angular CDK", "Focus trap, autoFocus, restoreFocus")
-  Component(inert, "InertBackground", "Service · ride", "inert on the page behind a dialog")
-  Component(motion, "MotionPreference", "Service · ride", "Reduced-motion signal")
-  Component(board, "BoardReorderAnimator", "Helper · components", "FLIP slide over 150 ms")
-  Component(tokens, "tokens.css", "Global foundations · ride", "Duration tokens and reduced-motion overrides")
+Person(rider, "Rider", "Rides a smart bike at home")
+Container_Boundary(ride, "ride application") {
+  Component(pages, "Screen pages", "Angular components", "One h1 each; announce state changes once")
+  Component(done, "ClassDonePage", "Angular component, lazy route /done", "The eight efforts, each bar with ~--value and ~--index")
+  Component(tokens, "tokens.css", "Global stylesheet", "Durations, easings, contrast-checked role colours, reduced-motion override")
+  Component(announcer, "LiveAnnouncer", "Angular CDK service, injected by the pages", "One polite live region for state changes")
 }
-Rel(page, announcer, "Announces state changes through")
-Rel(announcer, at, "Writes to a polite live region read by")
-Rel(page, dialog, "Opens dialogs with")
-Rel(inert, dialog, "Listens to afterOpened and afterAllClosed")
-Rel(board, motion, "Reads reduced")
-Rel(board, tokens, "Reads --duration-fast")
-Rel(title, page, "Titles")
+Container_Boundary(components, "components library") {
+  Component(hdr, "ClassHeader", "Angular component, wz-class-header", "The ride clock, role=timer, no live region")
+  Component(segment, "ClassSegment", "Angular component, wz-class-segment", "Time left in the segment, role=timer")
+  Component(lost, "ClassLost", "Angular component, wz-class-lost", "Lost-bike alert, role=alert")
+  Component(profile, "ClassProfile", "Angular component, wz-class-profile", "The resistance profile as one image, role=img")
+  Component(stat, "ClassStat", "Angular component, wz-class-stat", "A reading with its state in words")
+}
+Rel(rider, pages, "Hears headings, alerts and announcements from")
+Rel(pages, hdr, "Renders on Class Ride")
+Rel(pages, segment, "Renders on Class Ride")
+Rel(pages, lost, "Renders when the bike is lost")
+Rel(pages, profile, "Renders with a label")
+Rel(pages, stat, "Renders")
+Rel(pages, announcer, "Announces paused, resumed and paired through")
+Rel(done, tokens, "Reads ~--duration-slow and ~--duration-stagger from")
+Rel(hdr, tokens, "Reads role colours from")
+Rel(stat, tokens, "Reads role colours from")
 @enduml

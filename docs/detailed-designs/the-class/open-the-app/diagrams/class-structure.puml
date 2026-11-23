@@ -1,0 +1,67 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Open the app
+
+class rideRoutes <<config>> {
+  +"connect": ConnectBikePage
+  +"" (full match): theClassRoutes, canActivate rememberedBikeGuard
+  +"ride": classRideRoutes, canActivate connectedBikeGuard
+  +"done": classDoneRoutes, canActivate classDoneGuard
+  +"**": NotFoundPage
+  +providers: provideBikeConnection(), RIDE_RECORD, FINISHED_RIDE
+}
+
+class rememberedBikeGuard <<CanActivateFn>> {
+  +(): true | UrlTree
+}
+
+interface RememberedBike {
+  +get(): RememberedBikeRecord | null
+  +save(bike: RememberedBikeRecord): void
+  +forget(): void
+}
+
+interface RideRecord {
+  +current: Signal<RecordData | null>
+  +add(outputKj: number): RecordOutcome
+}
+
+class RecordData {
+  +rides: number
+  +bestOutputKj: number
+  +lastOutputKj: number
+}
+
+class RememberedBikeRecord {
+  +id: string
+  +name: string
+}
+
+interface BikeConnection {
+  +ble: Signal<BleState>
+  +reconnectRemembered(bike: RememberedBikeRecord): Promise<boolean>
+}
+
+class RememberedBikeStore
+class RideRecordStore
+
+rideRoutes ..> rememberedBikeGuard : guards the empty path with
+rememberedBikeGuard ..> RememberedBike : reads
+rememberedBikeGuard ..> RideRecord : reads
+rememberedBikeGuard ..> BikeConnection : starts the reconnect on
+RememberedBike ..> RememberedBikeRecord : returns
+RideRecord --> RecordData : holds
+RememberedBikeStore ..|> RememberedBike
+RideRecordStore ..|> RideRecord
+@enduml

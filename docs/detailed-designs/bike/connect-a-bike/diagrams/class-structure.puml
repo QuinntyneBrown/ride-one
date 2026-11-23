@@ -12,106 +12,126 @@ skinparam class {
 }
 ' --------------------------
 title Class structure — Connect a bike
-enum BikeState {
-  Idle
-  Searching
-  Pairing
-  Connected
-  Disconnected
-}
-enum BikeKind {
-  Echelon
-  Ftms
-}
-enum BikeControl {
-  Full
-  ReadOnly
-}
-class BikeInfo <<api>> {
-  +id: string
-  +name: string
-  +identifier: string | null
-  +kind: BikeKind
-}
-interface BikeConnection <<api>> {
+
+interface BikeConnection {
+  +ble: Signal<BleState>
+  +bike: Signal<BikeInfo | null>
   +frames: Observable<Uint8Array>
   +requestBike(): Promise<BikeInfo | null>
   +connect(): Promise<void>
-  +reconnectRemembered(bike: BikeInfo): Promise<boolean>
+  +reconnectRemembered(bike: RememberedBikeRecord): Promise<boolean>
   +setResistance(level: number): Promise<number>
+  +reconnectNow(): void
   +disconnect(): void
 }
-class WebBluetoothBikeConnection <<domain/bluetooth>> {
+
+enum BleState {
+  idle
+  connecting
+  connected
+  disconnected
+}
+
+class BikeInfo {
+  +id: string
+  +name: string
+  +identifier: string | null
+  +kind: 'echelon' | 'ftms'
+}
+
+class BikeConnectionError {
+  +code: 'blocked' | 'failed' | 'read-only'
+}
+
+class WebBluetoothBikeConnection {
   -device: BluetoothDevice | null
   -link: BikeLink | null
   -queue: GattWriteQueue
   +requestBike(): Promise<BikeInfo | null>
   +connect(): Promise<void>
-  +reconnectRemembered(bike: BikeInfo): Promise<boolean>
+  -open(gatt: BluetoothRemoteGATTServer): Promise<BikeLink>
+  -info(device: BluetoothDevice): BikeInfo
 }
-interface BikeLink <<domain/bluetooth>> {
-  +kind: BikeKind
-  +open(server: BluetoothRemoteGATTServer): Promise<void>
+
+interface BikeLink {
+  +open(service: BluetoothRemoteGATTService): Promise<void>
   +initialise(): Promise<void>
+  +connected(): void
   +setResistance(level: number): Promise<number>
+  +close(): void
 }
+
 class EchelonLink {
-  +open(server): Promise<void>
+  -notifications: BluetoothRemoteGATTCharacteristic
+  -writer: BluetoothRemoteGATTCharacteristic
   +initialise(): Promise<void>
 }
+
 class FtmsLink {
-  -range: ResistanceRange
-  -control: BikeControl
-  +open(server): Promise<void>
+  -range: ResistanceRange | null
+  +control: 'unknown' | 'full' | 'read-only'
   -requestControl(): Promise<boolean>
 }
-class GattWriteQueue <<domain/bluetooth>> {
-  +enqueue(ch: BluetoothRemoteGATTCharacteristic, bytes: Uint8Array, minGapMs: number): Promise<number>
+
+class GattWriteQueue {
+  -tail: Promise<unknown>
+  +enqueue(write: () => Promise<void>, minGapMs: number): Promise<number>
 }
-class EchelonProtocol <<domain/protocol>> {
-  +{static} SERVICE: string
-  +{static} WRITE: string
-  +{static} NOTIFY: string
+
+class EchelonProtocol <<constant>> {
+  +service: string
+  +write: string
+  +notify: string
+  +initGapMs: 300
   +initCommands(): Uint8Array[]
-  +checksum(bytes: Uint8Array): number
 }
-class FtmsProtocol <<domain/protocol>> {
+
+class FtmsProtocol <<constant>> {
+  +indoorBikeData: string
+  +controlPoint: string
+  +resistanceRange: string
   +requestControl(): Uint8Array
   +setTargetResistanceLevel(raw: number): Uint8Array
-  +decodeControlPointResponse(v: DataView): ControlPointResponse
-  +decodeResistanceRange(v: DataView): ResistanceRange
   +mapLevel(level: number, range: ResistanceRange): number
 }
-class ResistanceRange {
-  +minimum: number
-  +maximum: number
-  +increment: number
+
+class "bikeIdentity" as bikeIdentity <<function>> {
+  +bikeIdentity(name: string | undefined, id: string): BikeIdentity
 }
-class RememberedBikeStore <<domain/storage>> {
-  +get(): BikeInfo | null
-  +save(bike: BikeInfo): void
-}
-class ConnectBikeStore <<ride>> {
+
+class ConnectBikeStore {
   +view: Signal<ConnectView>
   +pair(): Promise<void>
 }
-class ConnectDevice <<components>> {
-  +name: input<string>
-  +identifier: input<string | null>
-  +state: input<ConnectDeviceState>
+
+class ConnectView <<union>> {
+  kind: 'default' | 'searching' | 'pairing' | 'paired' | 'failed'
+  bike?: BikeInfo
+  reason?: 'blocked' | 'failed'
 }
-WebBluetoothBikeConnection ..|> BikeConnection
-WebBluetoothBikeConnection *-- "0..1" BikeLink
-WebBluetoothBikeConnection --> GattWriteQueue
-ConnectBikeStore --> RememberedBikeStore : save on paired
-EchelonLink ..|> BikeLink
-FtmsLink ..|> BikeLink
+
+class ConnectDevice <<component>> {
+  +name: string
+  +identifier: string | null
+  +signal: string | null
+  +state: 'idle' | 'searching' | 'paired'
+}
+
+BikeConnection <|.. WebBluetoothBikeConnection
+BikeConnection --> BleState : ble
+BikeConnection --> BikeInfo : bike
+WebBluetoothBikeConnection ..> BikeConnectionError : throws
+WebBluetoothBikeConnection *-- GattWriteQueue
+WebBluetoothBikeConnection o-- BikeLink : link
+WebBluetoothBikeConnection ..> bikeIdentity : names the bike
+BikeLink <|.. EchelonLink
+BikeLink <|.. FtmsLink
+EchelonLink --> GattWriteQueue : writes through
+FtmsLink --> GattWriteQueue : writes through
 EchelonLink ..> EchelonProtocol
 FtmsLink ..> FtmsProtocol
-FtmsLink --> ResistanceRange
-BikeConnection --> BikeInfo
-BikeInfo --> BikeKind
-FtmsLink --> BikeControl
-ConnectBikeStore ..> BikeConnection : injects BIKE_CONNECTION
-ConnectBikeStore ..> ConnectDevice : the page renders
+ConnectBikeStore --> BikeConnection : BIKE_CONNECTION
+ConnectBikeStore --> ConnectView : view
+ConnectView --> BikeInfo
+ConnectDevice ..> ConnectView : drawn from
 @enduml

@@ -3,20 +3,27 @@
 LAYOUT_WITH_LEGEND()
 title Components — Switch theme and full screen
 
-System_Ext(device, "Rider's device and browser", "prefers-color-scheme; Fullscreen API")
-Container_Boundary(app, "Ride app") {
-  Component(index, "index.html", "Document · ride", "color-scheme meta, data-theme=dark first paint")
-  Component(theme, "ThemeController", "Root service · ride", "Sets data-theme from the device")
-  Component(tokens, "tokens.css", "Global foundations · ride", "Role tokens for dark and light")
-  Component(header, "Page header", "Angular component · ride", "Hosts the toggle where available")
-  Component(toggle, "FullscreenToggle", "Presentation component · components", "Full screen or Exit full screen")
-  Component(fs, "BrowserFullscreen", "Browser service · domain", "Implements Fullscreen")
+Person(rider, "Rider", "Rides a smart bike at home")
+Container_Boundary(ride, "ride application") {
+  Component(index, "index.html", "Document", "color-scheme meta; no fixed theme attribute")
+  Component(tokens, "tokens.css", "Global stylesheet", "Dark theme, light theme under prefers-color-scheme, role tokens")
+  Component(routes, "ride.routes.ts", "Lazy parent route", "Binds FULLSCREEN to BrowserFullscreen once")
+  Component(pages, "Screen pages", "Angular components", "Render the toggle where full screen is available")
 }
-Rel(theme, device, "matchMedia('(prefers-color-scheme: light)')")
-Rel(theme, index, "Sets data-theme on html")
-Rel(tokens, index, "Resolves against data-theme")
-Rel(header, fs, "Reads available and active")
-Rel(header, toggle, "Renders with active input")
-Rel(toggle, header, "Emits toggled")
-Rel(fs, device, "requestFullscreen / exitFullscreen")
+Container_Boundary(components, "components library") {
+  Component(toggle, "FullscreenToggle", "Angular component, wz-fullscreen-toggle", "Named Full screen or Exit full screen")
+}
+Container_Boundary(domain, "domain library") {
+  Component(browser, "BrowserFullscreen", "Injectable, browser/", "Fullscreen on the Fullscreen API")
+}
+Container_Boundary(api, "api library") {
+  Component(contract, "Fullscreen and FULLSCREEN", "Contract and injection token, screen/", "available, active, enter(), exit()")
+}
+Rel(rider, toggle, "Presses")
+Rel(index, tokens, "Loads")
+Rel(pages, tokens, "Read colours by role from")
+Rel(pages, toggle, "Render in each header")
+Rel(pages, contract, "Inject")
+Rel(routes, browser, "Provides as FULLSCREEN")
+Rel(browser, contract, "Implements")
 @enduml

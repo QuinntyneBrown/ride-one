@@ -12,50 +12,80 @@ skinparam class {
 }
 ' --------------------------
 title Class structure — Ride without a network
-hide empty members
 
-class WaitingRide <<api>> {
-  +rideId: string
-  +finishedAt: string
-  +attempts: number
-  +submission: RideSubmission
+class ClassRideStore <<store>> {
+  +videoUnavailable: Signal<boolean>
+  -start(ride: ClassDto): void
+  -preloadClassDone(): void
+  -finish(ride: ClassDto): void
 }
-interface RideOutbox <<api>> {
-  +add(ride: WaitingRide): Promise<void>
-  +oldestFirst(): Promise<WaitingRide[]>
-  +remove(rideId: string): Promise<void>
-  +markAttempt(rideId: string): Promise<void>
+
+class RideClock {
+  +elapsedMs(): number
 }
-class IndexedDbRideOutbox <<domain/storage>> {
-  -dbName: "telo-ride"
-  -storeName: "rides-waiting"
+
+class WorkoutEngine {
+  +follow(plan: Plan): void
 }
-interface RidesApi <<api>> {
-  +submit(ride: RideSubmission): Promise<RideResult>
+
+class RideTotals {
+  +outputKj: Signal<number>
 }
-class HttpRidesApi <<api>> {
-  -http: HttpClient
+
+interface BikeConnection {
+  +ble: Signal<BleState>
+  +setResistance(level: number): Promise<number>
 }
-class NetworkStatus <<ride>> {
-  +online: Signal<boolean>
-  +backendReachable: Signal<boolean>
+
+interface VideoPlayer {
+  +state: Signal<PlayerState>
 }
-class OutboxSync <<ride>> {
-  -retryTimer: number | null
-  -delayMs: number
-  +start(): void
-  +finish(ride: RideSubmission): Promise<RideResult | Pending>
-  -drain(): Promise<void>
-  -scheduleRetry(): void
+
+enum PlayerState {
+  loading
+  playing
+  paused
+  error
 }
-class MultiplayerAvailability <<domain/engine>> {
-  +forMode(mode: RideMode, online: boolean): Availability
+
+class YouTubeVideoPlayer <<network>>
+
+interface RideRecord {
+  +add(outputKj: number): RecordOutcome
 }
-IndexedDbRideOutbox ..|> RideOutbox
-HttpRidesApi ..|> RidesApi
-OutboxSync --> RideOutbox : stores rides in
-OutboxSync --> RidesApi : submits with
-OutboxSync --> NetworkStatus : listens to
-RideOutbox "1" o-- "*" WaitingRide
-MultiplayerAvailability ..> NetworkStatus : reads online
+class RideRecordStore <<storage>> {
+  key: telo-ride.record
+}
+interface FinishedRide {
+  +set(result: ClassResult): void
+  +peek(): ClassResult | null
+}
+class FinishedRideHolder <<in memory>>
+class RememberedBikeStore <<storage>> {
+  key: telo-ride.bike
+}
+
+class "Class definition" as ClassDefinition <<data>> {
+  plan held before the clock starts
+  source: open question 1
+}
+
+class Router <<Angular>> {
+  +navigateByUrl(url: string): Promise<boolean>
+}
+
+ClassRideStore --> RideClock
+ClassRideStore --> WorkoutEngine
+ClassRideStore --> RideTotals
+ClassRideStore --> BikeConnection
+ClassRideStore --> VideoPlayer : reads state only
+ClassRideStore --> RideRecord : add at the finish
+ClassRideStore --> FinishedRide : set at the finish
+RideRecordStore ..|> RideRecord
+FinishedRideHolder ..|> FinishedRide
+ClassRideStore --> Router : opens /done
+ClassRideStore ..> ClassDefinition : starts from
+VideoPlayer --> PlayerState
+YouTubeVideoPlayer ..|> VideoPlayer
+RideRecordStore .. RememberedBikeStore : same storage, same pattern
 @enduml

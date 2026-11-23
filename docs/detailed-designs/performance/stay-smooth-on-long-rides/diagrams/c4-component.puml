@@ -3,22 +3,40 @@
 LAYOUT_WITH_LEGEND()
 title Components — Stay smooth on long rides
 
-ContainerDb(idb, "Browser storage", "IndexedDB", "ride-samples")
-Container_Boundary(app, "Ride app") {
-  Component(store, "RideSessionStore", "Route-scoped store · ride", "Owns the ride's parts")
-  Component(ticker, "RideTicker", "Service · domain/engine", "One tick a second")
-  Component(recorder, "RideRecorder", "Service · domain/engine", "One sample a second")
-  Component(chunk, "SampleChunk", "Class · domain/engine", "600 samples in typed arrays")
-  Component(series, "TraceSeries", "Class · domain/engine", "Decimated points, at most one per pixel")
-  Component(samples, "RideSampleStore", "Service · domain/storage", "Persists full chunks")
-  Component(trace, "RideTrace", "Presentation component · components", "Canvas trace")
+Person(rider, "Rider", "Rides a smart bike at home")
+System_Ext(bike, "Smart bike", "Echelon or FTMS; Bluetooth LE")
+
+Container_Boundary(ride, "ride application") {
+  Component(page, "ClassRidePage", "Angular page", "Provides the ride's services; destroyed on leaving")
+  Component(store, "ClassRideStore", "Page-scoped store", "Reports running seconds; destroys the player")
+  Component(routes, "ride.routes.ts", "Parent route", "Holds only what all four screens share")
 }
-Rel(store, recorder, "Owns")
-Rel(ticker, recorder, "Signals each second")
-Rel(recorder, chunk, "Appends to")
-Rel(recorder, samples, "Hands full chunks to")
-Rel(recorder, series, "Feeds")
-Rel(samples, idb, "Writes", "IndexedDB")
-Rel(store, trace, "Passes points input to")
-Rel(series, store, "Exposes points signal")
+Container_Boundary(domain, "domain library") {
+  Component(totals, "RideTotals, EffortTotals, OnTargetCounter", "engine services", "Fixed sets of running totals; no trace")
+  Component(ticker, "RideTicker", "engine service", "One timeout and one listener, cleared on destroy")
+  Component(telemetry, "BikeTelemetry", "engine service", "Latest reading only; unsubscribes on destroy")
+  Component(engine, "WorkoutEngine", "engine service", "Current plan state only")
+  Component(wake, "BrowserScreenWakeLock", "browser service", "One sentinel and one listener, released")
+}
+Container_Boundary(api, "api library") {
+  Component(conn, "BIKE_CONNECTION", "Contract and token", "Shared by all screens; outlives a ride; forgetTarget()")
+}
+Container_Boundary(video, "video library") {
+  Component(yt, "YouTubeVideoPlayer", "VideoPlayer", "destroy() removes the iframe")
+}
+
+Rel(rider, page, "Enters and leaves")
+Rel(page, store, "Provides and destroys")
+Rel(page, totals, "Provides and destroys")
+Rel(page, ticker, "Provides and destroys")
+Rel(page, telemetry, "Provides and destroys")
+Rel(page, engine, "Provides and destroys")
+Rel(store, totals, "Reports each running second to")
+Rel(store, conn, "Calls forgetTarget() on leaving")
+Rel(store, ticker, "Subscribes until destroyed")
+Rel(store, yt, "Creates and destroys")
+Rel(store, wake, "Holds and releases")
+Rel(telemetry, conn, "Subscribes to frames until destroyed")
+Rel(routes, conn, "Provides once")
+Rel(conn, bike, "Notifications", "Web Bluetooth")
 @enduml

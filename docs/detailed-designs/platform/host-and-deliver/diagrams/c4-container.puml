@@ -3,20 +3,15 @@
 LAYOUT_WITH_LEGEND()
 title Containers — Host and deliver
 
-Person(rider, "Rider", "Chrome or Edge")
-System_Ext(gh, "GitHub Actions", "Pipeline")
-System_Boundary(telo, "Telo Ride") {
-  Container(edge, "Site routing", "HTTPS; provider <TO SUPPLY>", "Routes /api, /hubs, /health to the API; the rest to the static host")
-  Container(host, "Static host", "HTTPS static hosting; provider <TO SUPPLY>", "Ride app build, headers, SPA fallback")
-  Container(app, "Ride app", "Angular, Chrome or Edge", "Runs in the rider's browser")
-  Container(api, "Telo Ride API", "ASP.NET Core, SignalR", "Sign-in, progress, catalogues, ride hub, feedback")
-  ContainerDb(db, "Telo Ride database", "EF Core; engine <TO SUPPLY>", "Riders, sessions, rides, progress, feedback")
+Person(rider, "Rider", "Rides a smart bike at home")
+System_Ext(host, "Static host", "Serves the app's files over HTTPS")
+System_Ext(ci, "CI", "GitHub Actions: lint, production build, critical acceptance paths")
+System_Boundary(telo, "Telo Ride 1") {
+  Container(app, "Ride app", "Angular, Chrome or Edge", "The four screens, Web Bluetooth, the protocol and the engine")
 }
-Rel(rider, edge, "Requests", "HTTPS")
-Rel(edge, host, "Forwards app paths to")
-Rel(edge, api, "Forwards /api, /hubs, /health to", "HTTPS, WebSocket")
-Rel(host, app, "Serves")
-Rel(api, db, "Reads and writes", "EF Core")
-Rel(gh, host, "Deploys build to")
-Rel(gh, api, "Deploys and migrates")
+
+Rel(rider, app, "Uses", "HTTPS")
+Rel(host, app, "Serves static files, the L2-131 headers and the index.html fallback for", "HTTPS")
+Rel(ci, app, "Runs lint, the production build and the @critical specs on")
+Rel(ci, host, "Uploads dist/ride/browser to")
 @enduml

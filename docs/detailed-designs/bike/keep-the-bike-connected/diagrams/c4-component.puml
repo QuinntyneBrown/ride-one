@@ -2,24 +2,40 @@
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
 title Components — Keep the bike connected
-Person(rider, "Rider", "Rides a smart bike at home")
+
 System_Ext(bike, "Smart bike", "Echelon or FTMS; Bluetooth LE")
-Container_Boundary(app, "Ride app") {
-  Component(header, "AppHeaderBike / RideHeader / race top bar", "Presentation components · components", "Show the bike status")
-  Component(statusFn, "bikeStatus()", "Pure helper · domain/bluetooth", "Maps link and Bluetooth state to label, tone and hidden text")
-  Component(conn, "WebBluetoothBikeConnection", "Service · domain/bluetooth", "Owns the GATT link and its state")
-  Component(keep, "KeepaliveScheduler", "Class · domain/bluetooth, in EchelonLink", "Writes F0 A0 01 01 92 about once a second")
-  Component(recon, "DeviceReconnector", "Class · domain/bluetooth", "Retries the same device every 3 s")
-  Component(avail, "WebBluetoothSupport", "Service · domain/bluetooth", "getAvailability() and availabilitychanged")
-  Component(ticker, "TICKER", "SecondTicker, then BackgroundTicker (18.2) · domain/engine", "One tick a second")
+ContainerDb(storage, "Browser storage", "localStorage", "The remembered bike")
+Container_Boundary(ride, "ride application") {
+  Component(classPage, "TheClassPage", "Angular page, new", "Header link with the bike status")
+  Component(provide, "provideBikeConnection", "Provider function, exists", "Binds the connection, the ticker, the clock and the store")
 }
-Rel(rider, header, "Reads; presses Reconnect")
-Rel(header, statusFn, "Rendered from")
-Rel(statusFn, conn, "Reads state of")
-Rel(statusFn, avail, "Reads availability from")
-Rel(keep, ticker, "Is timed by")
-Rel(keep, conn, "Writes through")
-Rel(conn, recon, "Starts on disconnect")
-Rel(recon, conn, "Calls connect()")
-Rel(conn, bike, "GATT", "Web Bluetooth")
+Container_Boundary(domain, "domain library") {
+  Component(conn, "WebBluetoothBikeConnection", "Service in bluetooth/, exists", "Reconnects, detects drops, sends the kept target first")
+  Component(recon, "DeviceReconnector", "Class, exists", "One attempt every 3 s; retryNow")
+  Component(link, "EchelonLink", "BikeLink, exists", "Owns the keepalive of an Echelon")
+  Component(keep, "KeepaliveScheduler", "Class, exists", "Sends F0 A0 01 01 92 when a second has passed")
+  Component(ticker, "SecondTicker", "Service in engine/, exists", "Beats once a second while subscribed")
+  Component(status, "bikeStatus", "Pure helper, exists, reshaped", "Name, hidden text, action and icon of the link")
+  Component(store, "RememberedBikeStore", "Service in storage/, exists", "One JSON record: id and name")
+}
+Container_Boundary(api, "api library") {
+  Component(token, "BIKE_CONNECTION", "Contract and token, exists", "ble, bike, reconnectRemembered, reconnectNow, forgetTarget")
+  Component(remToken, "REMEMBERED_BIKE", "Contract and token, exists", "get, save, forget")
+  Component(tick, "TICKER and MONOTONIC_TIME", "Contracts and tokens, exist", "A beat each second; a clock that never jumps")
+  Component(logger, "LOGGER", "Contract and token, new", "error(area, error); ConsoleLogger writes the line")
+}
+
+Rel(provide, conn, "Binds to BIKE_CONNECTION")
+Rel(conn, token, "Implements")
+Rel(store, remToken, "Implements")
+Rel(ticker, tick, "Implements TICKER")
+Rel(classPage, token, "Reads ble and bike")
+Rel(classPage, status, "Derives the link from")
+Rel(conn, recon, "Starts on a drop, stops on disconnect")
+Rel(conn, link, "Opens and closes")
+Rel(link, keep, "Starts when connected, stops when closed")
+Rel(keep, tick, "Subscribes to seconds, reads now")
+Rel(conn, logger, "Reports errors as text through")
+Rel(store, storage, "Reads and writes telo-ride.bike", "localStorage")
+Rel(conn, bike, "getDevices, watchAdvertisements, GATT", "Web Bluetooth")
 @enduml

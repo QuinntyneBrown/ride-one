@@ -2,25 +2,26 @@
 !include <C4/C4_Component>
 LAYOUT_WITH_LEGEND()
 title Components — Restrict third parties
-System_Ext(youtube, "YouTube", "IFrame Player API")
-System_Ext(gmaps, "Google Maps Platform", "Map Tiles API")
-Container_Boundary(app, "Ride app") {
-  Component(policy, "Content Security Policy", "Response header from staticwebapp.config.json", "Allow-list of origins per directive")
-  Component(origins, "ThirdPartyOrigins", "Constants · api", "The only foreign origins the app may name")
-  Component(yt, "YouTubePlayerLoader", "Service · domain", "Loads iframe_api once; players on youtube-nocookie")
-  Component(tiles, "GoogleTilesSource", "Service · world", "Streams 3D Tiles with the rider's key")
-  Component(settings, "SettingsStore", "Service · domain/storage", "Holds the Google key on this device")
-  Component(fonts, "Bundled fonts", "Static assets · ride", "@font-face from the app's origin")
+
+System_Ext(host, "Static host", "Serves the app's files over HTTPS")
+System_Ext(youtube, "YouTube", "Privacy-enhanced player for the class video")
+Container_Boundary(ride, "ride application") {
+  Component(index, "index.html", "Document", "Names no foreign origin; loads only the app's bundles")
+  Component(fonts, "fonts.css", "Global stylesheet", "@font-face rules pointing at /fonts/*.woff2")
 }
-Container_Boundary(api, "Telo Ride API") {
-  Component(headers, "SecurityHeadersMiddleware", "Middleware · Telo.Ride.Api", "nosniff, Referrer-Policy, CSP frame-ancestors 'none'")
+Container_Boundary(componentslib, "components library") {
+  Component(cover, "ClassVideo", "wz-class-video", "On Class Ride, shows the cover from i.ytimg.com until the player paints")
 }
-Rel(yt, origins, "Reads origins from")
-Rel(tiles, origins, "Reads origins from")
-Rel(tiles, settings, "Reads the key from")
-Rel(yt, youtube, "Loads script and frames from", "HTTPS")
-Rel(tiles, gmaps, "Fetches tiles from", "HTTPS")
-Rel(policy, yt, "Permits")
-Rel(policy, tiles, "Permits")
-Rel(policy, fonts, "Permits 'self' only for")
+Container_Boundary(videolib, "video library") {
+  Component(player, "YouTubeVideoPlayer", "VideoPlayer", "Loads www.youtube.com/iframe_api; embeds from www.youtube-nocookie.com")
+}
+Container_Boundary(apilib, "api library") {
+  Component(factory, "VideoPlayer and VIDEO_PLAYER_FACTORY", "Contract and token", "The only way a screen reaches the player")
+}
+Rel(host, index, "Serves with the header set of L2-131")
+Rel(index, fonts, "Links the built stylesheet holding")
+Rel(fonts, host, "Fetches the font files from", "same origin")
+Rel(player, factory, "Implements")
+Rel(player, youtube, "Loads the script and the frame from", "HTTPS")
+Rel(cover, youtube, "Loads the cover image from", "HTTPS")
 @enduml

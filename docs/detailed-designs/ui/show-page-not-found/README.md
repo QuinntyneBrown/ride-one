@@ -1,77 +1,131 @@
-# Show page not found
+# Show Page not found
 
 ## Overview
 
-A rider may follow an old link or mistype an address. The host serves the app for any address
-(`platform/host-and-deliver`), so the app itself decides that no screen matches. This feature shows
-a calm page that says so, reassures the rider that rides and progress are safe, and leads back to
-Home.
+Telo Ride 1 has four screens, at `/connect`, `/`, `/ride` and `/done`. A rider can still arrive at
+an address that matches none of them: an old bookmark from Telo Ride, a mistyped link. This feature
+covers the page that address shows. It says the page does not exist, reassures the rider that
+their rides are untouched, and offers one way on, back to the class.
 
-- **wildcard route** — Angular route with path `**` that matches any address no other route matches
-- **current item** — header navigation link marked with `aria-current="page"` for the screen shown
+The page is static. It loads nothing, stores nothing and has one state.
 
-The feature belongs to the ui subsystem. It is frontend-only and needs no sign-in: the
-authentication guard of `accounts/sign-in-with-an-email-code` exempts it.
+- **unknown address**: path that matches none of the app's routes
+- **wildcard route**: last route of the app, with path `**`, which matches every unknown address
+- **opening rule**: rule of L2-167 that sends a new rider to Connect Bike and any other rider to
+  The Class when the app opens at `/`
+- **new rider**: rider with no remembered bike and no finished rides
+
+Adjacent concerns belong to other features. Where "Back to the class" lands belongs to
+[Open the app](../../the-class/open-the-app/README.md). The wordmark in the header belongs to
+[Show the wordmark](../show-the-wordmark/README.md) and the Full screen button to
+[Switch theme and full screen](../switch-theme-and-full-screen/README.md). The page margin and the
+skip link belong to
+[Fit every width, touch and keyboard](../fit-every-width-touch-and-keyboard/README.md). The host
+answering an unknown path with the app's document belongs to
+[Host and deliver](../../platform/host-and-deliver/README.md). The redirects of `/ride` and `/done`
+when opened out of turn are those screens' own rules
+([Ride the class](../../class-ride/ride-the-class/README.md),
+[Show Class Done](../../class-done/show-class-done/README.md)); they are known addresses and never
+reach this page.
 
 ## Description
 
-- **Wildcard route** — the last child of the `MainShell` layout route in `ride`'s `app.routes.ts`:
-  `{ path: '**', title: 'Page not found · Telo Ride', loadComponent: () => import('./not-found/not-found-page') }`.
-  No authentication guard applies.
-- **`MainShell`** — the layout route of the home screens (`home/show-the-app-header`). It renders
-  the app header over the scrolling page and puts its router links in the header's slots, each
-  with `routerLinkActive` and `ariaCurrentWhenActive="page"`. Home matches exactly and the other
-  items by prefix, so an unknown address marks no item.
-- **`NotFoundPage`** — page in the `ride` application (`wz-not-found-page`, block `not-found`). It
-  renders `<main id="main" class="container page not-found">` with the `h1` "This page doesn’t exist.", the lead "The link may be old, or the
-  address has a typo. Your rides and progress are safe." and the primary button link
-  "← Back to Home" (`<a wz-button variant="primary" size="lg" routerLink="/">`), as in
-  `docs/mocks/pages/not-found/default.html`.
-- **`AppHeader`** — presentation component in `components` (`wz-app-header`). It lays out the
-  brand, nav and end slots and knows no route; with no active link, no item carries
-  `aria-current`.
-- **Mock classes** — the page keeps the mock's BEM classes (`page__title`, `page__lead`,
-  `not-found__action`, `btn btn--primary btn--lg`) so e2e page objects can use them.
-- **Arrow** — the "←" is an inline SVG icon with `aria-hidden="true"`; the link's accessible name
-  is "Back to Home".
+The page exists in the code as Telo Ride's not-found page and is reshaped. Its mock is
+`docs/mocks/pages/not-found/default.html`.
+
+- **Wildcard route** (exists, `frontend/projects/ride/src/app/ride.routes.ts`): `{ path: '**',
+  loadComponent: () => import('./not-found/not-found-page') }`, always the last route. Today it
+  is a child of `MainShell`, so the page shows inside Telo Ride's app header with its navigation,
+  and it sits under `authGuard`. For Telo Ride 1 the route shall be the last child of the lazy
+  parent route itself, with no guard, and its `title` shall name the product "Telo Ride 1"
+  (today "Page not found · Telo Ride"). The exact document title is `<TO SUPPLY>`; `L2.md` gives
+  none.
+- **`NotFoundPage`** (exists, `wz-not-found-page`, default export of
+  `frontend/projects/ride/src/app/not-found/not-found-page.ts`): a standalone `OnPush` component
+  with no state. It changes in four ways. It draws the `.app` column itself, with a header and
+  `.app__scroll`. Its header carries the wordmark and Full screen, with no navigation (L2-167
+  AC4). Its lead reads "The link may be old, or the address has a typo. Your rides are safe."
+  (today "Your rides and progress are safe."). Its action reads "Back to the class" (today "Back
+  to Home"). It injects `FULLSCREEN` for the header's button.
+- **`not-found-page.html`** (exists): `main#main.container.page.not-found` with `tabindex="-1"`,
+  holding `h1.page__title` "This page doesn’t exist.", `p.page__lead`, and
+  `a.not-found__action`, a `wz-button` with `variant="primary"`, `size="lg"`, a left arrow icon
+  and `routerLink="/"`. The `h1` is the page's only one.
+- **`not-found-page.scss`** (exists, unchanged): block `not-found`. It takes `.container` and
+  `.page` from the `_page.scss` partial, holds the three children to `--layout-text-xl` so the
+  text keeps a readable measure while the page stays aligned with the header, and spaces the
+  action by `--space-8`. It gains the `_app.scss` partial for the column.
+- **`ScreenHeader`** (new, `wz-screen-header`, `frontend/projects/components/src/screen-header/`):
+  presentation component that draws the mocks' `class-header` block: `wz-lockup`, then a default
+  slot, then a `[slot=end]` slot pushed to the right. This page projects only the Full screen
+  button. The component is specified in [Show the wordmark](../show-the-wordmark/README.md).
+- **`FullscreenToggle`** (exists, `wz-fullscreen-toggle`): rendered in the end slot inside
+  `@if (fullscreen.available())`.
+- **`Button`** (exists, `a[wz-button]`): the primary link. At `lg` it is 48 px tall
+  (`--control-height-lg`).
+- **Going back** (exists as a link; destination changes): the link navigates to `/`. The page
+  holds no rule of its own about where the rider lands: the opening rule on `/` decides, exactly
+  as when the app opens there. A returning rider gets The Class and a new rider gets Connect
+  Bike. The guard on `/` is `rememberedBikeGuard`. Today it knows only the remembered bike;
+  Open the app reshapes it to read the record as well.
+- **`NotFoundPage` page object** and **`not-found.spec.ts`** (exist, `frontend/e2e/pages/`,
+  `frontend/e2e/`): the page object owns the `heading`, `lead` and action locators and `open(path)`.
+  Both are reshaped: `backHome` becomes `backToTheClass`, the `AppHeader` page object gives way to
+  the screen header's, and the spec asserts the Telo Ride 1 copy and both landings of AC2.
+
+The page releases nothing when it is destroyed, because it acquires nothing: no subscription, no
+timer and no listener of its own.
 
 ## Requirements
 
+The feature realizes the following level-2 (L2) requirement, which refines the level-1 (L1)
+requirement cited.
+
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
-| `L2-145` AC1 | `L1-023` | For an address that matches no screen, the app header shall show with no current item, and the page shall read "This page doesn’t exist." and "The link may be old, or the address has a typo. Your rides and progress are safe.", with "← Back to Home". |
-| `L2-145` AC2 | `L1-023` | Choosing "← Back to Home" shall open Home. |
+| `L2-145` | `L1-023` | When an address that matches no screen opens, the header shall show the wordmark and Full screen, and the page shall read "This page doesn’t exist." and "The link may be old, or the address has a typo. Your rides are safe.", with "Back to the class". When "Back to the class" is chosen, the app shall open as in L2-167. |
 
 ## Diagrams
 
 ### System context
 
-The rider opens an address that Telo Ride does not know.
+The rider opens an unknown address. The static host answers it with the app's document, and
+Telo Ride 1 shows the page.
 
-![C4 system context for page not found](diagrams/c4-context.png)
+![C4 system context for showing Page not found](diagrams/c4-context.png)
 
 ### Containers
 
-The host returns the app for the unknown address; the Ride app's router shows the page.
+The Ride app matches the address and renders the page. Browser storage is read only afterwards,
+by the opening rule, when the rider goes back to the class.
 
-![C4 container view for page not found](diagrams/c4-container.png)
+![C4 container view for showing Page not found](diagrams/c4-container.png)
 
 ### Components
 
-The router loads `MainShell` and, into its outlet, `NotFoundPage`; no header link is active, so
-`AppHeader` shows no current item.
+The wildcard route loads `NotFoundPage` on demand. The page renders `ScreenHeader`,
+`FullscreenToggle` and a `Button` link to `/`, where the opening rule takes over.
 
-![C4 component view for page not found](diagrams/c4-component.png)
+![C4 component view for showing Page not found](diagrams/c4-component.png)
 
 ### Class structure
 
-`MainShell` composes `AppHeader` and its links; `NotFoundPage` links to Home through the router.
+`NotFoundPage` is composed of its template and stylesheet, renders three presentation components
+and depends on the `Fullscreen` contract. The route and the e2e page object are modelled with the
+`config` and `fixture` stereotypes.
 
-![Class diagram for page not found](diagrams/class-structure.png)
+![Class diagram for showing Page not found](diagrams/class-structure.png)
 
-### Behaviour — open an unknown address
+### Behaviour: open an unknown address
 
-The router falls through to the wildcard route under `MainShell`, no header link is active, and
-"← Back to Home" opens Home (`L2-145` AC1, AC2).
+The router finds no screen for the address and loads the wildcard route. The page shows the
+wordmark, Full screen where available, the heading, the lead and the link (L2-145 AC1).
 
-![Sequence diagram for opening an unknown address](diagrams/sequence-open-unknown-address.png)
+![Sequence diagram for opening an unknown address](diagrams/sequence-open-an-unknown-address.png)
+
+### Behaviour: go back to the class
+
+"Back to the class" navigates to `/`, and the opening rule of L2-167 sends a returning rider to
+The Class and a new rider to Connect Bike (L2-145 AC2).
+
+![Sequence diagram for going back to the class](diagrams/sequence-go-back-to-the-class.png)

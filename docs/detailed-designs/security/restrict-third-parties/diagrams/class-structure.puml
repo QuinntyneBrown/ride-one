@@ -1,5 +1,4 @@
 @startuml
-set separator none
 ' --- shared skin header ---
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
@@ -13,56 +12,59 @@ skinparam class {
 }
 ' --------------------------
 title Class structure — Restrict third parties
-package "frontend hosting" {
-  class StaticWebAppConfig <<staticwebapp.config.json>> {
-    +globalHeaders.Content-Security-Policy
-    +globalHeaders.X-Content-Type-Options = "nosniff"
-    +globalHeaders.Referrer-Policy = "strict-origin-when-cross-origin"
-  }
-  class ContentSecurityPolicy <<header value>> {
-    +default-src 'self'
-    +script-src 'self' https://www.youtube.com
-    +style-src 'self' <TO SUPPLY>
-    +frame-src https://www.youtube-nocookie.com
-    +connect-src 'self' https://tile.googleapis.com
-    +img-src 'self' https://i.ytimg.com https://tile.googleapis.com
-    +font-src 'self'
-    +object-src 'none'
-    +base-uri 'self'
-    +form-action 'self'
-    +frame-ancestors 'none'
-  }
-  StaticWebAppConfig *-- ContentSecurityPolicy
+
+class "Security header set" as Headers <<config>> {
+  Content-Security-Policy
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
 }
-package "api library" {
-  class ThirdPartyOrigins <<const>> {
-    +youtubeScript = "https://www.youtube.com"
-    +youtubeFrames = "https://www.youtube-nocookie.com"
-    +youtubeImages = "https://i.ytimg.com"
-    +googleTiles = "https://tile.googleapis.com"
-  }
+
+class "Content Security Policy" as Csp <<config>> {
+  default-src 'self'
+  script-src 'self' https://www.youtube.com
+  style-src 'self' <TO SUPPLY>
+  frame-src https://www.youtube-nocookie.com
+  connect-src 'self'
+  img-src 'self' https://i.ytimg.com
+  font-src 'self'
+  object-src 'none'
+  base-uri 'self'
+  form-action 'self'
+  frame-ancestors 'none'
 }
-package "domain library" {
-  class YouTubePlayerLoader {
-    -loaded: Promise<YT> | null
-    +load(): Promise<YT>
-    +createPlayer(host: HTMLElement, videoId: string): YT.Player
-  }
-  class SettingsStore {
-    +googleMapsKey: Signal<string | null>
-  }
+
+class YouTubeVideoPlayer {
+  -API_URL = "https://www.youtube.com/iframe_api"
+  -EMBED_HOST = "https://www.youtube-nocookie.com"
+  +destroy(): void
 }
-package "world library" {
-  class GoogleTilesSource {
-    +stream(key: string, place: GeoPlace): Observable<TileSet>
-  }
+
+interface VideoPlayer
+
+class ClassVideo <<wz-class-video>> {
+  +videoId: input<string>
+  #cover: "https://i.ytimg.com/vi/<id>/hqdefault.jpg"
 }
-YouTubePlayerLoader ..> ThirdPartyOrigins
-GoogleTilesSource ..> ThirdPartyOrigins
-GoogleTilesSource ..> SettingsStore : key
-package "Telo.Ride.Api" {
-  class SecurityHeadersMiddleware {
-    +InvokeAsync(context: HttpContext, next: RequestDelegate): Task
-  }
+
+class "fonts.css" as Fonts <<stylesheet>> {
+  @font-face src: /fonts/*.woff2
 }
+
+class "angular.json" as Angular <<config>> {
+  optimization.fonts: false
+  optimization.styles.inlineCritical: false
+}
+
+class "guard" as Guard <<fixture>> {
+  fails a spec on a request off localhost
+  lets through what YouTubeFixture answers
+}
+
+Headers *-- Csp
+YouTubeVideoPlayer ..|> VideoPlayer
+Csp ..> YouTubeVideoPlayer : script-src and frame-src admit
+Csp ..> ClassVideo : img-src admits
+Csp ..> Fonts : font-src admits
+Angular ..> Fonts : bundles without inlining a font CDN
+Guard ..> Csp : proves the same set in specs
 @enduml

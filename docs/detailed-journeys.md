@@ -3,8 +3,8 @@
 This document is rewritten for Telo Ride 1 and drops what Telo Ride 1 leaves out (see
 [`journeys.md`](journeys.md)). Each journey there is split into vertical slices of 4 days or
 fewer, in the same order. Estimates are working days for one intermediate developer, made from
-[`specs/L2.md`](specs/L2.md), the mocks and the code carried over; the detailed designs still
-describe Telo Ride. **% complete** is 100% once a slice is merged into `main`; each slice sets its
+[`specs/L2.md`](specs/L2.md), the mocks and the code carried over; the detailed designs are
+rewritten for Telo Ride 1 but predate Intervals to the Beat and riding in Ibiza. **% complete** is 100% once a slice is merged into `main`; each slice sets its
 own row, and the totals, when it finishes (see [`lessons-learned.md`](lessons-learned.md)).
 
 **Requirements** names the L2s a slice proves. Before a slice is built, its detailed design is

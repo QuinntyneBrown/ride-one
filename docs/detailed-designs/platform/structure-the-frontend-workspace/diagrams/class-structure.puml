@@ -12,39 +12,72 @@ skinparam class {
 }
 ' --------------------------
 title Class structure — Structure the frontend workspace
-hide empty members
 
-class appConfig <<ride: app.config.ts>> {
-  +providers: Provider[]
+class "angular.json" as Angular <<config>> {
+  newProjectRoot: projects
+  prefix: wz
+  ride: application
+  api, domain, components, video: library
 }
-class AppShell <<ride>>
-interface BikeConnection <<api>> {
-  +ble: Signal<BleState>
-  +samples: Signal<BikeSample | null>
-  +connect(): Promise<void>
-  +setTargetResistance(level: number): Promise<void>
+
+class "tsconfig.json" as Tsconfig <<config>> {
+  paths: @telo/api
+  paths: @telo/domain
+  paths: @telo/components
+  paths: @telo/video
+  strictStandalone: true
+  strictTemplates: true
 }
-class "BIKE_CONNECTION" as BIKE_CONNECTION <<api: InjectionToken>>
-class WebBluetoothBikeConnection <<domain/bluetooth>>
-class SimulatedBike <<domain/bluetooth>>
-interface RidesApi <<api>>
-class "RIDES_API" as RIDES_API <<api: InjectionToken>>
-class HttpRidesApi <<api>>
-class "Any page" as Page <<ride>> {
-  -bike = inject(BIKE_CONNECTION)
+
+class "eslint.config.js" as Eslint <<config>> {
+  no-restricted-imports per project
+  consistent-type-imports
+  no-restricted-properties: navigator.bluetooth
+  prefer-on-push-component-change-detection
+  prefer-standalone
+  component-selector: wz
+  component-max-inline-declarations: 0
 }
-class "Presentation component" as Presentation <<components>> {
-  +input(): InputSignal
-  +output(): OutputEmitterRef
+
+class "app.config.ts" as AppConfig <<config>> {
+  provideZonelessChangeDetection()
+  provideRouter(routes, withComponentInputBinding())
+  provideBrowserGlobalErrorListeners()
 }
-WebBluetoothBikeConnection ..|> BikeConnection
-SimulatedBike ..|> BikeConnection
-HttpRidesApi ..|> RidesApi
-appConfig ..> BIKE_CONNECTION : binds
-appConfig ..> RIDES_API : binds
-BIKE_CONNECTION ..> BikeConnection : typed as
-RIDES_API ..> RidesApi : typed as
-Page ..> BIKE_CONNECTION : injects
-Page *-- Presentation
-AppShell ..> appConfig : bootstrapped with
+
+class ride <<application>> {
+  pages, stores, routes
+}
+class components <<library>> {
+  presentation components
+}
+class domain <<library>> {
+  protocol/
+  bluetooth/
+  engine/
+  storage/
+  browser/
+}
+class video <<library>> {
+  YouTubeVideoPlayer
+}
+class api <<library>> {
+  contracts, types, injection tokens
+}
+
+ride ..> components : imports
+ride ..> domain : imports
+ride ..> video : import()
+ride ..> api : imports
+components ..> api : import type only
+domain ..> api : imports
+video ..> api : imports
+Angular *-- ride
+Angular *-- components
+Angular *-- domain
+Angular *-- video
+Angular *-- api
+Tsconfig ..> api : aliases each library
+Eslint ..> ride : enforces the direction
+AppConfig --* ride
 @enduml

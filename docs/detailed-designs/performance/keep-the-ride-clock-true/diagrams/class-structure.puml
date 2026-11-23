@@ -12,88 +12,109 @@ skinparam class {
 }
 ' --------------------------
 title Class structure — Keep the ride clock true
-hide empty members
 
-interface MonotonicTime <<api>> {
+interface MonotonicTime {
   +now(): number
 }
-class RideClock <<domain/engine>> {
-  -startedAt: number
+
+class RideClock {
+  -startedAt: number | null
   -pausedAt: number | null
   -pausedTotalMs: number
+  +running: Signal<boolean>
   +start(): void
   +pause(): void
   +resume(): void
   +elapsedMs(): number
 }
-class RideTicker <<domain/engine>> {
-  -timer: number | null
+
+class RideTicker {
+  -timer: Timeout | null
   +second: Signal<number>
   +ticks: Observable<number>
   +start(): void
   +stop(): void
+  -tick(): void
   -scheduleNext(): void
   -onVisibilityChange(): void
 }
-class WorkoutEngine <<domain/engine>> {
+
+class WorkoutEngine {
   +state: Signal<PlanState | null>
   +follow(plan: Plan): void
+  -step(): void
 }
-class planStateAt <<domain/engine>> {
-  +planStateAt(plan: Plan, elapsedMs: number): PlanState | null
-}
-class PlanState <<domain/engine>> {
+
+class "planStateAt(plan, elapsedMs)" as planStateAt <<function>>
+
+interface PlanState {
   +index: number
-  +segment: Segment
   +remainingMs: number
   +progress: number
-  +targetPower: number
+  +targetPower: number | null
 }
-class DistanceIntegrator <<domain/engine>> {
-  -lastTimestampMs: number
-  +metres: number
-  +add(speedKmh: number, timestampMs: number): void
-}
-class ReadoutSampler <<domain/engine>> {
-  -lastPublishMs: number
-  -held: BikeSample | null
-  +readout: Signal<BikeSample | null>
-  +push(sample: BikeSample): void
-  +flush(): void
-}
-class BoardOrder <<domain/engine>> {
-  -lastAppliedMs: number
-  +order: Signal<RiderId[]>
-  +offer(ranking: RiderId[], nowMs: number): void
-}
-interface ScreenWakeLock <<api>> {
-  +acquire(): Promise<void>
-  +release(): Promise<void>
-}
-class BrowserScreenWakeLock <<ride/browser>> {
-  -sentinel: WakeLockSentinel | null
-}
-class LeaveRideGuard <<ride>> {
-  +arm(): void
-  +disarm(): void
-}
-class RideSessionStore <<ride>> {
+
+class ClassRideStore <<store>> {
+  -lastSecond: number
   +elapsed: Signal<number>
-  +planState: Signal<PlanState>
-  +start(plan: Plan): void
-  +end(): void
+  -record(second: number): void
 }
-RideClock ..> MonotonicTime : reads
-RideTicker --> RideClock : reads elapsedMs
-WorkoutEngine --> RideTicker : follows ticks
+
+class RideTotals {
+  +runningSeconds: Signal<number>
+  +outputKj: Signal<number>
+  +onRunningSecond(seconds: number): void
+}
+class EffortTotals {
+  +count(effort: number, powerW: number | null, seconds: number): void
+}
+class OnTargetCounter {
+  +count(powerW: number | null, targetPowerW: number | null, seconds: number): void
+}
+
+interface ScreenWakeLock {
+  +hold(): void
+  +release(): void
+}
+
+class BrowserScreenWakeLock {
+  -sentinel: WakeLockSentinel | null
+  -held: boolean
+  -onVisibilityChange(): void
+  -request(): void
+}
+
+class ClassRidePage <<component>> {
+  #confirmLeaving(event: BeforeUnloadEvent): void
+}
+
+class BikeTelemetry {
+  +cadence: Signal<number | null>
+  +powerW: Signal<number | null>
+}
+
+class ReadoutSampler <<new>> {
+  -timer: Timeout | null
+  -publishedAt: number
+  +cadence: Signal<number | null>
+  +powerW: Signal<number | null>
+}
+
+RideClock --> MonotonicTime : reads
+RideTicker --> RideClock : schedules from
+WorkoutEngine --> RideTicker : steps on ticks
+WorkoutEngine --> RideClock
 WorkoutEngine ..> planStateAt : calls
 planStateAt ..> PlanState : returns
+ClassRideStore --> RideTicker : counts seconds
+ClassRideStore --> RideTotals : reports seconds
+ClassRideStore --> EffortTotals : reports effort seconds
+ClassRideStore --> OnTargetCounter : reports aimed seconds
+ClassRideStore ..> planStateAt : places skipped seconds
+ClassRideStore --> ScreenWakeLock : holds
 BrowserScreenWakeLock ..|> ScreenWakeLock
-RideSessionStore *-- RideClock
-RideSessionStore *-- RideTicker
-RideSessionStore *-- DistanceIntegrator
-RideSessionStore *-- ReadoutSampler
-RideSessionStore *-- BoardOrder
-RideSessionStore --> ScreenWakeLock : acquires
-RideSessionStore --> LeaveRideGuard : arms
+ClassRidePage *-- ClassRideStore
+ReadoutSampler --> BikeTelemetry : samples
+ReadoutSampler --> MonotonicTime
+ClassRideStore --> ReadoutSampler : reads
 @enduml

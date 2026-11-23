@@ -14,25 +14,45 @@ skinparam package {
   FontColor #101828
   BackgroundColor #F9FAFB
 }
-box "Frontend — Ride app (domain library)" #E0F2FE
-  participant "TICKER" as ticker
-  participant "KeepaliveScheduler" as keep
+actor "Rider" as rider
+box "Frontend — Ride app (domain library)" #ECFDF3
   participant "WebBluetoothBikeConnection" as conn
+  participant "EchelonLink" as link
+  participant "KeepaliveScheduler" as keep
+  participant "SecondTicker" as ticker
   participant "GattWriteQueue" as queue
 end box
-box "Device — Smart bike" #F2F4F7
-  participant "Echelon GATT server" as bike
+box "Device — Browser" #F2F4F7
+  participant "performance.now()" as clock
 end box
-conn -> keep : start() after initialisation
-loop while Connected (visible or hidden tab)
-  ticker -> keep : tick; the scheduler reads the clock
-  keep -> keep : due when now - lastSentAt ≥ 1000 ms, timed from the clock (L2-016 AC2, L2-133)
-  keep -> queue : F0 A0 01 01 92
-  queue -> bike : writeValueWithResponse on 0bf669f2-…
-  bike --> queue : Acknowledged
-  queue --> keep : ack ms
+box "Device — Smart bike" #F2F4F7
+  participant "Echelon EX-5s" as bike
+end box
+rider -> bike : Pedal; the bike is connected and initialised
+conn -> link : connected()
+link -> keep : start()
+keep -> clock : now()
+clock --> keep : Start of the first gap
+keep -> ticker : Subscribe to seconds
+loop each tick, visible or hidden tab
+  ticker --> keep : Tick
+  keep -> clock : now()
+  clock --> keep : Elapsed since the last keepalive
+  alt 900 ms or more have passed (L2-016 AC1, AC2)
+    keep -> link : send()
+    link -> queue : Enqueue F0 A0 01 01 92
+    queue -> bike : Write to 0bf669f2 with response, after any pending write
+    bike --> queue : Acknowledged
+  else a burst of ticks
+    keep -> keep : Skip; the rate comes from the clock, not the tick count
+  end
 end
-note right of keep : 4 to 6 keepalives in any 5 s (L2-016 AC1)
-bike -> conn : gattserverdisconnected
-conn -> keep : stop() until reconnected (L2-016 AC3)
+opt the write fails
+  queue --> keep : Rejected
+  keep -> conn : onFailure(error): treated as a drop (L2-017 AC1)
+end
+bike --> conn : gattserverdisconnected
+conn -> link : close()
+link -> keep : stop()
+keep -> ticker : Unsubscribe; no keepalive until the bike reconnects (L2-016 AC3)
 @enduml
