@@ -273,6 +273,37 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 32.4 The eight efforts (2026-11-23)
+
+**Applied from earlier**
+
+- **L41 see the spec fail first:** the view's cases failed to compile on `efforts`; the efforts spec was written with
+  the component and shown red by the missing bars. The tally's own unit spec was written and implemented together,
+  so it never failed.
+- **Name the files Prettier writes (32.2) and use the Write tool for text with curly quotes (L-heredoc):** the first
+  spec file went into a heredoc and broke the shell; the second time it went through the Write tool.
+
+**What slowed it down**
+
+- The slice's name says eight efforts; the plan has 17 and L2-169 already said so (its "mock gap" was the mock's eight).
+  The row keeps its name; the screen, specs and mocks say 17.
+- The app's own token file lacks tokens the design system has: `--duration-stagger` (the delay was 0 s), then
+  `--class-done-chart-height` (the chart had no height until it was added). Check a token exists in
+  `projects/ride/src/styles/tokens.css`, not only in `docs/design-system/tokens/`.
+- With a real chart height the figures took room from the bars and skewed their ratio: the bar is now its share of
+  the room under the figure.
+- A bar still rising is scaled and fades in: specs read `offsetHeight`, not the bounding box.
+
+**Decisions**
+
+- **Upright figures** so 17 fit at 320 px without overlap, rather than hiding them or scrolling sideways.
+- **The tally sums, and the view shapes:** `EffortTally` and `effortBars` are pure and unit-tested; the component only
+  draws.
+
+**New lessons**
+
+- A token that exists in the mocks' design system must be checked in the app's token file before a component depends on it.
+
 ### 32.3 Best output (2026-11-23)
 
 **Applied from earlier**

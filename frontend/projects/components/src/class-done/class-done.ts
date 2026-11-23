@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import type { EffortBar } from '@telo/api';
 import { Lockup } from '../lockup/lockup';
 
 /**
  * Class Done (design-system block class-done, docs/mocks/pages/class-done/): the header with the wordmark, the class
  * and Full screen (`end` slot), the verdict, the output in kJ (gold for a new best) with the facts under it, and Done
- * (`actions` slot). The on-target share and the eight efforts join with slices 32.4 and 32.5.
+ * (`actions` slot), and the efforts as a chart of bars. The on-target share joins with slice 32.5.
  */
 @Component({
   selector: 'wz-class-done',
@@ -28,4 +29,11 @@ export class ClassDone {
   readonly best = input(false);
   /** The best fact: "Previous best" or "Best", with its kJ; none for the first ride. */
   readonly bestFact = input<{ readonly label: string; readonly value: string } | null>(null);
+  /** The class's efforts, a bar each, in plan order (L2-169). */
+  readonly efforts = input<readonly EffortBar[]>([]);
+
+  /** The class that sets a bar's height: its share of the strongest effort's, in whole percent (the stylesheet has 0 to 100). */
+  protected shareClass(effort: EffortBar): string {
+    return `class-done__effort--share-${Math.round(effort.height)}`;
+  }
 }

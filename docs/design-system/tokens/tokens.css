@@ -286,6 +286,7 @@
   /* area: Telo Ride 1 (The Class and Class Done) */
   --the-class-aside-width: 23.75rem;     /* lg: grid-cols-[minmax(0,1fr)_380px] */
   --the-class-aside-width-xl: 26.25rem;  /* xl: 420px */
+  --class-done-figure-room: 3rem;        /* above the strongest bar, for its upright figure */
   --class-done-chart-height: 12rem;      /* the eight efforts, h-48 */
   --class-done-action-width: 18rem;      /* Done from 640px, sm:w-72 */
   /* area: profile */

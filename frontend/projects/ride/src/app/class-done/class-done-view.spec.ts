@@ -9,6 +9,7 @@ const ride = (
   outputKj: number,
   elapsedSeconds: number,
   previousBestKj: number | null = null,
+  efforts: readonly number[] = [],
 ): ClassResult => ({
   classId: 'intervals-to-the-beat',
   title: 'Intervals to the Beat',
@@ -16,6 +17,7 @@ const ride = (
   outputKj,
   onTargetShare: 0.84,
   previousBestKj,
+  efforts,
 });
 
 describe('classDoneView', () => {
@@ -28,6 +30,7 @@ describe('classDoneView', () => {
       verdict: 'Class done. That’s your number to beat.',
       best: false,
       bestFact: null,
+      efforts: [],
       announcement: 'Class done. That’s your number to beat. 351 kJ in 20:00.',
     });
   });
@@ -78,6 +81,31 @@ describe('classDoneView', () => {
         best: false,
         bestFact: null,
       });
+    });
+  });
+  describe('the efforts (L2-169)', () => {
+    const efforts = (watts: number[]) => classDoneView(ride(351, 1200, null, watts)).efforts;
+
+    it('lists them in plan order with their watts and a height as a share of the strongest (AC1, AC3)', () => {
+      expect(efforts([200, 400, 300])).toEqual([
+        { number: 1, watts: 200, height: 50, strongest: false },
+        { number: 2, watts: 400, height: 100, strongest: true },
+        { number: 3, watts: 300, height: 75, strongest: false },
+      ]);
+    });
+
+    it('sets the earliest apart where efforts tie for the strongest (AC4)', () => {
+      expect(efforts([350, 350, 200]).map((e) => e.strongest)).toEqual([true, false, false]);
+    });
+
+    it('marks none the strongest, and draws none above the minimum, when every effort is 0 W (AC5)', () => {
+      const all = efforts([0, 0, 0]);
+      expect(all.map((e) => e.strongest)).toEqual([false, false, false]);
+      expect(all.map((e) => e.height)).toEqual([0, 0, 0]);
+    });
+
+    it('has none for a result with no efforts', () => {
+      expect(efforts([])).toEqual([]);
     });
   });
 });

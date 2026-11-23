@@ -65,6 +65,18 @@ and the verdict in gold, and the fact "Previous best"); lower or equal is "Your 
 no best is "Class done. That’s your number to beat." with no fact. The announcement is the verdict then "351 kJ in
 20:00.".
 
+Slice 32.4 added the efforts (`L2-169`, `L2-142` AC2, AC3; the mocks `class-done/default` and `efforts-none`, now
+drawn with the plan's 17 efforts, not eight). `EffortTally` (`domain/src/engine/effort-tally.ts`) holds one sum for each
+work segment of the plan, to which the ride's per-second record adds the power over the seconds it covers (a hidden
+tab's skipped seconds split across the segments they overlap, unknown power as 0 W); `ClassResult.efforts` carries
+each effort's rounded mean watts in plan order. `classDoneView` turns them into `EffortBar`s: height as a share of the
+strongest's, the earliest strongest set apart, none when all are 0 W. `wz-class-done` draws the section "Your 17
+efforts, average watts" as an `ol` of bars: each bar is `calc((100% - --class-done-figure-room) * --share)` so the
+strongest fills the room under its figure and the others are their watts over its, with a 4 px minimum for 0 W. The
+figures are set upright (`writing-mode: vertical-rl`) so 17 fit at 320 px with none over the next. The bars rise 250 ms
+each, 40 ms apart (`--duration-stagger`), and not at all with reduced motion; the app's token file gained
+`--duration-stagger`, `--class-done-chart-height`, `--class-done-action-width` and `--class-done-figure-room`.
+
 **During the ride**
 
 - **`EffortTotals`** (`domain/src/engine/effort-totals.ts`, new): engine service provided on

@@ -35,6 +35,30 @@
           }
         </dl>
       </section>
+      @if (efforts().length > 0) {
+        <section class="class-done__efforts" aria-labelledby="class-done-efforts-title">
+          <h2 class="class-done__efforts-title" id="class-done-efforts-title">
+            Your {{ efforts().length }} efforts, average watts
+          </h2>
+          <ol class="class-done__chart">
+            @for (effort of efforts(); track effort.number) {
+              <li
+                class="class-done__effort"
+                [class]="shareClass(effort)"
+                [class.class-done__effort--peak]="effort.strongest"
+              >
+                <span class="class-done__watts"
+                  ><span class="visually-hidden">Effort {{ effort.number }}: </span>{{ effort.watts
+                  }}<span class="visually-hidden">
+                    W{{ effort.strongest ? ', your strongest' : '' }}</span
+                  ></span
+                >
+                <span class="class-done__bar"></span>
+              </li>
+            }
+          </ol>
+        </section>
+      }
       <div class="class-done__actions"><ng-content select="[slot=actions]" /></div>
     </main>
   </div>

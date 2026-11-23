@@ -18,6 +18,12 @@ export class ClassDonePage {
   readonly main: Locator;
   /** "Previous best" or "Best" with its kJ; absent for the first ride. */
   readonly bestFact: Locator;
+  /** "Your 17 efforts, average watts". */
+  readonly effortsTitle: Locator;
+  /** The efforts' bars with their watts, in plan order. */
+  readonly efforts: Locator;
+  /** The bar of one effort. */
+  readonly bars: Locator;
 
   constructor(private readonly page: Page) {
     this.title = page.locator('.class-done__class');
@@ -29,6 +35,9 @@ export class ClassDonePage {
     this.average = this.fact('Average');
     this.done = page.getByRole('link', { name: 'Done', exact: true });
     this.main = page.locator('main');
+    this.effortsTitle = page.locator('.class-done__efforts-title');
+    this.efforts = page.locator('.class-done__effort');
+    this.bars = page.locator('.class-done__bar');
     this.bestFact = page.locator('.class-done__fact').filter({ hasText: /best/i });
   }
 

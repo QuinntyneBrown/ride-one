@@ -258,6 +258,10 @@
   --duration-loop: 1000ms; /* one turn of a spinner */
   --duration-pulse: 1600ms; /* one breath of a skeleton */
   --duration-delay-tooltip: 300ms; /* hover intent before a tooltip shows (a wait, so reduced motion keeps it) */
+  --duration-stagger: 40ms; /* between bars that rise one after another (Class Done's efforts, L2-142 AC2) */
+  --class-done-chart-height: 12rem; /* the efforts' chart, h-48 */
+  --class-done-action-width: 18rem; /* Done from 640px, sm:w-72 */
+  --class-done-figure-room: 3rem; /* above the strongest bar, for its upright figure */
   --duration-fade: 250ms; /* an opacity fade, which reduced motion keeps (L2-142 AC2) */
   --duration-unlock: var(--duration-slow);
   --duration-countdown: var(--duration-deliberate);
@@ -602,6 +606,7 @@
     --duration-fast: 0ms;
     --duration-base: 0ms;
     --duration-slow: 0ms;
+    --duration-stagger: 0ms;
   }
 }
 :root[data-motion='reduced'] {
@@ -611,6 +616,7 @@
   --duration-fast: 0ms;
   --duration-base: 0ms;
   --duration-slow: 0ms;
+  --duration-stagger: 0ms;
 }
 @media (prefers-contrast: more) {
   :root,

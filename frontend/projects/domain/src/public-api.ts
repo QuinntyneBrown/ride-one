@@ -22,6 +22,7 @@ export type { ResistanceControl } from './engine/resistance-controller';
 export { type PlanState, planStateAt } from './engine/plan-state';
 export { RideClock } from './engine/ride-clock';
 export { RideTicker } from './engine/ride-ticker';
+export { EffortTally } from './engine/effort-tally';
 export { RideRecorder } from './engine/ride-recorder';
 export { DRIFT_LIMIT_SECONDS, VideoClockSync } from './engine/video-clock-sync';
 export { VIDEO_STALL_SECONDS, VideoStallWatch } from './engine/video-stall-watch';
