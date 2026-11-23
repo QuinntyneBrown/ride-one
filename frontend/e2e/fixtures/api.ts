@@ -14,11 +14,11 @@ export interface ApiReply {
 export type Handler = (request: Request) => ApiReply | Promise<ApiReply>;
 
 /**
- * Answers the app's requests to the backend (`/api/…` on localhost) with what the spec declared (L2-148 AC1). A request
+ * Answers the app's requests to an API (`/api/…` on localhost) with what the spec declared (L2-148 AC1). A request
  * no answer matches gets 501, and the shared fixture fails the spec. The latest answer for a method and path wins, so
  * a spec can change one mid-test; `requests` lists what the page sent, in order, and `sentBodies` the JSON it sent.
- * Telo Ride 1 has no backend (ADR 0037): the app makes no such request, so no answer is declared and any it makes
- * fails the spec.
+ * Telo Ride 1 has no backend (ADR 0037, ADR 0043): the app makes no such request, so no answer is declared and any it
+ * makes fails the spec.
  */
 export class ApiFixture {
   private readonly answers = new Map<string, Handler>();
@@ -92,7 +92,7 @@ export class ApiFixture {
     this.noNetwork = true;
   }
 
-  /** Every request the page sent to the backend, as "METHOD /path", oldest first. */
+  /** Every request the page sent to an API, as "METHOD /path", oldest first. */
   requests(): string[] {
     return [...this.sent];
   }

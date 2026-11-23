@@ -35,7 +35,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
   32.2 start from their code.
 - **Left out by Telo Ride 1:** 1.2 Backend skeleton, 3.3 Show heart rate, 6.2 Class library and
   every slice of journeys 7 to 14. Journey 28 removes them.
-- **Half of 1.4:** the API serving the app (ADR 0026) is replaced by slice 28.8.
+- **Half of 1.4:** the API serving the app (ADR 0026) was replaced by slice 28.8 (ADR 0043).
 
 ## To build
 
@@ -48,7 +48,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 28.5 | Remove Home, Profile, the class library and heart rate | Home, Profile, Settings, Diagnostics with the packet log, the class library, the header's navigation and heart rate (ADR 0040). No menu or navigation is left; `/` shows Class Start for the one class, with no redirect, until slice 30.2 draws The Class, and the old addresses are page not found, with "Back to the class". What Settings set is fixed at its default, and the theme follows the device. | 2 | 28. Make it Telo Ride 1 | L2-080 AC4, L2-167 AC4 | 100% |
 | 28.6 | Remove the marketing application | The `marketing` application, its build, scripts, verify and CI steps, its ESLint boundary and the seven components only it used (ADR 0041, superseding ADR 0027). The workspace is `ride` on `api`, `domain`, `components`, `video` and `world`. | 1 | 28. Make it Telo Ride 1 | L2-146 AC1–2 | 100% |
 | 28.7 | Wordmark | TELO RIDE 1 on every header, and "Telo Ride 1" in every title and message. | 1 | 28. Make it Telo Ride 1 | L2-172 | 100% |
-| 28.8 | Host as static files | Static files over HTTPS with an http redirect and HSTS; the backend's projects, tests and CI job go (ADR 0037). | 3 | 28. Make it Telo Ride 1 | L2-149 AC1, L2-009 AC2 | 0% |
+| 28.8 | Host as static files | Static files on Azure Static Web Apps: the build carries the host's configuration, with the fallback to the app, the L2-131 headers, a year of HSTS and the cache rules; the host redirects http. `backend/`, its tests, verify's and CI's .NET steps and `@angular/cdk` go, and `AGENTS.md` is brought in line (ADR 0043, carrying out ADR 0037). | 3 | 28. Make it Telo Ride 1 | L2-149 AC1, L2-009 AC2 | 100% |
 | 29.1 | Connect Bike | The screen as designed: the offered bike and the works-with list at rest, searching while the browser's list of bikes is open, the bike picked there pairing, paired, then The Class. | 3 | 29. Pair the bike | L2-007, L2-011, L2-012 AC1–3, L2-013, L2-014 AC1–2, AC4 | 100% |
 | 29.2 | Say why the bike cannot be reached | Alerts for Bluetooth off, an unsupported browser, plain http and a chooser that will not open. | 2 | 29. Pair the bike | L2-008 AC1, L2-009 AC4, L2-012 AC4, L2-018 | 100% |
 | 30.1 | The one class | `intervals-to-the-beat` with its 33-segment plan, the course's, shipped with the app and validated; no other class and no other course (ADR 0042); a class that cannot be loaded says so. | 2 | 30. Open on The Class | L2-080 AC1–5 | 100% |
@@ -81,13 +81,14 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
 
-**Total:** 50 slices, 99 days. **Complete:** 21 slices, 46 days (46%), 11 of them carried over.
-**To build:** 29 slices, 53 days.
+**Total:** 50 slices, 99 days. **Complete:** 22 slices, 49 days (49%), 11 of them carried over.
+**To build:** 28 slices, 50 days.
 
 ## What a slice waits for
 
 - **28.1** decided where the class comes from (ADR 0037: with the app, no backend), so 30.1, 28.8 and 35.1 follow it.
-- **30.1** is built: the app calls no API and the backend serves no catalogue (ADR 0042), so 28.8 now follows it.
+- **30.1** is built: the app calls no API (ADR 0042). **28.8** is built after it: the backend is gone and the host is
+  Azure Static Web Apps (ADR 0043), so 35.1 narrows the policy in `staticwebapp.config.json`.
 - **L2's open questions:** 30.1 closed the class's words and its warm-up and cool-down cadence
   aims (11); 30.3's line under the plan and 30.2's control words are still its proposals; 32.5
   builds a rule that is still a proposal (2); 32.2 shows a Time that is always 30:00 (3).

@@ -1,7 +1,7 @@
 // Acceptance test
 // Traces to: L2-131 AC1, AC2, AC3, AC4
-// Description: the app's pages are served with the Content Security Policy and the headers of L2-131, as the API
-// serves them (ADR 0026): scripts and styles from the app's origin and the YouTube player, frames only from
+// Description: the app's pages are served with the Content Security Policy and the headers of L2-131, as the static
+// host's configuration in the build says (ADR 0043): scripts and styles from the app's origin and the YouTube player, frames only from
 // youtube-nocookie, connections only to the app's origin and Google's Map Tiles API, nothing framing the app, no
 // sniffing and the referrer cut to the origin elsewhere. The app runs under it: the shared fixture fails every spec on a
 // refusal. A script or a connection to any other origin, such as a tracker's, is refused before it leaves the page.

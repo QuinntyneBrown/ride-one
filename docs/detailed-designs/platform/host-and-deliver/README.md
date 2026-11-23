@@ -12,6 +12,7 @@ Local terms:
 - **static host**: service that returns the built files over HTTPS and runs no application code
 - **fallback**: rule by which the host answers an address that matches no file with `index.html`, so the app's router can resolve it
 - **header set**: the Content Security Policy, `X-Content-Type-Options` and `Referrer-Policy` of `L2-131`
+- **host configuration**: `staticwebapp.config.json`, the file Azure Static Web Apps reads from the build
 - **pipeline**: GitHub Actions workflow that runs on every push and pull request
 - **critical acceptance path**: one Playwright behaviour spec per feature, tagged `@critical`, that proves the feature's main flow
 - **production build**: output of `ng build ride` in `frontend/dist/ride/browser/`
@@ -41,28 +42,43 @@ Neighbouring features own the adjacent concerns:
   configuration of `frontend/angular.json`: output in `dist/ride/browser/`, `outputHashing` `all`,
   and the `initial` and `anyComponentStyle` budgets. `index.html` has `<base href="/">`, so the
   bundles resolve from any route.
-- **Static host**: the product and its configuration file are `<TO SUPPLY>`. Today the build is
-  served by the carried-over backend: `Telo.Ride.Api` serves it from `wwwroot` on one Azure App
-  Service (ADR 0026), and `docs/deployment.md` describes that service and its settings. `L2-149`
-  AC1 asks for static files, and `AGENTS.md` leaves open whether Telo Ride 1 keeps the backend
-  (`L2.md` open question 1). The change that decides it brings an ADR that supersedes ADR 0026,
-  names the host and rewrites `docs/deployment.md` for Telo Ride 1.
-- **What the host shall do**, whichever product is chosen:
-  - serve the files of `dist/ride/browser/` over HTTPS only;
-  - send the header set of `L2-131` on every response, `index.html` and files alike, with
-    `frame-ancestors 'none'` in the policy;
-  - answer every address that matches no file with `index.html` and status 200, so `/connect`,
-    `/ride` and `/done` open directly and an unknown address reaches Page not found.
-- **Caching**: `index.html` should be served with `Cache-Control: no-cache` so a deploy reaches
-  riders on the next visit; the hashed bundles may be cached long. ADR 0026 sets the same rule for
-  the current host. The values for the new host are `<TO SUPPLY>` with it.
+- **Static host**: exists (slice 28.8, ADR 0043). It is Azure Static Web Apps, Free plan. It
+  serves HTTPS only and redirects plain `http` itself (`L2-009` AC2); `docs/deployment.md` says
+  what a person sets up once and checks on the real host. The carried-over backend that served the
+  build from `wwwroot` (ADR 0026) is removed.
+- **Host configuration**: exists.
+  `frontend/projects/ride/public/staticwebapp.config.json` is copied into the build beside
+  `index.html`. It is the one place the header set is written.
+  - `navigationFallback` rewrites an address that matches no file to `/index.html` with status
+    200, so `/connect`, `/ride` and `/done` open directly and an unknown address reaches Page not
+    found. Its `exclude` names the asset folders and the file extensions the build uses: a file
+    that is not there is 404, never the app (`L2.md` open question 19).
+  - `globalHeaders` sends the header set of `L2-131` on every response, `index.html` and files
+    alike, with `frame-ancestors 'none'` in the policy, and with it
+    `Strict-Transport-Security: max-age=31536000` (`L2-009` AC2) and `Cache-Control: no-cache`.
+  - `routes` gives the root's hashed `.js` and `.css` files
+    `Cache-Control: public, max-age=31536000, immutable`, and keeps `no-cache` on the service
+    worker's scripts and on `/draco/*`, whose names carry no hash. The worker's scripts also carry
+    a policy of their own, whose `connect-src` lets the worker fetch the YouTube player and the
+    class cover.
+  - `mimeTypes` names the manifest, `.glb`, `.ogg` and `.wasm`.
+- **Caching**: `index.html`, `ngsw.json` and the service worker are `no-cache`, so a deploy
+  reaches riders on the next visit; the hashed bundles are kept for a year.
 - **Routes**: `/connect`, `/`, `/ride` and `/done` are assumptions the mocks share (`L2.md` open
-  question 7). The fallback does not depend on them: it applies to any address that is not a file.
+  question 7). The fallback does not depend on them: it applies to any address that is not a file
+  and not a missing asset.
 - **`frontend/scripts/serve-dist.mjs`**: exists. It is the local stand-in for the host in the
-  behaviour specs. It serves a build folder on `127.0.0.1` and falls back to `index.html` for any
-  path that is not a file. It sends no security header today;
-  [Restrict third parties](../../security/restrict-third-parties/README.md) proposes that it send
-  the header set.
+  behaviour specs. It serves a build folder on `127.0.0.1` and reads the host configuration from
+  that folder: it sends `globalHeaders`, adds the headers of the first of `routes` that matches,
+  uses `mimeTypes`, and answers an address that matches no file with the `navigationFallback`
+  unless `exclude` matches it, which is 404. It reads a pattern as `*` for any characters and
+  `{a,b}` for one of the names. It redirects nothing.
+- **`e2e/static-host.spec.ts`** with the page object **`StaticHost`** (`e2e/pages/static-host.ts`):
+  exist. Seven specs, one `@critical`, hold the production build to the above: a deep link and an
+  unknown address answered with the app under the headers, the build's file itself, the cache
+  rules, the worker's policy, and three missing files answered 404.
+- **What no spec proves**: the redirect from `http` and the headers as the real host sends them.
+  No spec may leave localhost. `docs/deployment.md` lists the commands a person runs.
 
 ### Delivery (`L2-149` AC2)
 
@@ -80,18 +96,21 @@ Neighbouring features own the adjacent concerns:
 - **No unit tests in CI**: `npm test` runs locally. `node tools/verify/verify.mjs` exists and runs
   the format check, lint, unit tests, the production build and the behaviour specs before a push.
 - **One critical path per feature**: a spec carries `{ tag: '@critical' }` and a header comment
-  naming the L2s it covers. 40 spec files carry the tag today, most of them for Telo Ride features.
+  naming the L2s it covers. 31 spec files carry the tag today.
   For Telo Ride 1 each feature in this design tree that has a screen behaviour has one tagged
   spec; the specs of removed features leave with them.
-- **What changes in the workflow**: the `dotnet format`, `dotnet build` and `dotnet test` steps,
-  the .NET set-up and NuGet cache belong to the carried-over backend. They leave the workflow in
-  the change that removes it (28.8). Until then they count against the 5 minutes. The marketing
-  build left with the `marketing` application (ADR 0041).
-- **`deploy` job**: exists. It runs on a push to `main` after the three jobs pass. Today it
-  publishes the API with the build in `wwwroot`, migrates the database and deploys to the App
-  Service named by the repository variable `TELO_RIDE_WEBAPP`, and is skipped until that variable
-  is set. For Telo Ride 1 it builds the app and uploads `dist/ride/browser/` to the static host.
-  Its target, sign-in and variables are `<TO SUPPLY>` with the host.
+- **Sparse checkouts**: `lint`, `build` and `deploy` check out `frontend`; `acceptance` checks
+  out `frontend` and `tools/blender/courses`, whose course file the specs read. A step that reads
+  a file outside its job's checkout fails in CI and passes locally.
+- **What left the workflow**: the `dotnet format`, `dotnet build` and `dotnet test` steps, the
+  .NET set-up and the NuGet cache went with the backend (28.8, ADR 0043). The marketing build
+  left with the `marketing` application (ADR 0041).
+- **`deploy` job**: exists. It runs on a push to `main` after the three jobs pass, and is skipped
+  until the repository variable `TELO_RIDE_STATIC_WEB_APP` is set. It builds the app, appends the
+  commit to `ngsw-worker.js` so a changed header reaches an installed worker, signs in to Azure
+  with GitHub's OIDC token, reads the static web app's deployment token and uploads
+  `dist/ride/browser/` with `Azure/static-web-apps-deploy`. The repository stores no secret;
+  `docs/deployment.md` lists the five variables.
 
 ## Requirements
 
@@ -130,15 +149,14 @@ drawn as their own boundary.
 ### Class structure
 
 `ci.yml` composes the `lint`, `build`, `acceptance` and `deploy` jobs. The static host and the
-workflow are configuration and are modelled with the `config` and `job` stereotypes; the host's
-product and the deploy target are `<TO SUPPLY>`.
+workflow are configuration and are modelled with the `config` and `job` stereotypes.
 
 ![Class diagram for hosting and delivering](diagrams/class-structure.png)
 
 ### Behaviour: open an address that matches no file
 
 A rider opens or reloads `/ride`. The host finds no such file and answers `index.html` with the
-header set; the router then resolves the address to a screen or to Page not found.
+header set and HSTS; the router then resolves the address to a screen or to Page not found.
 
 ![Sequence diagram for opening an address that matches no file](diagrams/sequence-open-an-address-that-matches-no-file.png)
 

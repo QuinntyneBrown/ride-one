@@ -41,6 +41,8 @@ alt any job fails
 else all pass, on a push to main
   ci -> deploy : Start
   deploy -> deploy : npm ci and npm run build
+  deploy -> deploy : Append the commit to ngsw-worker.js
+  deploy -> host : Sign in with OIDC, read the deployment token
   deploy -> host : Upload dist/ride/browser
   host --> deploy : Served over HTTPS (L2-149 AC1)
   [<-- ci : The run passes

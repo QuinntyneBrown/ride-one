@@ -120,12 +120,11 @@ Smart bike ──BLE──▶ domain/bluetooth ──▶ domain/protocol ──�
 
 | Project | Responsibility |
 |---|---|
-| `frontend/projects/api` (`@telo/api`) | Contracts, types, injection tokens, and the HTTP clients |
+| `frontend/projects/api` (`@telo/api`) | Contracts, types and injection tokens |
 | `frontend/projects/domain` (`@telo/domain`) | The bike and its rules: `protocol/`, `bluetooth/`, `engine/`, `storage/` |
 | `frontend/projects/components` (`@telo/components`) | Presentation components, named as in the design system |
 | `frontend/projects/video` (`@telo/video`) | The YouTube player, imported dynamically |
 | `frontend/projects/ride` | The app: pages, dialogs and the composition root |
-| `backend/src/Telo.Ride.*` | Carried over from Telo Ride; serves the class catalogue ([backend README](backend/README.md)) |
 
 Dependencies run one way, and ESLint enforces it. Every route is lazy-loaded, and only
 `domain/bluetooth/` touches `navigator.bluetooth`. The full rules are in [`AGENTS.md`](AGENTS.md)
@@ -134,7 +133,6 @@ and [ADR 0024](docs/adr/0024-telo-ride-workspace.md).
 ## Prerequisites
 
 - [Node.js](https://nodejs.org) 24 or later, with npm
-- The [.NET SDK](https://dotnet.microsoft.com/download) 10, for the backend
 - Chrome or Edge
 - To ride real hardware: a supported bike, and a computer, tablet or phone with Bluetooth Low
   Energy turned on
@@ -155,22 +153,23 @@ without the chooser, pedals and reports back every target resistance. A producti
 With a real bike, open `http://localhost:4200`, press **Connect bike** and pick the bike in the
 browser's list. Telo Ride 1 remembers it next time.
 
-The backend's commands are in [`backend/README.md`](backend/README.md).
-
 ## Host it
 
-One Azure App Service runs the API and serves the app's build from its `wwwroot`, as one origin
-([ADR 0026](docs/adr/0026-api-serves-the-app.md)). Every push to `main` that passes CI is deployed
-by the `deploy` job in [`.github/workflows/ci.yml`](.github/workflows/ci.yml): it builds, runs the
-`migrate` command, then ships. The job is skipped until the repository variables name the host.
+Telo Ride 1 is static files, with no backend
+([ADR 0043](docs/adr/0043-static-files-on-azure-static-web-apps.md)). Azure Static Web Apps serves
+the app's build over HTTPS and redirects plain `http`; the build carries the host's configuration,
+`staticwebapp.config.json`: the fallback to `index.html` for the app's routes, the security
+headers with a year of HSTS, and the cache rules. Every push to `main` that passes CI is deployed
+by the `deploy` job in [`.github/workflows/ci.yml`](.github/workflows/ci.yml). The job is skipped
+until the repository variables name the host.
 
-[`docs/deployment.md`](docs/deployment.md) lists every setting, the one-time host set-up and the
-release steps. To serve a production build locally as the App Service does:
+[`docs/deployment.md`](docs/deployment.md) lists the one-time host set-up, the pipeline's
+settings, the release steps and what to check on the real host. To serve a production build
+locally as that configuration says:
 
 ```shell
 cd frontend && npm run build              # static files in dist/ride/browser
-cd ../backend
-dotnet run --no-launch-profile --project src/Telo.Ride.Api -- --webroot ../frontend/dist/ride/browser
+node scripts/serve-dist.mjs 4300          # http://localhost:4300
 ```
 
 ## Build and test
@@ -180,12 +179,11 @@ dotnet run --no-launch-profile --project src/Telo.Ride.Api -- --webroot ../front
 | Format and lint | `cd frontend && npm run format:check && npm run lint` | Prettier, angular-eslint and its dependency boundaries |
 | Unit tests | `cd frontend && npm test` | The unit tests of every frontend project, on a fake clock |
 | Build | `cd frontend && npm run build` | The production build in `dist/ride/browser`, within the `angular.json` bundle budgets |
-| Behaviour specs | `cd frontend && npx playwright install chromium && npm run e2e` | Playwright on Chromium, with page objects, against a fake `navigator.bluetooth` and fixture answers for the API |
-| Backend | `cd backend && dotnet format Telo.Ride.slnx --verify-no-changes && dotnet test --solution Telo.Ride.slnx` | Format, build and acceptance tests through the API on EF Core InMemory |
+| Behaviour specs | `cd frontend && npx playwright install chromium && npm run e2e` | Playwright on Chromium, with page objects, against a fake `navigator.bluetooth`, with no request off localhost |
 | Everything | `node tools/verify/verify.mjs` | All of the above, side by side; run it before you push |
 
-No automated test uses a real bike, Bluetooth, backend or database. [CI](.github/workflows/ci.yml)
-runs lint, the production builds and one critical acceptance path per feature in under 5 minutes.
+No automated test uses a real bike or Bluetooth, or a network beyond localhost. [CI](.github/workflows/ci.yml)
+runs lint, the production build and one critical acceptance path per feature in under 5 minutes.
 Unit tests run only locally.
 
 ## Repository structure
@@ -193,13 +191,12 @@ Unit tests run only locally.
 ```
 ride-one/
 ├── frontend/                        The Angular workspace and its Playwright specs
-│   ├── projects/api/                  @telo/api: contracts, tokens, HTTP clients
+│   ├── projects/api/                  @telo/api: contracts, types, tokens
 │   ├── projects/domain/               @telo/domain: protocol, Bluetooth, engine, storage
 │   ├── projects/components/           @telo/components: presentation components
 │   ├── projects/video/                @telo/video: the YouTube player
 │   ├── projects/ride/                 The app
 │   └── e2e/                           Behaviour specs, fixtures and page objects
-├── backend/                         The .NET service carried over from Telo Ride
 ├── docs/
 │   ├── journeys.md                  The journeys, by value added, with % complete
 │   ├── detailed-journeys.md         Each journey split into slices
@@ -212,7 +209,7 @@ ride-one/
 │   ├── protocol/                    Echelon Bluetooth message and frame reference
 │   ├── prompts/                     One ready-to-run prompt per slice
 │   ├── videos/                      A narrated film of each slice
-│   └── deployment.md                Settings, host set-up and release steps
+│   └── deployment.md                Static hosting: set-up, settings, release and checks
 ├── tools/                           verify, and the video tools: recording, narration and music, the film
 └── .github/                         CI workflow, issue and pull request templates
 ```
@@ -233,8 +230,7 @@ other courses leave in a later change.
 | [Requirements](docs/specs/L1.md) | Telo Ride 1's requirements (L1, with acceptance criteria in [L2](docs/specs/L2.md)) |
 | [User journeys](docs/journeys.md) | Telo Ride 1's journeys and progress; slices in [detailed journeys](docs/detailed-journeys.md) |
 | [Detailed designs](docs/detailed-designs/README.md) | Telo Ride 1's designs, one per feature, with C4, class and sequence diagrams |
-| [Backend](backend/README.md) | The .NET projects and their commands |
-| [Deployment](docs/deployment.md) | Settings, hosting and release |
+| [Deployment](docs/deployment.md) | Static hosting: the one-time set-up, the pipeline's settings, release and what to check on the host |
 
 ## Contributing
 
