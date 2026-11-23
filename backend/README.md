@@ -1,9 +1,8 @@
 # Telo Ride backend
 
 The thin .NET service of [ADR 0025](../docs/adr/0025-thin-dotnet-backend.md): only what one browser
-cannot do alone. It never talks to the bike. The shape is in [Structure the
-backend](../docs/detailed-designs/platform/structure-the-backend/README.md); the settings a deployed
-copy reads are in [`docs/deployment.md`](../docs/deployment.md).
+cannot do alone. It never talks to the bike. Its design, *Structure the backend*, was removed with Telo Ride's detailed designs and is in git
+history; the settings a deployed copy reads are in [`docs/deployment.md`](../docs/deployment.md).
 
 | Project | Holds | References |
 |---------|-------|------------|

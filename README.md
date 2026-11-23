@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/design-system/assets/logo.svg" alt="Telo Ride" width="324" height="80">
+  <img src="docs/design-system/assets/logo.svg" alt="Telo Ride 1" width="353" height="80">
 </p>
 
 # Telo Ride 1
@@ -226,9 +226,9 @@ site (`frontend/projects/marketing`) are still in the tree; Telo Ride 1 does not
 | [Design system](docs/design-system/) | Tokens and components extracted from the mocks |
 | [Echelon protocol](docs/protocol/echelon-ble-messages.md) | The Bluetooth messages and their [frames](docs/protocol/echelon-ble-frames.md) |
 | [Architecture decisions](docs/adr/README.md) | Why the architecture is the way it is |
-| [Requirements](docs/specs/L1.md) | Telo Ride's requirements (L1, with acceptance criteria in [L2](docs/specs/L2.md)), to be cut down to Telo Ride 1 |
+| [Requirements](docs/specs/L1.md) | Telo Ride 1's requirements (L1, with acceptance criteria in [L2](docs/specs/L2.md)) |
 | [User journeys](docs/journeys.md) | Telo Ride's journeys and progress; slices in [detailed journeys](docs/detailed-journeys.md) |
-| [Detailed designs](docs/detailed-designs/) | One design per feature, with C4, class and sequence diagrams |
+| [Detailed designs](docs/detailed-designs/README.md) | Telo Ride 1's designs, one per feature, with C4, class and sequence diagrams |
 | [Backend](backend/README.md) | The .NET projects and their commands |
 | [Deployment](docs/deployment.md) | Settings, hosting and release |
 
