@@ -26,23 +26,24 @@ The slice is mostly `domain` code that exists. The Description names each part a
 - **`RememberedBikeStore`** (`domain/src/storage/remembered-bike-store.ts`) exists. It keeps one JSON record in `localStorage` under `REMEMBERED_BIKE_KEY` (`telo-ride.bike`) and reads it synchronously. A record it cannot parse, or storage the browser refuses, counts as no bike. Today it also writes `identifier`, `kind` and `pairedAt`; Telo Ride 1 writes `id` and `name` only. The protocol and the identifier are read from the device at reconnect.
 - **`ConnectBikeStore.pair()`** exists and calls `save()` after each successful pairing, so a different bike replaces the remembered one (`L2-015` AC3).
 - **`WebBluetoothBikeConnection.reconnectRemembered(record)`** exists. It returns `false` where `getDevices()` is missing or returns no device with the remembered `id`, and never rejects. Today it makes one connection attempt at once. For Telo Ride 1 it calls `watchAdvertisements()` on the permitted device, where the browser has it, and connects on the first `advertisementreceived`, so the bike connects as soon as it advertises (`L2-015` AC1). An `AbortController` ends the watch on connect, on `disconnect()` and on destroy.
-- The opening guard of [Open the app](../../the-class/open-the-app/README.md) starts `reconnectRemembered()` and does not await it. The existing `rememberedBikeGuard` (`ride/src/app/bike/remembered-bike.guard.ts`) does this for Telo Ride's Home and is replaced by that guard.
+- **`rememberedBikeGuard`** (`ride/src/app/bike/remembered-bike.guard.ts`) exists and keeps its name. It guards `/`, starts `reconnectRemembered()` and does not await it. Today it does this for Telo Ride's Home. [Open the app](../../the-class/open-the-app/README.md) owns it and reshapes it to read `REMEMBERED_BIKE` and `RIDE_RECORD`.
 
 **Keepalive**
 
 - **`KeepaliveScheduler`** (`domain/src/bluetooth/keepalive-scheduler.ts`) exists. It subscribes to `Ticker.seconds` and, on each tick, sends a keepalive only when `KEEPALIVE_MIN_GAP_MS` (900 ms) has passed since the last one. The rate therefore comes from elapsed time: a burst of ticks sends one frame, and each late tick of a throttled hidden tab sends one. Its clock defaults to `Date.now`; Telo Ride 1 passes `MONOTONIC_TIME.now` (`L2-016` AC2).
 - **`EchelonLink`** exists and owns the scheduler. `connected()` starts it once the bike is connected and initialised, and `close()` stops it. Each keepalive goes through the `GattWriteQueue` with response. **`FtmsLink`** sends no keepalive.
 - **`SecondTicker`** (`domain/src/engine/second-ticker.ts`) exists and implements `TICKER` with one interval per subscription, cleared on unsubscribe.
-- **`provideBikeConnection()`** (`ride/src/app/bike/provide-bike-connection.ts`) exists and binds `TICKER`, `REMEMBERED_BIKE` and `BIKE_CONNECTION` on the lazy parent route. It gains the binding of `MONOTONIC_TIME` to `performance.now()`, which only the Class Ride route binds today.
+- **`provideBikeConnection()`** (`ride/src/app/bike/provide-bike-connection.ts`) exists and binds `TICKER`, `REMEMBERED_BIKE` and `BIKE_CONNECTION` on the lazy parent route. It gains the binding of `MONOTONIC_TIME` to `performance.now()`, which only the Class Ride route binds today. The ride clock of [Keep the ride clock true](../../performance/keep-the-ride-clock-true/README.md) reads the same binding.
 
 **Disconnect and recovery**
 
 - **`WebBluetoothBikeConnection.onDrop()`** exists. A `gattserverdisconnected` event, a failed keepalive or a failed write while connected closes the link, sets `ble` to `disconnected` and starts the reconnector.
 - **`DeviceReconnector`** (`domain/src/bluetooth/device-reconnector.ts`) exists. It runs one attempt every `RETRY_MS` (3000 ms), measured from the end of one attempt to the start of the next, until an attempt succeeds or `stop()` is called. `retryNow()` cancels the pending wait and attempts at once.
-- **`attempt()`** exists. It reopens GATT on the same device without the chooser, opens and initialises the link, and waits for the first notification. It then sends the last target resistance before it sets `ble` to `connected` and restarts the keepalive (`L2-017` AC4).
+- **`attempt()`** exists. It reopens GATT on the same device without the chooser, opens and initialises the link, and waits for the first notification. It then sends the last target resistance before it sets `ble` to `connected` and restarts the keepalive (`L2-017` AC4). During a ride, `ClassRideStore` then calls `WorkoutEngine.resend()`, which sends the current segment's level (`L2-027` AC4, `L2-092` AC3), as [Control resistance](../control-resistance/README.md) describes. A manual level therefore does not survive a reconnect.
+- **`forgetTarget()`** is new on the contract. It clears the kept target resistance, so a reconnect after a ride sends no resistance command. `ClassRideStore` calls it when the rider leaves or finishes (`L2-093` AC3), as [Pause, leave or finish the class](../../class-ride/pause-leave-or-finish-the-class/README.md) describes. `SimulatedBikeConnection` implements it as well.
 - **`reconnectNow()`** exists on the contract and calls `retryNow()` while `ble` is `disconnected`. It is the **Reconnect** action.
 - **`disconnect()`** exists. It stops the reconnector, closes the link and sets `ble` to `idle`. Class Ride calls it when the rider leaves a ride whose bike is lost, which ends the retries (`L2-017` AC1).
-- **`describeError(error)`** (`describe-error.ts`) exists and returns `name: message`. `report()` writes that text with `console.error`. The `lastError` signal on `BikeConnection` existed for Telo Ride's Diagnostics screen; Telo Ride 1 has no reader for it, and the contract drops it, so the rider sees only the app's own message (`L2-017` AC5).
+- **`describeError(error)`** (`describe-error.ts`) exists and returns `name: message`. `report()` exists and calls `console.error` itself today. For Telo Ride 1 it calls `Logger.error('bluetooth', error)` through the `LOGGER` token, and `ConsoleLogger` formats the error with `describeError` and writes one line of text to the console (`L2-115` AC3). The `Logger` contract, the token and `ConsoleLogger` belong to [Log to the console only](../../security/log-to-the-console-only/README.md). The `lastError` signal on `BikeConnection` existed for Telo Ride's Diagnostics screen; Telo Ride 1 has no reader for it, and the contract drops it, so the rider sees only the app's own message (`L2-017` AC5).
 
 **Bike status**
 
@@ -53,7 +54,7 @@ The slice is mostly `domain` code that exists. The Description names each part a
   | `connected` | `true` | the bike's name | " connected" | "· Change" |
   | any other | `false` | "No bike" | "" | "· Connect" |
 
-- **`TheClassPage`** is new and owned by [Show the class](../../the-class/show-the-class/README.md). Its header holds the link, in the mock's classes: `the-class__bike` on a `routerLink` to `/connect`, `the-class__bike-icon` with the modifier `--off` and a different icon when not connected, `the-class__bike-name` with the visually hidden text, and `the-class__bike-action`. The elements belong to the `the-class` block, so they live in that page's template and stylesheet. The stylesheet hides `the-class__bike-action` visually on a phone and keeps the link at least 44 px tall (`L2-019` AC4).
+- **`TheClassPage`** is new and owned by [Show the class](../../the-class/show-the-class/README.md). Its header, the `ScreenHeader` of [Show the wordmark](../../ui/show-the-wordmark/README.md), holds the link, in the mock's classes: `the-class__bike` on a `routerLink` to `/connect`, `the-class__bike-icon` with the modifier `--off` and a different icon when not connected, `the-class__bike-name` with the visually hidden text, and `the-class__bike-action`. The elements belong to the `the-class` block, so they live in that page's template and stylesheet. The stylesheet hides `the-class__bike-action` visually on a phone and keeps the link at least 44 px tall (`L2-019` AC4).
 - The page computes the status from the `ble` and `bike` signals of `BIKE_CONNECTION`, so the link and the start button change in the same change-detection pass as the state (`L2-019` AC5). The existing `AppHeaderBike` component (`wz-app-header-bike`) belongs to Telo Ride's app header and is not used.
 
 A remembered bike that is not connected reads "No bike · Connect", as `L2-019` AC2 and `L2-015` AC2 require; the remembered name is not shown.
@@ -95,13 +96,13 @@ The Ride app reads the remembered bike from browser storage and holds the Blueto
 
 ### Class structure
 
-`WebBluetoothBikeConnection` composes a `DeviceReconnector` and holds an `EchelonLink`, which composes a `KeepaliveScheduler`. The scheduler depends on the `Ticker` and `MonotonicTime` contracts. `RememberedBikeStore` realizes `RememberedBike` over a `RememberedBikeRecord`, and `bikeStatus()` returns a `BikeStatusView`.
+`WebBluetoothBikeConnection` composes a `DeviceReconnector` and holds an `EchelonLink`, which composes a `KeepaliveScheduler`. The scheduler depends on the `Ticker` and `MonotonicTime` contracts. `RememberedBikeStore` realizes `RememberedBike` over a `RememberedBikeRecord`, and `bikeStatus()` returns a `BikeStatusView`. The connection reports errors through the `Logger` contract.
 
 ![Class diagram for keeping the bike connected](diagrams/class-structure.png)
 
 ### Behaviour: reconnect the remembered bike
 
-The opening guard reads the record and starts the reconnect without waiting, so The Class opens at once with "No bike · Connect". When the permitted bike advertises, the app connects without the chooser and the link changes to the bike's name. Where `getDevices()` is missing, the rider reaches Connect Bike from the link.
+`rememberedBikeGuard` reads the remembered bike and starts the reconnect without waiting, so The Class opens at once with "No bike · Connect". When the permitted bike advertises, the app connects without the chooser and the link changes to the bike's name. Where `getDevices()` is missing, the rider reaches Connect Bike from the link.
 
 ![Sequence diagram for reconnecting the remembered bike](diagrams/sequence-reconnect-the-remembered-bike.png)
 
@@ -113,6 +114,6 @@ Each tick reads the monotonic clock, and a keepalive is written when 900 ms or m
 
 ### Behaviour: recover a dropped bike
 
-A drop logs the error as text, sets `ble` to `disconnected` and starts a retry every 3 seconds. **Reconnect** cancels the pending wait and attempts at once. A successful attempt sends the current target resistance before anything else, then restarts the keepalive.
+A drop logs the error as text through `LOGGER`, sets `ble` to `disconnected` and starts a retry every 3 seconds. **Reconnect** cancels the pending wait and attempts at once. A successful attempt sends the current target resistance before anything else, then restarts the keepalive. During a ride the engine then sends the current segment's level.
 
 ![Sequence diagram for recovering a dropped bike](diagrams/sequence-recover-a-dropped-bike.png)

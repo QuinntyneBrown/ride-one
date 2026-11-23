@@ -51,20 +51,24 @@ those parts; nothing leaves the device.
 
 **During the ride**
 
-- **`EffortTotals`** (`domain/src/engine/effort-totals.ts`, new): engine service provided on the
-  Class Ride route, beside `RideTotals`. It keeps two fixed arrays of eight numbers: the sum of
+- **`EffortTotals`** (`domain/src/engine/effort-totals.ts`, new): engine service provided on
+  `ClassRidePage`, beside `RideTotals` and `OnTargetCounter`. It keeps two fixed arrays of eight numbers: the sum of
   the rider's power and the count of running seconds of each effort. `count(effort, powerW,
   seconds)` adds to both, an unknown power counting as 0 W. `watts()` returns the eight means,
   rounded, in plan order (L2-169 AC1, AC2). Its size does not grow with the ride (L2-138 AC2).
 - **`RideTotals`** (`domain/src/engine/ride-totals.ts`, exists): `outputKj` and `runningSeconds`,
-  the totals the output and the average come from. Its `distanceKm` and `energyKcal` are not used.
+  the totals the output and the average come from. It belongs to
+  [Read bike telemetry](../../bike/read-bike-telemetry/README.md), which removes its `distanceKm`
+  and `energyKcal`.
 - **`ClassRideStore`** (`ride/src/app/class-ride/class-ride-store.ts`, exists, changed): on each
   running second it calls `EffortTotals.count` when the current segment's kind is `work`. The
   effort number is the count of `work` segments up to the current one. Today its `finish` submits
   the ride to `RIDE_OUTBOX` and navigates to `/results` with a `ClassResult` in the navigation's
-  state. For Telo Ride 1 it builds the `ClassResult`, sets it on `FINISHED_RIDE` and navigates to
-  `/done`. The existing `RideRecorder`, whose four-hour speed buffer served the backend, is not
-  used.
+  state. For Telo Ride 1 it calls `RIDE_RECORD.add`, builds the `ClassResult`, sets it on
+  `FINISHED_RIDE` and navigates to `/done`, as
+  [Pause, leave or finish the class](../../class-ride/pause-leave-or-finish-the-class/README.md)
+  describes. The existing `RideRecorder`, whose four-hour speed buffer served the backend, is
+  removed.
 
 **The handover**
 
@@ -125,7 +129,9 @@ those parts; nothing leaves the device.
   `wz-class-done`): the presentation component of the design-system block `class-done`, with the
   mock's BEM classes. It takes `view`, emits `done` and has the slot `[slot=end]` for the Full
   screen button. It draws:
-  - the header with `wz-lockup` (exists) and the class title in `class-done__class`;
+  - the header, a `ScreenHeader` (`wz-screen-header`, new, owned by
+    [Show the wordmark](../../ui/show-the-wordmark/README.md)), with the class title in
+    `class-done__class` in its default slot and the `[slot=end]` content passed on to it;
   - the verdict as the `h1` (`class-done__verdict`, with `class-done__verdict--best` for a new
     best) and the output in `class-done__number` with "kJ" in `class-done__unit`
     (`class-done__output--best` sets the gold);
@@ -141,9 +147,9 @@ those parts; nothing leaves the device.
   The mock sets each bar's `--value` and `--index` in a `style` attribute. The component binds the
   two custom properties with `[style.--value]` and `[style.--index]`, since templates hold no
   inline `style`.
-- **`Lockup`**, **`Button`** and **`FullscreenToggle`** (`components/src/`, exist; `wz-lockup`,
-  `[wz-button]`, `wz-fullscreen-toggle`): the wordmark, the button and the Full screen control the
-  screen reuses.
+- **`Button`** and **`FullscreenToggle`** (`components/src/`, exist; `[wz-button]`,
+  `wz-fullscreen-toggle`): the button and the Full screen control the screen reuses. The
+  wordmark comes with `ScreenHeader`, which renders `wz-lockup`.
 
 From lg the block lays the score and the efforts out to fit one screen; below lg it is one column
 that scrolls (L2-078 AC6). The Playwright page object `class-done.page.ts` (`frontend/e2e/pages/`,

@@ -72,7 +72,7 @@ interface Segment {
   +kind: SegmentKind
   +duration: number
   +level: number
-  +cadenceAim?: number
+  +cadenceAim: number | null
 }
 
 enum SegmentKind {

@@ -20,7 +20,7 @@ box "Device — Browser" #F2F4F7
   participant "Chromium, DevTools Protocol" as cdp
 end box
 box "Frontend — Ride app (ride application)" #E0F2FE
-  participant "The Class page" as classPage
+  participant "TheClassPage" as classPage
   participant "ClassRidePage" as ridePage
 end box
 dev -> check : Run by hand: playwright test -c playwright.heap.config.ts

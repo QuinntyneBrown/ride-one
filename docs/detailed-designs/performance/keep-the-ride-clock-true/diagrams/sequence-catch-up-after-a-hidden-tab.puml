@@ -23,6 +23,7 @@ box "Frontend — Ride app (domain library)" #ECFDF3
   participant "RideClock" as clock
   participant "WorkoutEngine" as engine
   participant "RideTotals" as totals
+  participant "OnTargetCounter and EffortTotals" as counters
 end box
 box "Device — Browser" #F2F4F7
   participant "document and timers" as doc
@@ -44,8 +45,9 @@ ticker -> engine : Tick: second 1020
 engine -> engine : planStateAt(plan, elapsed): the current segment
 engine -> bike : Send the current segment's level once
 ticker -> store : Tick: second 1020
+store -> totals : onRunningSecond(600): the seconds the tab skipped
 loop each second the tab skipped
-  store -> totals : onRunningSecond(state of that second)
+  store -> counters : count(power, that second's PlanState, 1 second)
 end
 store --> rider : Clock, segment and output within 1 second of a visible tab (L2-133 AC2)
 ticker -> doc : Schedule the next whole second

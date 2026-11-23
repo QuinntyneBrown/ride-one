@@ -12,7 +12,7 @@ Container_Boundary(componentslib, "components library") {
 }
 Container_Boundary(domainlib, "domain library") {
   Component(identity, "bikeIdentity", "Pure function", "Names a device and cuts the name to 64 characters")
-  Component(conn, "WebBluetoothBikeConnection", "Service", "Holds BikeInfo and frames; sends error text to the console only")
+  Component(conn, "WebBluetoothBikeConnection", "Service", "Holds BikeInfo and frames; reports error text through LOGGER to the console only")
   Component(bikeStore, "RememberedBikeStore", "Service", "Parses the stored bike; null when malformed")
   Component(recordStore, "RideRecordStore, RecordRule.parse", "Service and helper, new", "Parse the stored record; null when out of rule")
   Component(telemetry, "BikeTelemetry", "Service", "Applies a decoded sample; ignores null")

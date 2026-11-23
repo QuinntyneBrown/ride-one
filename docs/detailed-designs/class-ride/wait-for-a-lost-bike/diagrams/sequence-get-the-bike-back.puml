@@ -20,6 +20,7 @@ box "Frontend — Ride app (ride application)" #E0F2FE
   participant "ClassRideStore" as store
 end box
 box "Frontend — Ride app (domain library)" #ECFDF3
+  participant "WorkoutEngine" as engine
   participant "WebBluetoothBikeConnection" as conn
   participant "RideClock" as clock
 end box
@@ -39,10 +40,13 @@ else the 3-second retry comes round
 end
 conn -> bike : Connect and initialise, without the chooser
 bike --> conn : First notification
-conn -> bike : Write the kept target: the current segment's level (L2-092 AC3)
+conn -> bike : Write the kept target resistance before anything else (L2-017 AC4)
 conn --> store : ble = connected; bikeLost becomes false
 store --> page : The alert goes; the stepper is enabled
 store -> store : followBike() on the next TICKER beat: pausedByBike = false
+store -> engine : resend()
+engine -> conn : setResistance(current segment's level), through ResistanceController (L2-027 AC4)
+conn -> bike : Write the segment's level (L2-092 AC3)
 alt the rider had not paused
   store -> clock : resume()
   store -> player : seekTo(sync offset + elapsed), then play()

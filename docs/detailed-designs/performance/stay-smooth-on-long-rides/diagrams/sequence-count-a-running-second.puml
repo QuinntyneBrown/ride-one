@@ -23,6 +23,8 @@ box "Frontend — Ride app (domain library)" #ECFDF3
   participant "WorkoutEngine" as engine
   participant "BikeTelemetry" as telemetry
   participant "RideTotals" as totals
+  participant "OnTargetCounter" as counter
+  participant "EffortTotals" as efforts
 end box
 box "Device — Smart bike" #F2F4F7
   participant "Smart bike" as bike
@@ -35,14 +37,16 @@ engine -> engine : Replace the current PlanState
 ticker -> store : Tick: a new whole second
 store -> telemetry : Read the latest power
 telemetry --> store : Power, or unknown
-store -> totals : onRunningSecond(state)
+store -> totals : onRunningSecond(1)
 totals -> totals : runningSeconds + 1; outputKj + power / 1000
+store -> counter : count(power, target power, 1)
 opt the segment has a cadence aim
-  totals -> totals : aimedSeconds + 1; onTargetSeconds + 1 when within 10 %
+  counter -> counter : aimedSeconds + 1; onTargetSeconds + 1 when within 10 %
 end
 opt the segment is an effort
-  totals -> totals : Add to that effort's slot of the two arrays of 8
+  store -> efforts : count(effort, power, 1)
+  efforts -> efforts : Add to that effort's slot of the two arrays of 8
 end
-note over store, totals : Nothing is appended: only running totals are held (L2-138 AC2)
+note over store, efforts : Nothing is appended: only running totals are held (L2-138 AC2)
 store -> store : lastSecond = second
 @enduml

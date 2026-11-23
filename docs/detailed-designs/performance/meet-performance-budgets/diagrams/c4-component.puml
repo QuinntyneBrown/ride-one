@@ -10,7 +10,7 @@ System_Ext(youtube, "YouTube", "Privacy-enhanced player for the class video")
 Container_Boundary(ride, "ride application") {
   Component(appRoutes, "app.routes.ts", "Routes", "Initial bundle: loads ride.routes.ts lazily")
   Component(rideRoutes, "ride.routes.ts", "Routes", "One lazy chunk per screen")
-  Component(classPage, "The Class page", "Lazy chunk", "Shows the video parked at the sync offset")
+  Component(classPage, "TheClassPage", "Lazy chunk", "Shows the video parked at the sync offset")
   Component(ridePage, "ClassRidePage", "Lazy chunk", "Plays the video on the ride clock")
   Component(other, "Connect Bike, Class Done, page not found", "Lazy chunks", "Never load the player")
   Component(pcv, "provideClassVideo()", "Route provider", "Binds the factory to a dynamic import")

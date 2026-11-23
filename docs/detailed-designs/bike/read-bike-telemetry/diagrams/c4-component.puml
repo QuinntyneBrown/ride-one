@@ -6,7 +6,7 @@ title Components — Read bike telemetry
 System_Ext(bike, "Smart bike", "Echelon or FTMS; Bluetooth LE")
 
 Container_Boundary(ride, "ride application") {
-  Component(store, "ClassRideStore", "Route-scoped store", "Maps live metrics to the readouts and reports running seconds")
+  Component(store, "ClassRideStore", "Page-scoped store", "Maps live metrics to the readouts and reports running seconds")
 }
 Container_Boundary(components, "components library") {
   Component(stat, "ClassStat, ClassResist", "Presentation components", "Draw Power, Cadence and Resistance")

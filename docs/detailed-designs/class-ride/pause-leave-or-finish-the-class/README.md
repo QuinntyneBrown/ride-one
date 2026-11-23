@@ -67,11 +67,13 @@ Leave and the finish go and what the finish writes.
   level, and the ride's running totals do not grow.
 - **`ClassVideo`** (exists, `wz-class-video`). Its `paused` input draws the `class-video__paused`
   overlay reading "Paused". The overlay is `aria-hidden`; the page announces the change itself.
-- **Announcement** (exists in `class-ride-page.html`; changes). A visually hidden
-  `role="status"` paragraph. Today it reads "Ride paused" while paused and is empty otherwise,
-  so a resume is not announced. Telo Ride 1 sets its text once on each change, to pause and to
-  resume. The specs and mocks give no words for either; the text is `<TO SUPPLY>` (no mock
-  draws the announcement, `L2-091` AC3).
+- **Announcement** (exists in `class-ride-page.html`; changes). Today a visually hidden
+  `role="status"` paragraph reads "Ride paused" while paused and is empty otherwise, so a
+  resume is not announced. In Telo Ride 1 the page announces each change of the store's
+  `paused` signal once, to pause and to resume, through the Angular CDK's `LiveAnnouncer`, as
+  [support screen readers and motion](../../ui/support-screen-readers-and-motion/README.md)
+  designs it; the paragraph leaves. The specs and mocks give no words for either; the wording
+  is `<TO SUPPLY>` (no mock draws the announcement, `L2-091` AC3).
 - **`ClassResist`** (exists). Its `disabled` input follows `ClassRideStore.canControl`, which
   depends on the bike's link state only. A pause does not disable it.
 
@@ -81,24 +83,45 @@ Leave and the finish go and what the finish writes.
   `aria-label="Leave class"`. Its `routerLink` changes from `['/classes', ride.id]` to `/`. It
   opens no dialog.
 - Leaving destroys `ClassRidePage` and with it every provider the page declares. Nothing in the
-  leave path touches the record store, so the count, best and last stay as they were
+  leave path calls `RIDE_RECORD.add`, so the count, best and last stay as they were
   (`L2-168` AC2).
+- When the bike is lost as the rider leaves, the store's teardown also calls
+  `BikeConnection.disconnect()`, which ends the retries (`L2-017` AC1, designed in
+  [keep the bike connected](../../bike/keep-the-bike-connected/README.md)).
 
 ### Finish
 
 - **`ClassRideStore.finish()`** (exists; changes). The store's `ticks` subscription calls it
   when the second reaches the class's `lengthSeconds`. It pauses the clock at the plan's length,
   stops the ticker, pauses the player and releases the wake lock. Today it then submits the ride
-  to `RIDE_OUTBOX` for the backend and navigates to `/results`. In Telo Ride 1 it builds the
-  ride result from the ride's running totals, hands it to the record store, and navigates to
-  `/done` with the result in the navigation's state. The submission, `RideRecorder` and
+  to `RIDE_OUTBOX` for the backend and navigates to `/results` with a `ClassResult` in the
+  navigation's state. In Telo Ride 1 it reads the three accumulators, rounds the output to a
+  whole kJ and calls `RIDE_RECORD.add` with it. It builds the `ClassResult` with the
+  `RecordOutcome` that `add` returns, sets it on `FINISHED_RIDE`, calls
+  `BikeConnection.forgetTarget()` and navigates to `/done`. The submission, `RideRecorder` and
   `SubmitRideRequest` leave.
-- **`ClassResult`** (exists in `api`; changes). The value Class Done receives. Its Telo Ride 1
-  shape (output, running time, average watts, on-target share, eight effort averages) is defined
-  in [show Class Done](../../class-done/show-class-done/README.md).
-- **Record store** (new). The contract, token and `localStorage` implementation are defined in
-  [keep the record](../../class-done/keep-the-record/README.md). `finish()` calls it once.
-- **`/done` route** (new). The route path is an assumption the mocks share (open question 7).
+- **`RideTotals`**, **`EffortTotals`** and **`OnTargetCounter`** (`domain`'s `engine/`; the
+  first exists, the other two are new). The ride's three accumulators, each holding running
+  totals only (`L2-138` AC2). `RideTotals` gives `runningSeconds` and `outputKj` and belongs to
+  [read bike telemetry](../../bike/read-bike-telemetry/README.md). `EffortTotals.watts()` gives
+  the eight effort averages and belongs to
+  [show Class Done](../../class-done/show-class-done/README.md). `OnTargetCounter.percent()`
+  gives the on-target share and belongs to
+  [score on target](../../class-done/score-on-target/README.md).
+- **`ClassResult`** (exists in `api`; changes). The value Class Done receives: `classId`,
+  `title`, `runningSeconds`, `outputKj` (not rounded), `onTargetPercent`, `effortWatts`,
+  `previousBestKj` and `saved`. The shape is defined in
+  [show Class Done](../../class-done/show-class-done/README.md).
+- **`RIDE_RECORD`** (new). The `RideRecord` contract and its token, with `RideRecordStore` over
+  the `localStorage` key `telo-ride.record`, are defined in
+  [keep the record](../../class-done/keep-the-record/README.md). `finish()` calls `add` once
+  and is its only caller.
+- **`FINISHED_RIDE`** (new). The `FinishedRide` contract and its token, with the in-memory
+  `FinishedRideHolder` bound on the parent route, are defined in
+  [show Class Done](../../class-done/show-class-done/README.md). The result does not travel in
+  the navigation's state, so a reload of `/done` finds none.
+- **`/done` route** (new). `classDoneGuard` lets it open only while `FINISHED_RIDE` holds a
+  result. The route path is an assumption the mocks share (open question 7).
 
 ### Release
 
@@ -114,8 +137,10 @@ Leave and the finish go and what the finish writes.
   connection is provided on the parent route and outlives the ride. `WebBluetoothBikeConnection`
   keeps the last target resistance and sends it again after a reconnect (`L2-017` AC4). Without a
   change, a reconnect after the rider left would send the ended ride's level. The store calls
-  `forgetTarget()` in its teardown, so no further resistance command is sent for that ride
-  (`L2-093` AC3). `SimulatedBikeConnection` implements it as well.
+  `forgetTarget()` in `finish()` and in its teardown, so no further resistance command is sent
+  for that ride (`L2-093` AC3). `WorkoutEngine` is destroyed with the page, so its `resend()`
+  sends nothing after the ride either. `SimulatedBikeConnection` implements `forgetTarget()` as
+  well.
 
 ## Requirements
 
@@ -146,8 +171,8 @@ The bike and the YouTube player are told to stop from the app.
 ### Components
 
 `ClassRidePage` carries the Pause button and the Leave link. `ClassRideStore` holds and carries
-on the clock and the player, and at the finish hands the result to the record store and to Class
-Done.
+on the clock and the player. At the finish it adds the ride through `RIDE_RECORD` and sets the
+`ClassResult` on `FINISHED_RIDE` for Class Done.
 
 ![C4 component view for pausing, leaving or finishing the class](diagrams/c4-component.png)
 
@@ -155,7 +180,7 @@ Done.
 
 `ClassRideStore` owns the two reasons for a hold, `pausedByRider` and `pausedByBike`, and the
 `hold`, `carryOn` and `finish` steps. `RideClock` keeps the paused total; `BikeConnection` gains
-`forgetTarget()`.
+`forgetTarget()`. `finish` reads the three accumulators and fills a `ClassResult`.
 
 ![Class diagram for pausing, leaving or finishing the class](diagrams/class-structure.png)
 
@@ -175,7 +200,7 @@ listeners and the player, and the connection forgets the target resistance.
 
 ### Behaviour: finish the class
 
-The tick that reaches 30:00 finishes the ride: the store stops the clock, updates the record and
-opens Class Done with the ride result.
+The tick that reaches 30:00 finishes the ride: the store stops the clock, adds the ride to the
+record, sets the `ClassResult` on `FINISHED_RIDE` and opens Class Done.
 
 ![Sequence diagram for finishing the class](diagrams/sequence-finish-the-class.png)

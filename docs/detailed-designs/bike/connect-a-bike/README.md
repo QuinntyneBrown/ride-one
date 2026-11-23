@@ -22,7 +22,7 @@ Neighbouring features own the adjacent concerns. The "Works with" list and the a
 
 ## Description
 
-The slice runs from Connect Bike through a route-scoped store to the one service that touches `navigator.bluetooth`. Most of it exists; the Description states what changes for Telo Ride 1.
+The slice runs from Connect Bike through a page-scoped store to the one service that touches `navigator.bluetooth`. Most of it exists; the Description states what changes for Telo Ride 1.
 
 **Contracts in the `api` library**
 
@@ -43,9 +43,10 @@ The slice runs from Connect Bike through a route-scoped store to the one service
 
 **Screen in the `ride` application**
 
-- **`ConnectBikeStore`** (`ride/src/app/connect/connect-bike-store.ts`) exists and is provided by the page, so its state goes when the rider leaves. Its `view` signal holds one `ConnectView`: `default`, `searching`, `pairing` with the bike, `paired` with the bike, or `failed` with a reason. `pair()` runs only from a click and only from `default` or `failed`. After `connect()` it saves the bike through `REMEMBERED_BIKE`, shows `paired`, and navigates to `/` after `PAIRED_PAUSE_MS` (500 ms). The timer is cleared on destroy. The store is unchanged.
+- **`ConnectBikeStore`** (`ride/src/app/connect/connect-bike-store.ts`) exists and is provided by the page, so its state goes when the rider leaves. Its `view` signal holds one `ConnectView`: `default`, `searching`, `pairing` with the bike, `paired` with the bike, or `failed` with a reason. `pair()` runs only from a click and only from `default` or `failed`. After `connect()` it saves the bike's `id` and `name` through `REMEMBERED_BIKE`, as the `RememberedBikeRecord` of [Keep the bike connected](../keep-the-bike-connected/README.md), shows `paired`, and navigates to `/` after `PAIRED_PAUSE_MS` (500 ms). The timer is cleared on destroy. The store is unchanged.
 - **`ConnectBikePage`** (`connect-bike-page.ts`, selector `wz-connect-bike-page`) exists and is reshaped:
-  - It gains the header `connect__header` with `wz-lockup` and `wz-fullscreen-toggle`, and has no navigation (`L2-011` AC1). The code has no header today.
+  - It gains the header `connect__header` with `wz-lockup` and `wz-fullscreen-toggle`, and has no navigation (`L2-011` AC1). The code has no header today. The header is an element of the page's own `connect` block, as the mock draws it, and not the `ScreenHeader` of the other screens ([Show the wordmark](../../ui/show-the-wordmark/README.md)).
+  - It announces the completed pairing once through the Angular CDK's `LiveAnnouncer`, as [Support screen readers and motion](../../ui/support-screen-readers-and-motion/README.md) designs it; the wording is `<TO SUPPLY>`.
   - The lead reads "…Telo Ride 1 reads your power…" and the route title names Telo Ride 1; the code says "Telo Ride".
   - The hint "Not in the list? Close the Echelon app…" (`connect__hint`) is removed; the design does not draw it.
   - The alerts use the new `wz-connect-blocker` of [Check bike and browser support](../check-bike-and-browser-support/README.md). The chooser-blocked and chooser-failed alerts are in the code and have no mock (mock gap: `L2-012` AC4).

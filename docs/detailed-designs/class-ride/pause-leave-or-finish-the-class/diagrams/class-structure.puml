@@ -64,19 +64,34 @@ interface ScreenWakeLock {
 interface BikeConnection {
   +setResistance(level: number): Promise<number>
   +forgetTarget(): void
+  +disconnect(): void
 }
-
-interface ClassResult {
+class ClassResult {
+  +runningSeconds: number
   +outputKj: number
-  +elapsedSeconds: number
+  +onTargetPercent: number
+  +effortWatts: readonly number[]
+  +previousBestKj: number | null
+  +saved: boolean
 }
-
-class "Record store" as RecordStore <<storage>> {
-  records one finished ride
+interface RideRecord {
+  +add(outputKj: number): RecordOutcome
 }
-
+interface FinishedRide {
+  +set(result: ClassResult): void
+}
+class RideTotals {
+  +runningSeconds: number
+  +outputKj: number
+}
+class EffortTotals {
+  +watts(): readonly number[]
+}
+class OnTargetCounter {
+  +percent(): number
+}
 class Router <<Angular>> {
-  +navigateByUrl(url: string, extras): Promise<boolean>
+  +navigateByUrl(url: string): Promise<boolean>
 }
 
 ClassRidePage *-- ClassRideStore : provides
@@ -86,7 +101,12 @@ ClassRideStore --> VideoPlayer : pauses / destroys
 ClassRideStore --> ScreenWakeLock : releases
 ClassRideStore --> BikeConnection : forgetTarget()
 ClassRideStore ..> ClassResult : builds at the finish
-ClassRideStore --> RecordStore : records
+ClassRideStore --> RideTotals : reads
+ClassRideStore --> EffortTotals : reads
+ClassRideStore --> OnTargetCounter : reads
+ClassRideStore --> RideRecord : RIDE_RECORD.add
+ClassRideStore --> FinishedRide : FINISHED_RIDE.set
+FinishedRide --> "0..1" ClassResult : holds
 ClassRideStore --> Router : opens /done
 RideTicker --> RideClock
 WorkoutEngine --> RideTicker : steps on ticks

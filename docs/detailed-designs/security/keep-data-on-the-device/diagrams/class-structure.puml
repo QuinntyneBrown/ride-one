@@ -14,15 +14,15 @@ skinparam class {
 title Class structure — Keep data on the device
 
 interface RememberedBike {
-  +get(): BikeInfo | null
-  +save(bike: BikeInfo): void
+  +get(): RememberedBikeRecord | null
+  +save(bike: RememberedBikeRecord): void
   +forget(): void
 }
 
 class RememberedBikeStore {
   +REMEMBERED_BIKE_KEY = "telo-ride.bike"
-  +get(): BikeInfo | null
-  +save(bike: BikeInfo): void
+  +get(): RememberedBikeRecord | null
+  +save(bike: RememberedBikeRecord): void
   +forget(): void
 }
 

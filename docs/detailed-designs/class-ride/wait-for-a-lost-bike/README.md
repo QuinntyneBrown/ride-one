@@ -44,7 +44,7 @@ changes the alert's copy and the header's button to the mock
 - **`WebBluetoothBikeConnection`** and **`DeviceReconnector`** (exist in `domain/bluetooth`). On
   `gattserverdisconnected` or a failed call the connection sets `ble` to `disconnected` and the
   reconnector retries every `RETRY_MS` (3000). On success the connection sends the last target
-  resistance before anything else.
+  resistance before anything else (`L2-017` AC4).
 - **`ClassRideStore.bikeLost`** (exists). A computed signal, true while `ble()` is
   `disconnected`. The alert follows it at once.
 - **`ClassRideStore.followBike()`** (exists). The store subscribes to the `TICKER` beat, which
@@ -52,7 +52,12 @@ changes the alert's copy and the header's button to the mock
   Once a second it compares `bikeLost` with the private signal `pausedByBike`. On a change it
   sets `pausedByBike` and, unless `pausedByRider` is set, calls `hold()` for a loss or
   `carryOn()` for a return. The ride therefore holds within a second of the drop and carries on
-  within a second of the return.
+  within a second of the return. On a return it first calls `WorkoutEngine.resend()`, whether
+  or not the rider had paused.
+- **`WorkoutEngine.resend()`** (new method, designed in
+  [control resistance](../../bike/control-resistance/README.md)). It sends the current
+  segment's level again through `ResistanceController.applyPlanLevel` (`L2-027` AC4,
+  `L2-092` AC3).
 - **`hold()` and `carryOn()`** (exist). The same steps the rider's pause uses: `RideClock.pause()`
   and `VideoPlayer.pause()`; then `RideClock.resume()`, `seekTo(sync offset + elapsed)` and
   `play()`.
@@ -74,15 +79,19 @@ changes the alert's copy and the header's button to the mock
   stays an enabled "Pause".
 - **Resistance stepper while lost** (exists). `ClassResist.disabled` follows
   `ResistanceController.canControl`, which is false unless `ble()` is `connected`.
-- **Leave link** (exists). It does not depend on the link state and stays active.
+- **Leave link** (exists). It does not depend on the link state and stays active. Leaving
+  while the bike is lost ends the retries and forgets the kept target, as
+  [pause, leave or finish the class](../pause-leave-or-finish-the-class/README.md) describes.
 - **Paused overlay** (changes). Today the page sets `ClassVideo.paused` when the ride is paused
   or the bike is lost. The mock draws no "Paused" overlay under the alert, so the input follows
   `paused()` alone.
 
-The level after a reconnect reaches the bike by two paths that agree: the connection sends its
-kept target first (`L2-017` AC4), and that target is the current segment's level or the rider's
-last nudge within it. No segment changed while the ride was held, because the held clock
-published no tick.
+The level after a reconnect reaches the bike in two steps. The connection sends its kept target
+resistance first (`L2-017` AC4); that target is the current segment's level or the rider's last
+nudge within it. `ClassRideStore` then calls `WorkoutEngine.resend()`, which sends the current
+segment's level (`L2-027` AC4, `L2-092` AC3). A manual nudge therefore does not survive a
+reconnect. No segment changed while the ride was held, because the held clock published no
+tick.
 
 ## Requirements
 
@@ -111,8 +120,9 @@ retries the bike. Browser storage plays no part.
 
 ### Components
 
-`ClassRideStore` reads the link state from `BIKE_CONNECTION` and holds the clock and the player.
-`ClassRidePage` renders `ClassLost` and disables the Resume button and the stepper.
+`ClassRideStore` reads the link state from `BIKE_CONNECTION`, holds the clock and the player,
+and calls `WorkoutEngine.resend()` when the bike is back. `ClassRidePage` renders `ClassLost`
+and disables the Resume button and the stepper.
 
 ![C4 component view for waiting for a lost bike](diagrams/c4-component.png)
 
@@ -132,7 +142,8 @@ video. Resume and the stepper are disabled; Leave stays active.
 
 ### Behaviour: get the bike back
 
-A retry or **Reconnect** restores the link and the connection sends the kept level first. The
-ride carries on unless the rider had paused it, in which case it waits for **Resume**.
+A retry or **Reconnect** restores the link and the connection sends the kept target resistance
+first. The store then has the engine send the current segment's level. The ride carries on
+unless the rider had paused it, in which case it waits for **Resume**.
 
 ![Sequence diagram for getting the bike back](diagrams/sequence-get-the-bike-back.png)

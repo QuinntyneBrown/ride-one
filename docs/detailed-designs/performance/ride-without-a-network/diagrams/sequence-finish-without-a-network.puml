@@ -17,12 +17,13 @@ skinparam package {
 actor "Rider" as rider
 box "Frontend — Ride app (ride application)" #E0F2FE
   participant "ClassRideStore" as store
+  participant "FinishedRideHolder" as holder
   participant "Angular Router" as router
-  participant "Class Done page" as done
+  participant "ClassDonePage" as done
 end box
 box "Frontend — Ride app (domain library)" #ECFDF3
   participant "RideTicker" as ticker
-  participant "Record store" as record
+  participant "RideRecordStore" as record
 end box
 box "Device — Browser" #F2F4F7
   database "localStorage" as ls
@@ -35,13 +36,15 @@ store -> host : Preload Class Done's chunk with a dynamic import
 host --> store : Module, kept by the browser
 note over store, host : The network is lost some time later
 ticker -> store : Tick: second 1800
-store -> store : Build the ride result from the running totals
-store -> record : Record the finished ride
-record -> ls : Write count, best output and last output
+store -> store : Read RideTotals, EffortTotals and OnTargetCounter
+store -> record : RIDE_RECORD.add(output in whole kJ)
+record -> ls : Write telo-ride.record
 ls --> record : Written
-record --> store : Updated record (L2-135 AC2)
-store -> router : navigateByUrl("/done", state: ride result)
+record --> store : RecordOutcome (L2-135 AC2)
+store -> holder : FINISHED_RIDE.set(ClassResult)
+store -> router : navigateByUrl("/done")
 router -> done : Resolve the preloaded module; no request
-done -> record : Read the record
+done -> holder : peek()
+holder --> done : ClassResult
 done --> rider : Class Done shows the result, exactly as with a network (L2-135 AC2)
 @enduml

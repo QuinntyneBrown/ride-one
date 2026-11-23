@@ -16,7 +16,7 @@ skinparam package {
 }
 actor "Rider" as rider
 box "Frontend — Ride app (ride application)" #E0F2FE
-  participant "Opening guard" as guard
+  participant "rememberedBikeGuard" as guard
   participant "TheClassPage" as page
 end box
 box "Frontend — Ride app (domain library)" #ECFDF3

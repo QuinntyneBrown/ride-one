@@ -39,30 +39,33 @@ Neighbouring features own the adjacent concerns:
 
 ## Description
 
-The slice is `RideTotals` in `domain`'s `engine/`, the provider scopes and teardown in the
-`ride` application, and two heap checks under `frontend/e2e/`.
+The slice is the ride's three accumulators in `domain`'s `engine/`, the provider scopes and
+teardown in the `ride` application, and two heap checks under `frontend/e2e/`.
 
 ### Running totals, no trace (`L2-138` AC2)
 
-- **`RideTotals`** (exists in `domain/engine/ride-totals.ts`; reshaped). Today it holds
-  running seconds, distance and output, and derives energy. For Telo Ride 1 it holds exactly
-  these numbers:
-  - `runningSeconds` and `outputKj` (exist);
-  - `aimedSeconds` and `onTargetSeconds` (new), the two counts of `L2-170`;
-  - `effortJoules` and `effortSeconds` (new), two arrays of length 8, one slot per effort.
-
-  `onRunningSecond(state: PlanState)` (signature changes) adds one second's worth to each.
-  Distance and energy leave with `SpeedModel` and `EnergyModel`. The object's size is the same
-  at 0:01 and at 30:00. It is provided on `ClassRidePage`.
-- **`RideRecorder`** (exists in `domain/engine/ride-recorder.ts`; removed from the class ride).
-  It allocates a `Float64Array` of 14,400 speeds, one per second, to send to the backend. That
-  is a trace. Telo Ride 1 sends nothing, so `ClassRideStore` stops creating it and calls
-  `RideTotals` instead. Removing the file itself belongs to the change that removes the race.
+- **Three accumulators** hold the ride's live data. Each is a small engine service provided on
+  `ClassRidePage`, each holds running totals only, and each has the same size at 0:01 and at
+  30:00:
+  - **`RideTotals`** (exists in `domain/engine/ride-totals.ts`; trimmed): `runningSeconds`,
+    `outputKj` and the `avgPowerW` derived from them. `onRunningSecond(seconds)` adds to them.
+    Its distance and energy leave with `SpeedModel` and `EnergyModel`. It belongs to
+    [read bike telemetry](../../bike/read-bike-telemetry/README.md) (`L2-023` AC4 and AC5).
+  - **`EffortTotals`** (new, `domain/engine/effort-totals.ts`): two arrays of length 8, the
+    power sum and the running seconds of each effort. It belongs to
+    [show Class Done](../../class-done/show-class-done/README.md) (`L2-169`).
+  - **`OnTargetCounter`** (new, `domain/engine/on-target-counter.ts`): `onTargetSeconds` and
+    `aimedSeconds`. It belongs to
+    [score on target](../../class-done/score-on-target/README.md) (`L2-170`).
+- **`RideRecorder`** (exists in `domain/engine/ride-recorder.ts`; removed). It allocates a
+  `Float64Array` of 14,400 speeds, one per second, to send to the backend. That is a trace.
+  Telo Ride 1 sends nothing, so `ClassRideStore` stops creating it and calls the three
+  accumulators instead, and the file is removed.
 - **`BikeTelemetry`** (exists). It keeps the latest cadence, resistance and power as signals
   and overwrites them on each notification. It keeps no earlier reading.
 - **`ClassRideStore`** (exists; changes). It keeps `lastSecond`, two booleans for the hold and
-  one reference each to the class and the player. The ride result it builds at the finish is a
-  fixed-size value: four numbers and eight effort averages.
+  one reference each to the class and the player. The `ClassResult` it builds at the finish is
+  a fixed-size value: its figures and eight effort averages. `FINISHED_RIDE` holds at most one.
 - **`ClassSegment`** (exists in `components`). The resistance profile is computed from the
   plan's 17 segments, not from readings, so it does not grow.
 - **`VideoClockSync`**, **`WorkoutEngine`** (exist). Each keeps the current state only.
@@ -71,7 +74,7 @@ The slice is `RideTotals` in `domain`'s `engine/`, the provider scopes and teard
 
 - **Page-scoped providers** (exist). `ClassRidePage` provides `ClassRideStore`, `RideClock`,
   `RideTicker`, `WorkoutEngine`, `ResistanceController`, `BikeTelemetry` and `VideoClockSync`;
-  `RideTotals` joins them. None is provided in `root`. Angular destroys them with the page, so
+  `RideTotals`, `EffortTotals` and `OnTargetCounter` join them. None is provided in `root`. Angular destroys them with the page, so
   a new visit starts from new instances and the old ones become unreachable.
 - **Teardown through `DestroyRef`** (exists). `RideTicker` clears its timeout and removes its
   `visibilitychange` listener. `BikeTelemetry` unsubscribes from `frames` and clears its
@@ -82,9 +85,14 @@ The slice is `RideTotals` in `domain`'s `engine/`, the provider scopes and teard
 - **Route-scoped providers** (exist). `provideClassRide()` binds on the Class Ride route, whose
   injector outlives the page. It binds one `BrowserScreenWakeLock` and stateless values, so
   nothing accumulates there; the store releases the lock explicitly for this reason.
-- **Parent-route providers** (exist). `BIKE_CONNECTION`, `TICKER` and `REMEMBERED_BIKE` are
-  shared by all four screens and live as long as the app. `SecondTicker` gives each subscriber
-  its own interval and clears it on unsubscribe, so it holds nothing between rides.
+- **Parent-route providers** (exist; three join). `BIKE_CONNECTION`, `TICKER` and
+  `REMEMBERED_BIKE` are shared by all four screens and live as long as the app, as do the new
+  bindings of `MONOTONIC_TIME`, `RIDE_RECORD` and `FINISHED_RIDE`. `SecondTicker` gives each
+  subscriber its own interval and clears it on unsubscribe, so it holds nothing between rides.
+  The record is three numbers and `FinishedRideHolder` holds at most one `ClassResult`, which
+  Class Done clears. The connection outlives the ride with one kept target resistance; the
+  store calls `BikeConnection.forgetTarget()` when the rider leaves or finishes
+  ([pause, leave or finish the class](../../class-ride/pause-leave-or-finish-the-class/README.md)).
 - **YouTube IFrame API script** (exists in `video`). `loadApi` adds the script element once per
   page and reuses it. Ten visits create ten players and destroy ten; the script is one.
 
@@ -138,22 +146,23 @@ the fixed-size record only at the finish; nothing is written per second.
 
 ### Components
 
-`ClassRidePage` provides the ride's services, so they are destroyed with it. `RideTotals` is the
-only place ride data accumulates, and it accumulates into a fixed set of numbers.
+`ClassRidePage` provides the ride's services, so they are destroyed with it. `RideTotals`,
+`EffortTotals` and `OnTargetCounter` are the only places ride data accumulates, and each
+accumulates into a fixed set of numbers.
 
 ![C4 component view for staying smooth on long rides](diagrams/c4-component.png)
 
 ### Class structure
 
-`RideTotals` holds four counters and two arrays of length 8. The heap checks are scripts with
-their own Playwright configuration; `RideRecorder`, with its per-second buffer, is no longer
-used by the class ride.
+`RideTotals` holds three numbers, `OnTargetCounter` two counters and `EffortTotals` two arrays
+of length 8. The heap checks are scripts with their own Playwright configuration;
+`RideRecorder`, with its per-second buffer, is removed.
 
 ![Class diagram for staying smooth on long rides](diagrams/class-structure.png)
 
 ### Behaviour: count a running second
 
-Each tick adds to the totals in place and overwrites the latest reading. Nothing is appended, so
+Each tick adds to the three accumulators in place and overwrites the latest reading. Nothing is appended, so
 the ride's memory is the same at the first second and the last.
 
 ![Sequence diagram for counting a running second](diagrams/sequence-count-a-running-second.png)
@@ -161,7 +170,8 @@ the ride's memory is the same at the first second and the last.
 ### Behaviour: release the ride on leaving
 
 Leaving destroys the page's providers. Each clears its own timer, listener or subscription, the
-player is destroyed, and the next visit starts from new instances.
+player is destroyed, the connection forgets the kept target, and the next visit starts from new
+instances.
 
 ![Sequence diagram for releasing the ride on leaving](diagrams/sequence-release-the-ride-on-leaving.png)
 

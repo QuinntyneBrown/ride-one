@@ -7,7 +7,7 @@ Person(rider, "Rider", "Rides a smart bike at home")
 Container_Boundary(ride, "ride application") {
   Component(routes, "ride.routes.ts", "Angular routes", "The ** route, always last, loads the page on demand")
   Component(page, "NotFoundPage", "Angular component, wz-not-found-page", "The h1, the lead and Back to the class")
-  Component(opening, "Opening rule of /", "Route guard", "Connect Bike for a new rider, The Class otherwise (L2-167)")
+  Component(opening, "rememberedBikeGuard", "CanActivateFn on /", "Connect Bike for a new rider, The Class otherwise (L2-167)")
 }
 Container_Boundary(components, "components library") {
   Component(hdr, "ScreenHeader", "Angular component, wz-screen-header", "The wordmark and a slot at the end")

@@ -63,7 +63,7 @@ Neighbouring features own the adjacent concerns:
   length limit. For Telo Ride 1 it exports `DEVICE_NAME_MAX = 64` and cuts `name` to that length.
   The identifier is derived from the same advertised name and is cut to the same limit.
 - **Single point of entry**: `WebBluetoothBikeConnection` builds `BikeInfo` only through
-  `bikeIdentity`, and `ConnectBikeStore` passes that `BikeInfo` to `RememberedBikeStore.save`. The
+  `bikeIdentity`, and `ConnectBikeStore` passes its `id` and `name`, as a `RememberedBikeRecord`, to `RememberedBikeStore.save`. The
   cut name is therefore the one shown and the one stored.
 - **`RememberedBikeStore.parse`**: exists. For Telo Ride 1 it also cuts a stored `name` to
   `DEVICE_NAME_MAX` on read, because the stored value is itself untrusted.
@@ -142,7 +142,7 @@ for a malformed frame.
 
 ### Class structure
 
-`BikeInfo` is built only through `bikeIdentity`. Each store reads through a `parse` that returns
+`BikeInfo` is built only through `bikeIdentity`, and the `RememberedBikeRecord` is its `id` and `name`. Each store reads through a `parse` that returns
 the value or `null`, and each decoder returns `TelemetrySample | null`.
 
 ![Class diagram for treating device data as untrusted](diagrams/class-structure.png)
@@ -151,7 +151,7 @@ the value or `null`, and each decoder returns `TelemetrySample | null`.
 
 A device advertises a name that may be hostile or too long. `bikeIdentity` cuts it to 64 characters,
 the store saves the cut name, and `ConnectDevice` renders it by interpolation. An error's name and
-message go to the console as one string, and the rider reads the app's own words.
+message go to the console as one string, through `LOGGER`, and the rider reads the app's own words.
 
 ![Sequence diagram for showing device text](diagrams/sequence-show-device-text.png)
 

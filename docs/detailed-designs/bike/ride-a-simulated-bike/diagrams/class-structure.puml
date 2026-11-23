@@ -19,8 +19,9 @@ interface BikeConnection <<api>> {
   +frames: Observable<Uint8Array>
   +requestBike(): Promise<BikeInfo | null>
   +connect(): Promise<void>
-  +reconnectRemembered(bike: BikeInfo): Promise<boolean>
+  +reconnectRemembered(bike: RememberedBikeRecord): Promise<boolean>
   +setResistance(level: number): Promise<number>
+  +forgetTarget(): void
   +reconnectNow(): void
   +disconnect(): void
 }
@@ -41,6 +42,7 @@ class SimulatedBikeConnection <<bluetooth>> {
   +requestBike(): Promise<BikeInfo>
   +connect(): Promise<void>
   +setResistance(level: number): Promise<number>
+  +forgetTarget(): void
   +disconnect(): void
   -tick(): void
 }

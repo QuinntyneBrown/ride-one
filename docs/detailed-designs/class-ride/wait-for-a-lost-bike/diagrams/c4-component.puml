@@ -16,8 +16,9 @@ Container_Boundary(components, "components library") {
 }
 Container_Boundary(domain, "domain library") {
   Component(clock, "RideClock", "engine service", "Holds the ride clock")
+  Component(engine, "WorkoutEngine", "engine service", "resend() sends the current segment's level")
   Component(rc, "ResistanceController", "engine service", "canControl is false while lost")
-  Component(wb, "WebBluetoothBikeConnection", "bluetooth service", "Sets ble; resends the kept target")
+  Component(wb, "WebBluetoothBikeConnection", "bluetooth service", "Sets ble; sends the kept target first after a reconnect")
   Component(recon, "DeviceReconnector", "bluetooth helper", "Retries every 3 s; retryNow()")
 }
 Container_Boundary(api, "api library") {
@@ -35,7 +36,9 @@ Rel(store, tick, "Checks the bike once a second on")
 Rel(store, clock, "Pauses and resumes")
 Rel(store, vp, "Pauses and plays")
 Rel(store, rc, "Reads canControl")
-Rel(rc, conn, "Reads ble")
+Rel(store, engine, "Calls resend() when the bike is back")
+Rel(engine, rc, "Sends the segment's level through")
+Rel(rc, conn, "Reads ble; calls setResistance()")
 Rel(wb, conn, "Implements")
 Rel(wb, recon, "Retries through")
 Rel(wb, bike, "Reconnects and writes the level", "Web Bluetooth")

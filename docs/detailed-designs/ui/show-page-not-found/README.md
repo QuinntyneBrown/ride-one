@@ -66,8 +66,8 @@ The page exists in the code as Telo Ride's not-found page and is reshaped. Its m
 - **Going back** (exists as a link; destination changes): the link navigates to `/`. The page
   holds no rule of its own about where the rider lands: the opening rule on `/` decides, exactly
   as when the app opens there. A returning rider gets The Class and a new rider gets Connect
-  Bike. Today the guard on `/` is `rememberedBikeGuard`, which knows only the remembered bike;
-  its replacement belongs to Open the app.
+  Bike. The guard on `/` is `rememberedBikeGuard`. Today it knows only the remembered bike;
+  Open the app reshapes it to read the record as well.
 - **`NotFoundPage` page object** and **`not-found.spec.ts`** (exist, `frontend/e2e/pages/`,
   `frontend/e2e/`): the page object owns the `heading`, `lead` and action locators and `open(path)`.
   Both are reshaped: `backHome` becomes `backToTheClass`, the `AppHeader` page object gives way to

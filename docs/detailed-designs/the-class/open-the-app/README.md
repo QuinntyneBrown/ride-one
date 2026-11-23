@@ -50,12 +50,14 @@ and adds no screen of its own.
   |---|---|---|
   | `connect` | Connect Bike | `ConnectBikePage` (exists, `connect/connect-bike-page`) |
   | `` (full match) | The Class | `theClassRoutes` (new, `the-class/the-class.routes`), behind `rememberedBikeGuard` |
-  | `ride` | Class Ride | `classRideRoutes` (exists, today at `classes/:id/ride`) |
-  | `done` | Class Done | `classDoneRoutes` (new, replaces `results/results.routes`) |
+  | `ride` | Class Ride | `classRideRoutes` (exists, today at `classes/:id/ride`), behind `connectedBikeGuard` |
+  | `done` | Class Done | `classDoneRoutes` (new, replaces `results/results.routes`), behind `classDoneGuard` |
   | `**` | Page not found | `NotFoundPage` (exists, `not-found/not-found-page`) |
 
   The parent route keeps `provideBikeConnection()` and gains the bindings of `RIDE_RECORD` and
   `FINISHED_RIDE`. It drops `authGuard`, `provideSession()` and every other route.
+  `connectedBikeGuard` belongs to [Ride the class](../../class-ride/ride-the-class/README.md)
+  and `classDoneGuard` to [Show Class Done](../../class-done/show-class-done/README.md).
 - **`rememberedBikeGuard`** (`ride/src/app/bike/remembered-bike.guard.ts`, exists, changed): the
   `CanActivateFn` on the empty path. Today it sends a rider with no remembered bike to Connect Bike
   only when `BLUETOOTH_SUPPORT` reads `'ready'`, and leaves a blocked browser on Home. For
@@ -66,7 +68,8 @@ and adds no screen of its own.
   (L2-015 AC1).
 - **`REMEMBERED_BIKE`** and **`RememberedBike`** (`api/src/bike/remembered-bike.ts`, exist): the
   contract of the remembered bike. `RememberedBikeStore` (`domain/src/storage/`, exists) implements
-  it over the `localStorage` key `telo-ride.bike`. A record it cannot parse counts as no bike.
+  it over the `localStorage` key `telo-ride.bike`. `get()` returns a `RememberedBikeRecord`, the
+  bike's `id` and `name`, or `null`. A record it cannot parse counts as no bike.
 - **`RIDE_RECORD`** and **`RideRecord`** (`api/src/rides/ride-record.ts`, new): the contract of the
   record, introduced by [Keep the record](../../class-done/keep-the-record/README.md).
   `RideRecordStore` implements it. `current()` is `null` for a rider with no finished ride, and

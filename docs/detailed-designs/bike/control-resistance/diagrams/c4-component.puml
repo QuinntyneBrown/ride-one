@@ -7,7 +7,7 @@ System_Ext(bike, "Smart bike", "Echelon or FTMS; Bluetooth LE")
 
 Container_Boundary(ride, "ride application") {
   Component(page, "ClassRidePage", "Routed page", "Hosts the stepper and forwards its outputs")
-  Component(store, "ClassRideStore", "Route-scoped store", "Exposes level and canControl; calls raise and lower")
+  Component(store, "ClassRideStore", "Page-scoped store", "Exposes level and canControl; calls raise and lower")
 }
 Container_Boundary(components, "components library") {
   Component(resist, "ClassResist", "wz-class-resist", "Resistance readout between the two 48 px buttons")

@@ -7,7 +7,7 @@ ContainerDb(storage, "Browser storage", "localStorage", "The record and the reme
 Container_Boundary(ride, "ride application") {
   Component(routes, "ride.routes.ts", "Lazy parent route", "Four screens; no sign-in route, guard or session provider")
   Component(config, "app.config.ts", "Composition root", "Provides no HttpClient")
-  Component(rideStore, "ClassRideStore", "Route-scoped store", "Adds a finished ride's output to the record")
+  Component(rideStore, "ClassRideStore", "Page-scoped store", "Adds a finished ride's output to the record")
 }
 Container_Boundary(domainlib, "domain library") {
   Component(bikeStore, "RememberedBikeStore", "Service", "One JSON value under telo-ride.bike")

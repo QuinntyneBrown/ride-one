@@ -16,7 +16,7 @@ skinparam package {
 }
 actor "Rider" as rider
 box "Frontend — Ride app (ride application)" #E0F2FE
-  participant "Class Ride page" as page
+  participant "ClassRidePage" as page
 end box
 box "Frontend — Ride app (domain library)" #ECFDF3
   participant "WebBluetoothBikeConnection" as conn

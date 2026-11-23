@@ -50,10 +50,17 @@ enum PlayerState {
 
 class YouTubeVideoPlayer <<network>>
 
-class "Record store" as RecordStore <<storage>> {
-  writes to localStorage
+interface RideRecord {
+  +add(outputKj: number): RecordOutcome
 }
-
+class RideRecordStore <<storage>> {
+  key: telo-ride.record
+}
+interface FinishedRide {
+  +set(result: ClassResult): void
+  +peek(): ClassResult | null
+}
+class FinishedRideHolder <<in memory>>
 class RememberedBikeStore <<storage>> {
   key: telo-ride.bike
 }
@@ -64,7 +71,7 @@ class "Class definition" as ClassDefinition <<data>> {
 }
 
 class Router <<Angular>> {
-  +navigateByUrl(url: string, extras): Promise<boolean>
+  +navigateByUrl(url: string): Promise<boolean>
 }
 
 ClassRideStore --> RideClock
@@ -72,10 +79,13 @@ ClassRideStore --> WorkoutEngine
 ClassRideStore --> RideTotals
 ClassRideStore --> BikeConnection
 ClassRideStore --> VideoPlayer : reads state only
-ClassRideStore --> RecordStore : at the finish
-ClassRideStore --> Router : opens /done with the result
+ClassRideStore --> RideRecord : add at the finish
+ClassRideStore --> FinishedRide : set at the finish
+RideRecordStore ..|> RideRecord
+FinishedRideHolder ..|> FinishedRide
+ClassRideStore --> Router : opens /done
 ClassRideStore ..> ClassDefinition : starts from
 VideoPlayer --> PlayerState
 YouTubeVideoPlayer ..|> VideoPlayer
-RecordStore .. RememberedBikeStore : same storage, same pattern
+RideRecordStore .. RememberedBikeStore : same storage, same pattern
 @enduml

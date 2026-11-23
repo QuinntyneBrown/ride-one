@@ -24,6 +24,7 @@ box "Frontend — Ride app (domain library)" #ECFDF3
   participant "RideTicker" as ticker
   participant "BikeTelemetry" as telemetry
   participant "BrowserScreenWakeLock" as wake
+  participant "BikeConnection" as conn
 end box
 box "Frontend — Ride app (video library)" #ECFDF3
   participant "YouTubeVideoPlayer" as player
@@ -39,6 +40,7 @@ store -> player : destroy()
 player -> doc : Remove the iframe
 store -> wake : release()
 wake -> doc : Release the sentinel; remove visibilitychange
+store -> conn : forgetTarget(); the connection outlives the page (L2-093 AC3)
 store -> ticker : Unsubscribe from ticks
 page -> ticker : DestroyRef runs
 ticker -> doc : Clear the timeout; remove visibilitychange

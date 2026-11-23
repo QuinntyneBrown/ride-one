@@ -18,7 +18,7 @@ Local terms:
 - **network**: device's connection to the internet; the Bluetooth link to the bike is not part of it
 - **running ride**: ride whose page, class and plan are already loaded and whose clock has started
 - **record**: rider's ride count, best output and last output, kept on the device
-- **ride result**: output, running time, on-target share and eight effort averages of one finished ride
+- **ride result**: output, running time, on-target share and eight effort averages of one finished ride, carried as a `ClassResult`
 
 Neighbouring features own the adjacent concerns:
 
@@ -47,24 +47,31 @@ below is on the path of a running ride; the description says what it takes from 
   from `CLASSES_API` over HTTP when the page opens, joins a hub session for a group ride, and at
   the finish submits the ride to `RIDE_OUTBOX` for the backend. All three leave. In Telo Ride 1
   the store makes no network request: it starts the ride from a class definition already in
-  hand, and at the finish it calls the record store and navigates.
+  hand, and at the finish it calls `RIDE_RECORD.add`, sets the `ClassResult` on `FINISHED_RIDE`
+  and navigates.
 - **Class definition** (source `<TO SUPPLY>`, open question 1). The design treats the class as
   a definition the frontend holds. Whatever the source, the store has the whole plan before the
   clock starts, so no part of the plan is fetched during the ride.
-- **`RideClock`, `RideTicker`, `WorkoutEngine`, `RideTotals`** (exist in `domain/engine`). They
-  read `performance.now()` and the plan in memory. None takes a network dependency.
+- **`RideClock`, `RideTicker`, `WorkoutEngine`, `RideTotals`** (exist in `domain/engine`), with
+  the new `EffortTotals` and `OnTargetCounter`. They read `performance.now()`, the plan and the
+  bike's telemetry in memory. None takes a network dependency.
 - **`BIKE_CONNECTION`** (exists; `WebBluetoothBikeConnection` in `domain/bluetooth`). Bluetooth
   LE between the device and the bike. It does not use the network.
 - **`YouTubeVideoPlayer`** (exists in `video`). The one network dependency of a running ride.
   When the stream stops, the player's `state` becomes `error`, or the player stalls; the store's
   `videoUnavailable` signal raises the notice. The store does not read the player to advance
   the clock or the plan, so they carry on (`L2-135` AC1).
-- **Record store** (new; defined in
-  [keep the record](../../class-done/keep-the-record/README.md)). It writes to `localStorage`,
-  in the way `RememberedBikeStore` (exists in `domain/storage`) writes the remembered bike under
-  `telo-ride.bike`. A write to `localStorage` does not use the network.
-- **Class Done route** (new). The store passes the ride result in the navigation's state. Class
-  Done renders from that state and from the record, with no request.
+- **`RIDE_RECORD`** and **`RideRecordStore`** (new; defined in
+  [keep the record](../../class-done/keep-the-record/README.md)). The store writes the record
+  to `localStorage` under `telo-ride.record`, in the way `RememberedBikeStore` (exists in
+  `domain/storage`) writes the remembered bike under `telo-ride.bike`. A write to
+  `localStorage` does not use the network.
+- **`FINISHED_RIDE`** and **`FinishedRideHolder`** (new; defined in
+  [show Class Done](../../class-done/show-class-done/README.md)). The store sets the
+  `ClassResult` on the holder, in memory, before it navigates.
+- **Class Done route** (new). `classDoneGuard` and `ClassDonePage` read the result from
+  `FINISHED_RIDE`. The result carries the earlier best, so Class Done renders with no request
+  and no further read of storage.
 
 ### Loading Class Done with no network
 
@@ -126,8 +133,8 @@ notice.
 
 ### Class structure
 
-The store depends on the clock, the engine, the totals, the connection and the record store,
-none of which holds a network client. `VideoPlayer.state` is the only signal the network can
+The store depends on the clock, the engine, the accumulators, the connection, `RideRecord` and
+`FinishedRide`, none of which holds a network client. `VideoPlayer.state` is the only signal the network can
 change.
 
 ![Class diagram for riding without a network](diagrams/class-structure.png)
@@ -141,7 +148,7 @@ because none of them waits on the player.
 
 ### Behaviour: finish without a network
 
-At 30:00 the store writes the record to `localStorage` and opens Class Done from the module it
-preloaded, with the result in the navigation's state. No request leaves the device.
+At 30:00 the store writes the record to `localStorage`, sets the result on `FINISHED_RIDE` and
+opens Class Done from the module it preloaded. No request leaves the device.
 
 ![Sequence diagram for finishing without a network](diagrams/sequence-finish-without-a-network.png)

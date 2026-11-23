@@ -50,8 +50,11 @@ Class Ride route. Every part but `ReadoutSampler` exists.
 ### The clock
 
 - **`MonotonicTime`** and **`MONOTONIC_TIME`** (exist in `api/time`). A contract with one
-  method, `now(): number`, in milliseconds. `provideClassRide()` binds it to
-  `performance.now()` on the Class Ride route. Unit tests bind a fake that moves by hand.
+  method, `now(): number`, in milliseconds. `provideBikeConnection()` binds it to
+  `performance.now()` on the parent route, so the ride clock and the keepalive of
+  [keep the bike connected](../../bike/keep-the-bike-connected/README.md) read one clock.
+  Today only `provideClassRide()` binds it, on the Class Ride route. Unit tests bind a fake
+  that moves by hand.
 - **`RideClock`** (exists in `domain/engine`). It records `now()` at `start()`, records it again
   at `pause()`, and adds the paused interval to `pausedTotalMs` at `resume()`. `elapsedMs()` is
   `now() - startedAt - pausedTotalMs`. It holds no timer and counts nothing (`L2-133` AC1).
@@ -73,14 +76,21 @@ Class Ride route. Every part but `ReadoutSampler` exists.
 - **`ClassRideStore.record(second)`** (exists; changes). On each tick the store counts
   `second - lastSecond` running seconds, so a tick that arrives late counts every second the
   throttled tab skipped. Today it passes that count to `RideRecorder` at the power of the
-  moment. In Telo Ride 1 it reports each skipped second in order to `RideTotals`, each with the
-  `PlanState` that `planStateAt` gives for that second, so a second lands in the segment it
-  belongs to. Power for a skipped second is the power at the moment of the catch-up; no earlier
-  reading is kept (`L2-138` AC2). The seconds counted then equal the clock, so the output is
-  within one second's worth of a visible tab's (`L2-133` AC2).
-- **`RideTotals`** (exists in `domain/engine`; reshaped in
-  [stay smooth on long rides](../stay-smooth-on-long-rides/README.md)). It adds the second's
+  moment. In Telo Ride 1 it reports the seconds to the ride's three accumulators. It calls
+  `RideTotals.onRunningSecond(seconds)` once with the count, because output does not depend on
+  the segment. It then walks the skipped seconds in order and, with the `PlanState` that
+  `planStateAt` gives for each, calls `OnTargetCounter.count` and, in a work segment,
+  `EffortTotals.count`, each for 1 second, so a second lands in the segment it belongs to.
+  Power for a skipped second is the power at the moment of the catch-up; no earlier reading is
+  kept (`L2-138` AC2). The seconds counted then equal the clock, so the output is within one
+  second's worth of a visible tab's (`L2-133` AC2).
+- **`RideTotals`** (exists in `domain/engine`; owned by
+  [read bike telemetry](../../bike/read-bike-telemetry/README.md)). It adds each second's
   power ÷ 1000 to the output in kJ.
+- **`EffortTotals`** and **`OnTargetCounter`** (new in `domain/engine`; owned by
+  [show Class Done](../../class-done/show-class-done/README.md) and
+  [score on target](../../class-done/score-on-target/README.md)). They take the same running
+  seconds for the eight efforts and for the on-target share.
 
 ### The screen and the tab
 
@@ -90,8 +100,8 @@ Class Ride route. Every part but `ReadoutSampler` exists.
   from `navigator.wakeLock` and adds a `visibilitychange` listener that requests it again each
   time the tab becomes visible, because the browser lets the lock go when the tab is hidden.
   `release()` removes the listener and releases the sentinel. Without the API, or when the
-  browser refuses, it does nothing. `provideClassRide()` binds it on the route.
-- **`ClassRideStore`** (exists). It calls `wakeLock.hold()` when the ride starts and
+  browser refuses, it does nothing. `provideClassRide()` binds it on the Class Ride route.
+- **`ClassRideStore`** (exists). It calls `ScreenWakeLock.hold()` when the ride starts and
   `release()` at the finish and in its teardown.
 - **`ClassRidePage.confirmLeaving(event)`** (exists). A host listener on `window:beforeunload`.
   While the store holds a ride, running or paused, it calls `event.preventDefault()`, and the
@@ -168,7 +178,7 @@ clock, `BrowserScreenWakeLock` realizes `ScreenWakeLock`, and `ReadoutSampler` r
 
 While the tab is hidden the browser delays the ticker's timeout, but the clock keeps time. When
 the tab is shown the ticker ticks at once, the engine lands on the current segment and the store
-counts the skipped seconds.
+counts the skipped seconds into the three accumulators.
 
 ![Sequence diagram for catching up after a hidden tab](diagrams/sequence-catch-up-after-a-hidden-tab.png)
 

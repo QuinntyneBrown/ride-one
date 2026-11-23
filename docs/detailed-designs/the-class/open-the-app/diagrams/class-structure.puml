@@ -15,9 +15,9 @@ title Class structure — Open the app
 
 class rideRoutes <<config>> {
   +"connect": ConnectBikePage
-  +"" (full match): TheClassPage, canActivate rememberedBikeGuard
-  +"ride": classRideRoutes
-  +"done": classDoneRoutes
+  +"" (full match): theClassRoutes, canActivate rememberedBikeGuard
+  +"ride": classRideRoutes, canActivate connectedBikeGuard
+  +"done": classDoneRoutes, canActivate classDoneGuard
   +"**": NotFoundPage
   +providers: provideBikeConnection(), RIDE_RECORD, FINISHED_RIDE
 }
@@ -27,8 +27,8 @@ class rememberedBikeGuard <<CanActivateFn>> {
 }
 
 interface RememberedBike {
-  +get(): BikeInfo | null
-  +save(bike: BikeInfo): void
+  +get(): RememberedBikeRecord | null
+  +save(bike: RememberedBikeRecord): void
   +forget(): void
 }
 
@@ -43,16 +43,14 @@ class RecordData {
   +lastOutputKj: number
 }
 
-class BikeInfo {
+class RememberedBikeRecord {
   +id: string
   +name: string
-  +identifier: string | null
-  +kind: BikeKind
 }
 
 interface BikeConnection {
   +ble: Signal<BleState>
-  +reconnectRemembered(bike: BikeInfo): Promise<boolean>
+  +reconnectRemembered(bike: RememberedBikeRecord): Promise<boolean>
 }
 
 class RememberedBikeStore
@@ -62,7 +60,7 @@ rideRoutes ..> rememberedBikeGuard : guards the empty path with
 rememberedBikeGuard ..> RememberedBike : reads
 rememberedBikeGuard ..> RideRecord : reads
 rememberedBikeGuard ..> BikeConnection : starts the reconnect on
-RememberedBike ..> BikeInfo : returns
+RememberedBike ..> RememberedBikeRecord : returns
 RideRecord --> RecordData : holds
 RememberedBikeStore ..|> RememberedBike
 RideRecordStore ..|> RideRecord

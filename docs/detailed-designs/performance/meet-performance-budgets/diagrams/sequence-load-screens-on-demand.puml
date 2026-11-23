@@ -17,7 +17,7 @@ skinparam package {
 actor "Rider" as rider
 box "Frontend — Ride app (ride application)" #E0F2FE
   participant "Angular Router" as router
-  participant "The Class page" as classPage
+  participant "TheClassPage" as classPage
   participant "ClassRidePage" as ridePage
 end box
 box "Frontend — Ride app (video library)" #ECFDF3

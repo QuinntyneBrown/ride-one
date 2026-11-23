@@ -60,10 +60,12 @@ of it exists, built for Telo Ride's class ride at `/classes/:id/ride`; Telo Ride
   reconnect. A reload of `/ride` therefore opens The Class (`L2-087` AC4), as does a blocked
   browser (`L2-010` AC2, designed in
   [check bike and browser support](../../bike/check-bike-and-browser-support/README.md)).
-- **`provideClassRide()`** (exists; changes). It binds `MONOTONIC_TIME` to `performance.now()`,
-  `SCREEN_WAKE_LOCK` to `BrowserScreenWakeLock`, and the class video through
-  `provideClassVideo()`. The `RIDE_HUB_CLIENT` binding and `provideClasses()` (the HTTP
-  catalogue) leave. Where the class definition comes from is `<TO SUPPLY>` (open question 1); the
+- **`provideClassRide()`** (exists; changes). It binds `SCREEN_WAKE_LOCK` to
+  `BrowserScreenWakeLock` and the class video through `provideClassVideo()`. Its binding of
+  `MONOTONIC_TIME` to `performance.now()` moves to `provideBikeConnection()` on the parent
+  route, because the keepalive reads the same clock
+  ([keep the bike connected](../../bike/keep-the-bike-connected/README.md)). The
+  `RIDE_HUB_CLIENT` binding and `provideClasses()` (the HTTP catalogue) leave. Where the class definition comes from is `<TO SUPPLY>` (open question 1); the
   design treats it as a class definition the frontend holds, read through the contract that
   [show the class](../../the-class/show-the-class/README.md) defines.
 - **`provideClassVideo()`** (exists). It binds `VIDEO_PLAYER_FACTORY` to a dynamic
@@ -74,7 +76,9 @@ of it exists, built for Telo Ride's class ride at `/classes/:id/ride`; Telo Ride
 - **`ClassRidePage`** (exists, `wz-class-ride-page`; changes). The page provides the ride's
   services on itself: `ClassRideStore`, `RideClock`, `RideTicker`, `WorkoutEngine`,
   `ResistanceController`, `BikeTelemetry` and `VideoClockSync`. `LiveSessionStore` leaves the
-  list. The template renders `wz-class-header` with **Pause**, Leave and a new
+  list. The three accumulators `RideTotals`, `EffortTotals` and `OnTargetCounter` join it, with
+  the `ReadoutSampler` of
+  [keep the ride clock true](../../performance/keep-the-ride-clock-true/README.md). The template renders `wz-class-header` with **Pause**, Leave and a new
   `wz-fullscreen-toggle` in its `end` slot, a visually hidden `h1`
   ("30 Minute HIIT Cardio · solo class ride"), `wz-class-video`, and `wz-class-bike` holding
   `wz-class-segment`, two `wz-class-stat` and `wz-class-resist`. The template holds no control
@@ -89,7 +93,11 @@ of it exists, built for Telo Ride's class ride at `/classes/:id/ride`; Telo Ride
   `WorkoutEngine.follow(plan)`. It exposes `ride`, `elapsed` (the ticker's whole second), `plan`
   (the engine's `PlanState`), `level`, `canControl`, `power`, `cadence` and `videoUnavailable`
   as signals, and `playVideo(host)`, `raise()` and `lower()` as actions. The route parameter,
-  `LiveSessionStore`, `RideRecorder` and `RIDE_OUTBOX` leave it.
+  `LiveSessionStore`, `RideRecorder` and `RIDE_OUTBOX` leave it. On each tick the store reports
+  the running seconds to `RideTotals` (output, owned by
+  [read bike telemetry](../../bike/read-bike-telemetry/README.md)), to `EffortTotals` (the
+  eight efforts, owned by [show Class Done](../../class-done/show-class-done/README.md)) and to
+  `OnTargetCounter` (owned by [score on target](../../class-done/score-on-target/README.md)).
 - **`StatView`** (exists). The value, hint and tone of one stat. `power` reads "On target" with
   tone `on` when `PowerModel.onTarget(watts, target)` holds, and otherwise the signed difference
   ("-47 W") with tone `under` or `over`. Today an unknown power shows the hint "Target {n} W";
@@ -104,9 +112,9 @@ of it exists, built for Telo Ride's class ride at `/classes/:id/ride`; Telo Ride
 - **`WorkoutEngine`** and **`planStateAt(plan, elapsedMs)`** (exist). On each tick the engine
   computes the `PlanState` (segment, index, `remainingMs`, `progress`, `targetPower`) and, when
   the index changes, sends the segment's level through `ResistanceController.applyPlanLevel`.
-- **`Segment`** (exists in `api`; changes). `cadenceAim` becomes optional, because a segment may
-  have no aim (`L2-089` AC3). `planStateAt` then gives `targetPower` as `null` for such a
-  segment. The kind `steady` leaves `SegmentKind`. The warm-up and cool-down aims of this class
+- **`Segment`** (exists in `api`; changes). `cadenceAim` becomes `number | null`, because a
+  segment may have no aim (`L2-089` AC3). `planStateAt` then gives `PlanState.targetPower`,
+  itself `number | null`, as `null` for such a segment. The kind `steady` leaves `SegmentKind`. The warm-up and cool-down aims of this class
   are `<TO SUPPLY>` (open question 11).
 - **`PowerModel.onTarget(power, target)`** (exists). Power within 10 % of the target is on
   target.

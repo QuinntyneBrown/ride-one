@@ -13,18 +13,25 @@ skinparam class {
 ' --------------------------
 title Class structure — Stay smooth on long rides
 
-class RideTotals <<reshaped>> {
+class RideTotals <<trimmed>> {
   +runningSeconds: Signal<number>
   +outputKj: Signal<number>
-  +aimedSeconds: Signal<number>
-  +onTargetSeconds: Signal<number>
-  -effortJoules: Float64Array(8)
-  -effortSeconds: Uint16Array(8)
-  +onRunningSecond(state: PlanState): void
-  +effortWatts(): number[]
+  +avgPowerW: Signal<number | null>
+  +onRunningSecond(seconds: number): void
 }
-
-class RideRecorder <<no longer used by the class ride>> {
+class EffortTotals <<new>> {
+  -wattSeconds: number[8]
+  -seconds: number[8]
+  +count(effort: number, powerW: number | null, seconds: number): void
+  +watts(): readonly number[]
+}
+class OnTargetCounter <<new>> {
+  -onTargetSeconds: number
+  -aimedSeconds: number
+  +count(powerW: number | null, targetPowerW: number | null, seconds: number): void
+  +percent(): number
+}
+class RideRecorder <<removed>> {
   -speedsKmh: Float64Array(14400)
   +record(powerW, speedKmh, seconds, onTarget): void
 }
@@ -40,7 +47,8 @@ class ClassRideStore <<store>> {
 class ClassRidePage <<component>> {
   providers: ClassRideStore, RideClock, RideTicker,
   WorkoutEngine, ResistanceController,
-  BikeTelemetry, VideoClockSync, RideTotals
+  BikeTelemetry, VideoClockSync, RideTotals,
+  EffortTotals, OnTargetCounter
 }
 
 class BikeTelemetry {
@@ -79,12 +87,16 @@ class "playwright.heap.config.ts" as HeapConfig <<config, new>> {
 
 ClassRidePage *-- ClassRideStore
 ClassRidePage *-- RideTotals
+ClassRidePage *-- EffortTotals
+ClassRidePage *-- OnTargetCounter
 ClassRidePage *-- BikeTelemetry
 ClassRidePage *-- RideTicker
 ClassRideStore --> RideTotals : reports each running second
+ClassRideStore --> EffortTotals : reports each effort second
+ClassRideStore --> OnTargetCounter : reports each aimed second
 ClassRideStore --> BikeTelemetry : reads the latest power
-RideTotals ..> PlanState : reads segment and target
-ClassRideStore .. RideRecorder : replaced by RideTotals
+ClassRideStore ..> PlanState : reads segment and target
+ClassRideStore .. RideRecorder : replaced by the three accumulators
 HeapConfig ..> LongRide : runs
 HeapConfig ..> EnterLeave : runs
 LongRide ..> ClassRidePage : measures

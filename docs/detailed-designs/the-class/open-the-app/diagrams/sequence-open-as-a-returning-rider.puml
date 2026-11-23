@@ -33,7 +33,7 @@ router -> guard : canActivate for the empty path
 guard -> bikes : get()
 bikes -> storage : getItem("telo-ride.bike")
 storage --> bikes : Stored bike or nothing
-bikes --> guard : BikeInfo or null
+bikes --> guard : RememberedBikeRecord or null
 guard -> record : current()
 record -> storage : getItem("telo-ride.record")
 storage --> record : Stored record or nothing

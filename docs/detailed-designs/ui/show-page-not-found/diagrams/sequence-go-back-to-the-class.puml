@@ -18,7 +18,7 @@ actor "Rider" as rider
 box "Frontend — Ride app (ride application)" #E0F2FE
   participant "NotFoundPage" as page
   participant "Router" as router
-  participant "Opening rule of /" as opening
+  participant "rememberedBikeGuard" as opening
 end box
 box "Device — Browser" #F2F4F7
   database "localStorage" as storage

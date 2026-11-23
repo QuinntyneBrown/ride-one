@@ -53,7 +53,7 @@ else rider picks the bike
   queue -> bike : Write each to 0bf669f2 with response, one at a time, 300 ms apart (L2-013 AC3)
   bike --> conn : First notification
   conn --> store : ble is connected (L2-013 AC4)
-  store -> remembered : save(bike) (L2-015 AC3)
+  store -> remembered : save(RememberedBikeRecord: id and name) (L2-015 AC3)
   store --> page : paired: check "Paired", disabled "Paired" (L2-011 AC5)
   store -> store : Wait 500 ms
   store --> rider : The Class opens with the bike connected (L2-011 AC5)

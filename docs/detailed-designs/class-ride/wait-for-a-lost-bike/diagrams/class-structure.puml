@@ -73,6 +73,9 @@ class RideClock {
   +pause(): void
   +resume(): void
 }
+class WorkoutEngine {
+  +resend(): void
+}
 
 ClassRidePage *-- ClassRideStore : provides
 ClassRidePage ..> ClassLost : renders while lost
@@ -80,6 +83,8 @@ ClassRidePage ..> ClassResist : disables
 ClassRideStore --> BikeConnection : reads ble
 ClassRideStore --> Ticker : checks each second
 ClassRideStore --> RideClock : holds
+ClassRideStore --> WorkoutEngine : resend() when the bike is back
+WorkoutEngine --> ResistanceController : applyPlanLevel
 ClassRideStore --> ResistanceController
 ResistanceController --> BikeConnection
 BikeConnection --> BleState

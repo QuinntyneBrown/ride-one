@@ -50,14 +50,15 @@ Neighbouring features own the adjacent concerns:
 - **`api`**: exists. Contracts, types and injection tokens, for example `BikeConnection` and
   `BIKE_CONNECTION`, `RememberedBike` and `REMEMBERED_BIKE`, `VideoPlayer` and
   `VIDEO_PLAYER_FACTORY`, `MonotonicTime` and `MONOTONIC_TIME`, `Ticker` and `TICKER`, `Fullscreen`
-  and `ScreenWakeLock`. The carried-over HTTP and SignalR clients (`auth/`, `riders/`, `rides/`,
+  and `ScreenWakeLock`. Telo Ride 1 adds `RideRecord` and `RIDE_RECORD`, `FinishedRide` and
+  `FINISHED_RIDE`, and `Logger` and `LOGGER`. The carried-over HTTP and SignalR clients (`auth/`, `riders/`, `rides/`,
   `progress/`, `live/`, `maps/`) are not part of Telo Ride 1. Whether `classes/` keeps an HTTP
   client is `<TO SUPPLY>` (`L2.md` open question 1).
 - **`domain`**: exists. `protocol/` (`EchelonFrameDecoder`, `IndoorBikeDataDecoder`, the Echelon
   and FTMS command builders), `bluetooth/` (`WebBluetoothBikeConnection`, `EchelonLink`,
   `FtmsLink`, `GattWriteQueue`, `KeepaliveScheduler`, `DeviceReconnector`,
   `SimulatedBikeConnection`), `engine/` (`WorkoutEngine`, `RideClock`, `ResistanceController`,
-  `BikeTelemetry`), `storage/` (`RememberedBikeStore`) and `browser/` (`BrowserFullscreen`,
+  `BikeTelemetry`, and the accumulators `RideTotals`, `EffortTotals` and `OnTargetCounter`), `storage/` (`RememberedBikeStore`) and `browser/` (`BrowserFullscreen`,
   `BrowserScreenWakeLock`). The screen features add to these folders, for example
   `RideRecordStore` in `storage/`.
 - **`components`**: exists. One folder per design-system block, each a standalone component as
@@ -105,8 +106,10 @@ Neighbouring features own the adjacent concerns:
   `provideBrowserGlobalErrorListeners()`. `zone.js` is not a dependency of `package.json`.
 - **`ride.routes.ts`**: exists and changes. `app.routes.ts` loads it with `loadChildren`, and its
   parent route binds the tokens the first screen brings through `provideBikeConnection()`
-  (`TICKER`, `REMEMBERED_BIKE`, `BIKE_CONNECTION`, `BLUETOOTH_SUPPORT`). Its children become the
-  four screens and Page not found.
+  (`TICKER`, `REMEMBERED_BIKE`, `BIKE_CONNECTION`, `BLUETOOTH_SUPPORT` and, new there,
+  `MONOTONIC_TIME`), and gains the bindings of `RIDE_RECORD` and `FINISHED_RIDE`. Its children
+  become the four screens and Page not found, with `rememberedBikeGuard` on `/`,
+  `connectedBikeGuard` on `/ride` and `classDoneGuard` on `/done`.
 - **angular-eslint rules**: exist. `prefer-standalone`, `prefer-on-push-component-change-detection`,
   `use-component-view-encapsulation`, `component-selector` and `directive-selector` with the prefix
   `wz`, and `component-max-inline-declarations` at 0 for templates and styles. `tsconfig.json`

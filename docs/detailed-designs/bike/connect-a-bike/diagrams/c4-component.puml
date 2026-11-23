@@ -6,7 +6,7 @@ title Components — Connect a bike
 System_Ext(bike, "Smart bike", "Echelon or FTMS; Bluetooth LE")
 Container_Boundary(ride, "ride application") {
   Component(page, "ConnectBikePage", "Angular page, exists", "Header, photo, device card, pair button and alerts at /connect")
-  Component(store, "ConnectBikeStore", "Route-scoped store, exists", "Steps default, searching, pairing, paired, failed")
+  Component(store, "ConnectBikeStore", "Page-scoped store, exists", "Steps default, searching, pairing, paired, failed")
 }
 Container_Boundary(components, "components library") {
   Component(device, "ConnectDevice", "wz-connect-device, exists", "Name, signal and identifier, spinner, check")

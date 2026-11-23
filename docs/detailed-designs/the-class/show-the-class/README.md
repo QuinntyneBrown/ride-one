@@ -132,7 +132,10 @@ either survive from it or are new.
   `the-class__start-hint`, `the-class__plan` and the rest). It takes `view`, emits `start` and
   `videoFrame` (the element the player embeds in, as `ClassStartVideo.frame` does today), and has
   the slots `[slot=bike]`, `[slot=end]` and `[slot=notice]` for the bike status link, the Full
-  screen button and the blocked-browser alert. It renders the start button itself in the details
+  screen button and the blocked-browser alert. Its header is `ScreenHeader` (`wz-screen-header`,
+  new, owned by [Show the wordmark](../../ui/show-the-wordmark/README.md)), which draws the
+  mock's `class-header` block with the wordmark; `TheClass` passes the bike status link to its
+  default slot and the Full screen button to its `[slot=end]`. It renders the start button itself in the details
   column and in the pinned footer, of which the layout shows one (L2-171 AC5). The class cover
   fills the video box until the player paints over it, with the text alternative
   "Video: 30 Minute HIIT Cardio, GCN Training". The mock bundles the cover as

@@ -30,11 +30,15 @@ class BikeIdentity <<type>> {
   +identifier: string | null
 }
 
+class RememberedBikeRecord <<type>> {
+  +id: string
+  +name: string
+}
 class RememberedBikeStore {
-  +get(): BikeInfo | null
-  +save(bike: BikeInfo): void
+  +get(): RememberedBikeRecord | null
+  +save(bike: RememberedBikeRecord): void
   +forget(): void
-  -parse(value: unknown): BikeInfo | null
+  -parse(value: unknown): RememberedBikeRecord | null
 }
 
 class RideRecordStore <<new>> {
@@ -72,7 +76,8 @@ class ConnectDevice <<wz-connect-device>> {
 bikeIdentity ..> BikeIdentity : returns
 WebBluetoothBikeConnection ..> bikeIdentity : names the device with
 WebBluetoothBikeConnection --> BikeInfo : holds
-RememberedBikeStore ..> BikeInfo : parses and stores
+RememberedBikeStore ..> RememberedBikeRecord : parses and stores
+RememberedBikeRecord ..> BikeInfo : id and name of
 RideRecordStore ..> RecordRule : reads through
 BikeTelemetry --> WebBluetoothBikeConnection : subscribes to frames
 BikeTelemetry ..> EchelonFrameDecoder : decodes with

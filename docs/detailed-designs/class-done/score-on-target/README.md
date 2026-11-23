@@ -38,7 +38,7 @@ Neighbouring features own the adjacent concerns:
 The codebase already counts on-target seconds, for Telo Ride's backend: `ClassRideStore.record`
 tests each second with `PowerModel.onTarget` and `RideRecorder` divides the on-target seconds by
 all the seconds ridden, to three decimals. Telo Ride 1 keeps the test, changes the divisor and
-drops `RideRecorder`.
+removes `RideRecorder`.
 
 - **`PowerModel`** (`domain/src/engine/power-model.ts`, exists): `target(cadenceAim, level)` is
   max(0, round(cadenceAim × (0.55 + level × 0.155))) W, 107 W for an aim of 72 at level 6 and
@@ -55,7 +55,7 @@ drops `RideRecorder`.
 - **`BikeTelemetry`** (`domain/src/engine/bike-telemetry.ts`, exists): exposes the rider's power
   as the signal `powerW`, `null` when it is unknown.
 - **`OnTargetCounter`** (`domain/src/engine/on-target-counter.ts`, new): engine service provided
-  on the Class Ride route, beside `RideTotals`, with unit tests of one case per row of the table
+  on `ClassRidePage`, beside `RideTotals` and `EffortTotals`, with unit tests of one case per row of the table
   below. It keeps two numbers, `onTargetSeconds` and `aimedSeconds`, so its size does not grow
   with the ride (L2-138 AC2). `count(powerW, targetPowerW, seconds)` applies:
 

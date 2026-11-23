@@ -38,10 +38,13 @@ page -> store : DestroyRef runs
 store -> player : destroy() (L2-088 AC6)
 store -> wake : release()
 store -> conn : forgetTarget() (L2-093 AC3)
+opt the bike is lost
+  store -> conn : disconnect(): the retries end (L2-017 AC1)
+end
 page -> engine : DestroyRef runs
 engine -> engine : Clear the timeout, remove visibilitychange, unsubscribe from ticks
 page -> telemetry : DestroyRef runs
 telemetry -> conn : Unsubscribe from frames; clear the cadence timer
 router --> rider : The Class opens; the record is unchanged (L2-093 AC1)
-note over store, conn : The record store is not called: the ride is not finished
+note over store, conn : RIDE_RECORD.add is not called: the ride is not finished
 @enduml

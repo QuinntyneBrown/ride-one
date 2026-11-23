@@ -19,9 +19,9 @@ interface BikeConnection {
   +reconnectRemembered(bike: RememberedBikeRecord): Promise<boolean>
   +setResistance(level: number): Promise<number>
   +reconnectNow(): void
+  +forgetTarget(): void
   +disconnect(): void
 }
-
 enum BleState {
   idle
   connecting
@@ -36,6 +36,7 @@ class WebBluetoothBikeConnection {
   -reconnector: DeviceReconnector
   +reconnectRemembered(bike: RememberedBikeRecord): Promise<boolean>
   +reconnectNow(): void
+  +forgetTarget(): void
   +disconnect(): void
   -onDrop(error?: unknown): void
   -attempt(): Promise<boolean>
@@ -106,15 +107,15 @@ class "bikeStatus" as bikeStatus <<function>> {
   +bikeStatus(ble: BleState, bikeName: string | null): BikeStatusView
 }
 
-class "describeError" as describeError <<function>> {
-  +describeError(error: unknown): string
+interface Logger {
+  +error(area: LogArea, error: unknown): void
 }
 
 BikeConnection <|.. WebBluetoothBikeConnection
 BikeConnection --> BleState : ble
 WebBluetoothBikeConnection *-- DeviceReconnector
 WebBluetoothBikeConnection o-- EchelonLink : link
-WebBluetoothBikeConnection ..> describeError : logs with
+WebBluetoothBikeConnection ..> Logger : reports errors through LOGGER
 WebBluetoothBikeConnection ..> RememberedBikeRecord : finds by id
 EchelonLink *-- KeepaliveScheduler
 KeepaliveScheduler --> Ticker : subscribes
