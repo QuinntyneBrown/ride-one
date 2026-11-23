@@ -1,24 +1,29 @@
 ## Purpose
 
 > Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing
-> else. It pairs with a smart bike at home over Bluetooth, plays the class video and sets the
-> bike's resistance for every interval while the rider pedals. Connect the bike, take the class,
+> else. It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the
+> Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's resistance for
+> every interval while the rider pedals. Connect the bike, take the class,
 > see your number, and come back to beat it.
 
 **Direction.** Telo Ride 1 is Telo Ride with everything but one class taken away. It has four
 screens and no menus:
 
 1. **Connect Bike**: pair the bike once; it is remembered. A new rider starts here.
-2. **The Class**: the home screen and the only class, **30 Minute HIIT Cardio** (GCN Training,
-   `gcn-30-hiit`): its video, title, length, a chart of what the bike will do, and one start
-   button ("Connect your bike" when no bike is connected). A returning rider also sees their ride
-   count, best output and last output.
-3. **Class Ride**: the video in sync while the class's plan sets target resistance; the rider
-   just pedals. Always solo, so the rider can pause, leave or finish.
+2. **The Class**: the home screen and the only class, **Intervals to the Beat** (GCN Training,
+   `intervals-to-the-beat`, 20:00): its video, title, length, a chart of what the bike will do,
+   the choice to ride with the class video or in Ibiza (**Ibiza Sunset Strip**, the only course,
+   built in Blender from the class's plan), and one start button ("Connect your bike" when no
+   bike is connected). A returning rider also sees their ride count, best output and last output.
+3. **Class Ride**: the video in sync, or the course drawn as the rider rides, while the class's
+   plan sets target resistance; the rider just pedals. In Ibiza one track plays in the
+   background: *Beautiful Boom Bap* (Music_Unlimited, Pixabay), the marketing film's music,
+   self-hosted. Always solo, so the rider can pause, leave or finish.
 4. **Class Done**: the ride's output in kJ (in gold for a new best), time, average watts, how much
-   of the ride was on target, and the eight efforts. **Done** returns to The Class.
+   of the ride was on target, and the class's efforts. **Done** returns to The Class.
 
-Telo Ride 1 has no class library, races, maps or 3D world, group classes or live races, XP, rider
+Telo Ride 1 has no class library, races, maps or worlds beyond Ibiza Sunset Strip, music beyond
+that one track, group classes or live races, XP, rider
 levels, stars or unlocks, sign-in, or custom workout. Before adding or changing anything, ask how
 it serves connecting the bike and taking the one class; if it does not, do not build it, and if a
 request works against it, say so.
@@ -46,6 +51,10 @@ Before a screen is built, its states are transcribed from the prototype into `do
 stays the source of truth for the code. The prototype's numbers (6 rides, a 342 kJ best, an
 output estimated from ride time) are placeholders, not rules.
 
+The prototype was drawn for an earlier class, 30 Minute HIIT Cardio, and has no Ibiza and no
+music. The class, riding in Ibiza and the music are decided in `docs/specs/`; where the
+prototype disagrees, the specs stand and the mock is brought in line before the screen is built.
+
 ## Carried over from Telo Ride
 
 This repository began as a copy of Telo Ride. Its code, docs and tests still hold Telo Ride's
@@ -54,7 +63,8 @@ the class library, sign-in, progression, group classes and live races, the custo
 `marketing` application. `docs/detailed-designs/` and the ADRs still describe Telo Ride.
 
 - Keep and build on what the four screens need: the Bluetooth link, the protocol, the engine, the
-  simulated bike, the video library, the solo class ride and its result.
+  simulated bike, the video library, the solo class ride and its result, and, for riding in
+  Ibiza, the Ibiza Sunset Strip course, its Blender build and the course renderer in `world`.
 - Do not extend a feature Telo Ride 1 leaves out. Removing one is a change of its own, with its
   requirement, docs and tests cut down in the same change, and an ADR where it reverses one.
 - When a doc is rewritten for Telo Ride 1, it says so and drops what Telo Ride 1 leaves out.
