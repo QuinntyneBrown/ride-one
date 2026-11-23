@@ -1,13 +1,11 @@
-// Block connect: Connect Bike's layout (docs/mocks/pages/connect-bike/). Two columns from lg with the photo first;
-// below lg the photo follows the content.
+// Block connect: Connect Bike's layout (docs/mocks/pages/connect-bike/). The header, then the body in the height that
+// is left: two columns from lg with the photo first, centred; below lg the photo follows the content. The screen
+// scrolls as one when it is taller than the window.
 .connect {
-  display: block;
-  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
   overflow-y: auto;
-
-  &:focus {
-    outline: none; // focused by the skip link, never by a pointer
-  }
 }
 
 // The lockup and Full screen above the content (L2-144 AC1).
@@ -27,11 +25,18 @@
 }
 
 .connect__body {
+  flex: 1;
   display: grid;
-  gap: var(--space-8);
+  align-items: center;
+  gap: var(--space-10);
+  width: 100%;
+  max-width: var(--layout-container-narrow);
   margin-inline: auto;
-  max-width: var(--layout-container-max);
-  padding: var(--space-2) var(--space-4) var(--space-8);
+  padding: 0 var(--space-4) var(--space-10);
+
+  &:focus {
+    outline: none; // focused by the skip link, never by a pointer
+  }
 
   @media (min-width: 40rem) {
     padding-inline: var(--space-6);
@@ -40,7 +45,6 @@
   @media (min-width: 64rem) {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--space-16);
-    padding-inline: var(--space-8);
   }
 }
 
@@ -86,13 +90,6 @@
 
 .connect__pair {
   margin-top: var(--space-8);
-}
-
-.connect__hint {
-  margin-top: var(--space-3);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-sm);
-  color: var(--color-muted);
 }
 
 .connect__pair-btn {

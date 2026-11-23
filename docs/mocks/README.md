@@ -99,8 +99,10 @@ design says nothing. None was settled quietly; the mocks follow the design.
    Class at `/`; Results (L2-078, L2-079, with XP and "Ride it again") is now Class Done; pairing
    lands on The Class, not Home (L2-011 AC5); and the 404 goes back to the class, not Home (L2-145).
    The routes in `manifest.json` (`/`, `/connect`, `/ride`, `/done`) are assumptions.
-3. **Spec copy the design does not use.** L2-011 AC3 shows the identifier only after the rider
-   picks a bike (`EX5S-141844`); the design shows "Strong signal · EX5S-0bf669f1" before Pair. L2-092
+3. **Spec copy the design does not use.** Closed for Connect Bike by slice 29.1: the design showed
+   "Strong signal · EX5S-0bf669f1" before Pair, which a browser cannot supply. The mock's `default`
+   now names the offered model alone, and `pairing` and `paired` show the identifier of the bike
+   the rider picked, with no signal strength (L2-011 AC3, L2's open question 17). L2-092
    AC4's solo text is "Your ride is paused. Pedal to wake the bike and it carries on from here."; the
    design says "The video is paused. Pedal to wake the bike, then reconnect." The earlier mocks'
    hint ("Not in the list? Close the Echelon app…") is not in the design.

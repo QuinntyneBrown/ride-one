@@ -9,7 +9,7 @@ Container_Boundary(ride, "ride application") {
   Component(store, "ConnectBikeStore", "Page-scoped store, exists", "Steps default, searching, pairing, paired, failed")
 }
 Container_Boundary(components, "components library") {
-  Component(device, "ConnectDevice", "wz-connect-device, exists", "Name, signal and identifier, spinner, check")
+  Component(device, "ConnectDevice", "wz-connect-device, exists", "Name and identifier, spinner, check")
   Component(blocker, "ConnectBlocker", "wz-connect-blocker, new", "Alert that stands in for the device card")
 }
 Container_Boundary(domain, "domain library") {
