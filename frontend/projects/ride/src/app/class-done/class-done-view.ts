@@ -1,4 +1,4 @@
-import type { ClassResult } from '@telo/api';
+import type { ClassResult, EffortBar } from '@telo/api';
 
 /** Class Done as the screen draws it (docs/mocks/pages/class-done/). */
 export interface ClassDoneView {
@@ -16,6 +16,8 @@ export interface ClassDoneView {
   readonly best: boolean;
   /** "Previous best" or "Best" with a whole kJ; none for the first ride. */
   readonly bestFact: { readonly label: string; readonly value: string } | null;
+  /** The class's efforts in plan order, each a bar (L2-169). */
+  readonly efforts: readonly EffortBar[];
   /** What a screen reader hears as Class Done opens (L2-141 AC2): "New best output. 351 kJ in 20:00." */
   readonly announcement: string;
 }
@@ -59,6 +61,22 @@ export function classDoneView(result: ClassResult): ClassDoneView {
       previous === null
         ? null
         : { label: best ? 'Previous best' : 'Best', value: `${previous} kJ` },
+    efforts: effortBars(result.efforts),
     announcement: `${verdict.replace(/\.$/, '')}. ${output} kJ in ${time}.`,
   };
+}
+
+/**
+ * The efforts as bars (L2-169): each bar's height is its watts as a share of the strongest effort's, the strongest
+ * is full height and the one set apart (the earliest where they tie), and when every effort is 0 W none is.
+ */
+function effortBars(watts: readonly number[]): EffortBar[] {
+  const peak = Math.max(0, ...watts);
+  const strongest = peak > 0 ? watts.indexOf(peak) : -1;
+  return watts.map((value, index) => ({
+    number: index + 1,
+    watts: value,
+    height: peak > 0 ? Math.round((value / peak) * 1000) / 10 : 0,
+    strongest: index === strongest,
+  }));
 }

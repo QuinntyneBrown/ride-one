@@ -14,4 +14,6 @@ export interface ClassResult {
    * with the result so a reload still compares with the earlier best, not with this ride (L2-077).
    */
   readonly previousBestKj: number | null;
+  /** Each effort's average watts, rounded, in plan order (L2-169). */
+  readonly efforts: readonly number[];
 }

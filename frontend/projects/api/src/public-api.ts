@@ -16,6 +16,7 @@ export {
   type RememberedBike,
   type RememberedBikeRecord,
 } from './bike/remembered-bike';
+export { type EffortBar } from './classes/effort-bar';
 export { FINISHED_RIDES, type FinishedRides } from './rides/finished-rides';
 export { RIDE_RECORD, type RideRecord, type RideRecordSnapshot } from './rides/ride-record';
 export type { ResistanceSource, SentCommand } from './bike/sent-command';

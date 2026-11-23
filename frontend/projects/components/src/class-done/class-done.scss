@@ -133,6 +133,89 @@
   white-space: nowrap;
 }
 
+// The efforts: one bar each, its height its watts over the strongest's, the strongest in signal orange (L2-169).
+.class-done__efforts {
+  margin-top: var(--space-12);
+}
+
+.class-done__efforts-title {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-muted);
+}
+
+.class-done__chart {
+  margin-top: var(--space-4);
+  display: grid;
+  height: var(--class-done-chart-height);
+  grid-template-columns: repeat(17, minmax(0, 1fr));
+  align-items: end;
+  gap: var(--space-1);
+
+  @media (min-width: 40rem) {
+    gap: var(--space-2);
+  }
+}
+
+.class-done__effort {
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+// Seventeen figures do not fit side by side at 320 px: each is set upright along the bar, reading upwards, so no
+// figure overlaps the next at any width (L2-169 AC6).
+.class-done__watts {
+  margin-bottom: var(--space-1-5);
+  align-self: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-display);
+  font-feature-settings: 'tnum' 1;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
+  white-space: nowrap;
+  color: var(--color-muted);
+
+  @media (min-width: 40rem) {
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-sm);
+  }
+}
+
+.class-done__bar {
+  display: block;
+  width: 100%;
+  // The share of the room the figure leaves: the strongest fills it, the others are their watts over its.
+  height: calc((100% - var(--class-done-figure-room)) * var(--share));
+  min-height: var(--space-1);
+  transform-origin: bottom;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  background: var(--color-raised);
+  animation: class-done-rise var(--duration-slow) var(--ease-spring) both;
+  animation-delay: calc(var(--index, 0) * var(--duration-stagger));
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.class-done__effort--peak .class-done__bar {
+  background: var(--color-volt);
+}
+
+@keyframes class-done-rise {
+  from {
+    transform: scaleY(0.96);
+    opacity: 0;
+  }
+}
+
 .class-done__actions {
   margin-top: var(--space-12);
 

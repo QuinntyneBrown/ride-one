@@ -22,6 +22,7 @@ import {
   PowerModel,
   ResistanceController,
   RideClock,
+  EffortTally,
   RideRecorder,
   RideTicker,
   VideoClockSync,
@@ -78,6 +79,8 @@ export class ClassRideStore {
   private readonly started = signal(false);
   /** The ride's output and share on target, for Class Done. */
   private recorder: RideRecorder | null = null;
+  /** The watts of each effort, a sum for each work segment of the plan (L2-169). */
+  private efforts: EffortTally | null = null;
   private lastSecond = 0;
   private videoHost: HTMLElement | null = null;
   private destroyed = false;
@@ -236,6 +239,7 @@ export class ClassRideStore {
     this.loaded.set(dto);
     this.started.set(true);
     this.recorder = new RideRecorder();
+    this.efforts = new EffortTally(dto.plan.segments);
     this.wakeLock.hold();
     this.activity.begin();
     this.clock.start();
@@ -293,6 +297,7 @@ export class ClassRideStore {
       outputKj: this.recorder?.outputKj ?? 0,
       onTargetShare: this.recorder?.onTargetShare ?? 0,
       previousBestKj,
+      efforts: this.efforts?.watts() ?? [],
     };
     // Only a ride that reaches its end is counted (L2-168 AC1, AC2).
     this.rideRecord.add(classResult.outputKj);
@@ -309,6 +314,7 @@ export class ClassRideStore {
     const target = this.plan()?.targetPower ?? null;
     const onTarget = power !== null && target !== null && PowerModel.onTarget(power, target);
     this.recorder?.record(power, second - this.lastSecond, onTarget);
+    this.efforts?.add(power, this.lastSecond, second);
     this.lastSecond = second;
   }
 
