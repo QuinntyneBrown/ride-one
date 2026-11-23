@@ -7,14 +7,14 @@
 // Given the app is cached and a new version is deployed, when the rider opens the app, then a toast reads "A new version
 //   is ready" and "Reload to use it now, or it opens next time.", and Reload loads the app again.
 // Given a class ride in progress, when the service worker has the new version ready, then no toast shows and the page
-//   is not reloaded; when the class ends, then Results opens with the toast.
+//   is not reloaded; when the class ends, then Class Done opens with the toast.
 // Given the toast, when the rider dismisses it, then it goes and the page is not reloaded.
 import { appCached } from './fixtures/app-cache';
 import { startClassRide } from './fixtures/class-ride';
 import { expect, test } from './fixtures/test';
 import { AppUpdate } from './pages/app-update';
 import { TheClassPage } from './pages/the-class.page';
-import { ResultsPage } from './pages/results.page';
+import { ClassDonePage } from './pages/class-done.page';
 
 test.use({ serviceWorkers: 'allow' });
 
@@ -67,8 +67,8 @@ test('during a ride the new version waits, and is offered when the ride ends (L2
 
   await page.clock.fastForward('19:58');
   await page.clock.runFor(2000);
-  await new ResultsPage(page).shown();
-  await expect(page).toHaveURL(/\/results$/);
+  await new ClassDonePage(page).shown();
+  await expect(page).toHaveURL(/\/done$/);
   await expect(update.toast).toBeVisible();
   expect(await update.reloaded()).toBe(false);
 });

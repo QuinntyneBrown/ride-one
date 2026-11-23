@@ -9,7 +9,7 @@
 import { startRideInIbizaOnPausedClock } from './fixtures/class-ride';
 import { CourseFiles } from './fixtures/course-files';
 import { expect, test } from './fixtures/test';
-import { ResultsPage } from './pages/results.page';
+import { ClassDonePage } from './pages/class-done.page';
 import { TheClassPage } from './pages/the-class.page';
 
 test('a ride finished in Ibiza counts toward the one record, with none of its own (L2-173 AC8)', async ({
@@ -23,7 +23,7 @@ test('a ride finished in Ibiza counts toward the one record, with none of its ow
     await startRideInIbizaOnPausedClock(page, bluetooth);
     await page.clock.fastForward('19:58');
     await page.clock.runFor(2000);
-    await new ResultsPage(page).shown();
+    await new ClassDonePage(page).shown();
   } finally {
     await files.dispose();
   }

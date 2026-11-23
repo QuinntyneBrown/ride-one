@@ -10,7 +10,7 @@
 import { startClassRide } from './fixtures/class-ride';
 import { ECHELON_NOTIFY, resistanceFrame, workoutFrame } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
-import { ResultsPage } from './pages/results.page';
+import { ClassDonePage } from './pages/class-done.page';
 import { TheClassPage } from './pages/the-class.page';
 import type { Page } from '@playwright/test';
 
@@ -30,7 +30,7 @@ test('a ride finished to its end is kept: the app opens on The Class with no rem
   await page.clock.runFor(1000);
   await page.clock.fastForward('19:58');
   await page.clock.runFor(2000);
-  await new ResultsPage(page).shown();
+  await new ClassDonePage(page).shown();
 
   await forgetTheBike(page);
   await page.goto('/');

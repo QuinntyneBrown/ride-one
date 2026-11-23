@@ -1,11 +1,11 @@
 // Acceptance test
 // Traces to: L2-141 AC2, L2-142 AC2
 // Description: a screen reader hears each step of a ride once, as it starts (the class ride's "Work, 0:45"), and the
-// result when Results opens. With the device asking for reduced motion, nothing on any screen moves but
+// result when Class Done opens. With the device asking for reduced motion, nothing on any screen moves but
 // an opacity fade: the interval and segment bars jump to their place.
 import { startClassRide } from './fixtures/class-ride';
 import { echelonBike } from './fixtures/echelon';
-import { openResults, soloClass } from './fixtures/results';
+import { openClassDone, soloClass } from './fixtures/class-done';
 import { screens } from './fixtures/screens';
 import { expect, test } from './fixtures/test';
 import { AppDocument } from './pages/app-document';
@@ -27,12 +27,10 @@ test.describe('Screen readers', () => {
     await expect(app.announcement).toHaveText('Work, 0:45');
   });
 
-  test('Results says the result as it opens (L2-141 AC2)', async ({ page }) => {
-    await openResults(page, soloClass());
+  test('Class Done says the result as it opens (L2-141 AC2)', async ({ page }) => {
+    await openClassDone(page, soloClass());
 
-    await expect(new AppDocument(page).announcement).toHaveText(
-      'Class results: You finished 20:00.',
-    );
+    await expect(new AppDocument(page).announcement).toHaveText('Class done: 342 kJ in 20:00.');
   });
 });
 
