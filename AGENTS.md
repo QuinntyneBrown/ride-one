@@ -76,11 +76,12 @@ Telo Ride 1.
 - **The frontend is the product.** `frontend/` is an Angular workspace and holds most of the
   implementation: Web Bluetooth connectivity, the protocol, the workout engine, sessions and
   every screen. It runs in Chrome or Edge; a ride finishes on the device without a network.
-- **The backend is carried over.** `backend/` is Telo Ride's thin .NET service (ADR 0025): email
-  sign-in, rider progress, SignalR for live races and group classes, feedback, and the class
-  catalogue (ADR 0028). It never talks to the bike. Telo Ride 1 needs only the class catalogue
-  from it; whether it keeps the backend is not decided yet, and the change that decides it brings
-  an ADR. Until then, add nothing to it. `backend/README.md` has its commands.
+- **The backend is carried over, and going.** `backend/` is Telo Ride's thin .NET service
+  (ADR 0025): email sign-in, rider progress, SignalR for live races and group classes, feedback,
+  and the class catalogue (ADR 0028). Telo Ride 1 has no backend (ADR 0037): the one class ships
+  with the app and the rider's record stays on the device. The slices of journey 28 remove it
+  with what it serves; until it is gone it still builds and its tests still pass. Add nothing to
+  it. `backend/README.md` has its commands.
 - Before building a feature, read its requirement (`docs/specs/`, `docs/journeys.md`), its
   detailed design (`docs/detailed-designs/`) and its mocks (`docs/mocks/`, the source of truth
   for the UI; `docs/design-system/` is extracted from them). Where those still describe only

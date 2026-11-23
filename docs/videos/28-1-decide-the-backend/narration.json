@@ -1,0 +1,20 @@
+{
+  "voice": "af_heart",
+  "bpm": 92.99,
+  "beatsPerBar": 4,
+  "gapBeats": 1,
+  "outroSeconds": 3,
+  "music": { "file": "../assets/music/beautiful-boom-bap.mp3", "offset": 0.009, "duckDb": 16, "betweenDb": 5, "fadeSeconds": 2 },
+  "scenes": [
+    { "id": "hook", "bars": 4, "lines": ["One question was left open. Does Telo Ride 1 keep a backend?"] },
+    { "id": "does", "bars": 5, "lines": ["The backend signs riders in, keeps their progress, runs live races and group classes, and lists the classes. Telo Ride 1 leaves out all of it but one class."] },
+    { "id": "asks", "bars": 5, "lines": ["The requirements already point one way: static files, your record kept on your device, and a ride that finishes without a network."] },
+    { "id": "decision", "bars": 5, "lines": ["So the answer is no. The class ships with the app, and there is nothing to keep running."] },
+    { "id": "plan", "bars": 5, "lines": ["The backend goes piece by piece, each with the slice that removes what it served, and the build stays green all the way."] },
+    { "id": "widths", "bars": 4, "lines": ["Nothing on screen changes today. The app looks the same at every width."] },
+    { "id": "close", "bars": 12, "lines": [
+      "Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing else.",
+      "It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's resistance for every interval while the rider pedals.",
+      "Connect the bike, take the class, see your number, and come back to beat it." ] }
+  ]
+}

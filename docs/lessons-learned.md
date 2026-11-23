@@ -173,10 +173,29 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L146 | Before carrying code over from another repository, read its CI (`gh run list --branch <branch>`); copy from a green commit or plan the fix with the copy. | 28.2 | | |
 | L147 | Remove a feature from the outside in: a spec that its addresses are page not found, then routes and screens, then each library export nothing uses, building between. | 28.2 | | |
 | L148 | A spec that used a removed feature as its vehicle moves onto a class ride (`startClassRideInWorld`) with its assertion unchanged. | 28.2 | | |
-| L149 | Where `detailed-journeys.md` and `docs/specs/` disagree, the specs stand; correct the slice's row in the same change. | 28.2 | | |
-| L150 | The film tools' Python: `KOKORO_DIR=$PWD/.cache/kokoro ../wattzup/.cache/video-venv/bin/python tools/video-audio/film_audio.py <folder>`, or make `.cache/video-venv` once. | 28.2 | | |
+| L149 | Where `detailed-journeys.md` and `docs/specs/` disagree, the specs stand; correct the slice's row in the same change. | 28.2 | 28.1 | Saved time |
+| L150 | The film tools' Python: `KOKORO_DIR=$PWD/.cache/kokoro ../wattzup/.cache/video-venv/bin/python tools/video-audio/film_audio.py <folder>`, or make `.cache/video-venv` once. | 28.2 | 28.1 | Saved time |
+| L151 | A decision slice's film: copy the last film's folder, keep `hook`, `widths` and `close`, and write the middle as cards and lists in the ADR's words. | 28.1 | | |
 
 ## Log
+
+### 28.1 Decide the backend (2026-11-22)
+
+**Applied from earlier**
+
+- **L149 the specs stand — saved time:** L2-149, L2-131, L2-132, L2-168 and L2-135 had already chosen static files
+  and a record on the device, so the ADR records a decision rather than making one.
+- **L150 the film tools' Python; L7 one contact sheet before the encode — saved time.**
+
+**What slowed it down**
+
+- Nothing: a decision, its docs and a film.
+
+**New lessons**
+
+- **L151 A decision slice's film reuses the last film's frame.** Copy the previous folder's `slides.html`,
+  `narration.json` and `film.js`, keep the `hook`, `widths` and `close` scenes, and write the middle as cards and
+  lists in the ADR's words; shots are one screen at four widths.
 
 ### 28.2 Remove races (2026-11-22)
 
