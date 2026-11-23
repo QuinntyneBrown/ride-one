@@ -4,7 +4,7 @@ import type { Routes } from '@angular/router';
 export const resultsRoutes: Routes = [
   {
     path: '',
-    title: 'Results · Telo Ride',
+    title: 'Results · Telo Ride 1',
     loadComponent: () => import('./results-page'),
   },
 ];

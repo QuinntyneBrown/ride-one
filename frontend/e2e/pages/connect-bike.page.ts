@@ -3,6 +3,8 @@ import type { Locator, Page } from '@playwright/test';
 /** Connect Bike at `/connect` (docs/mocks/pages/connect-bike/). */
 export class ConnectBikePage {
   readonly title: Locator;
+  /** The sentence under the title, which names the product. */
+  readonly lead: Locator;
   readonly deviceName: Locator;
   readonly deviceIdentifier: Locator;
   readonly pairButton: Locator;
@@ -21,6 +23,7 @@ export class ConnectBikePage {
 
   constructor(private readonly page: Page) {
     this.title = page.getByRole('heading', { level: 1 });
+    this.lead = page.locator('.connect__lead');
     this.deviceName = page.locator('.connect-device__name');
     this.deviceIdentifier = page.locator('.connect-device__signal');
     this.pairButton = page.locator('.connect__pair-btn');

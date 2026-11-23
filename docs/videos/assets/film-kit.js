@@ -76,9 +76,12 @@
     <path class="logo-mark__ring" d="M37.79 21.57 A14 14 0 1 1 26.43 10.21"/><path class="logo-mark__crank" d="M24 24 L38 10"/>
     <circle class="logo-mark__hub" cx="24" cy="24" r="4.6"/></svg>`;
 
-  /** The TELO Ride lockup, as the app header draws it: the mark and the wordmark, `size` film pixels tall. */
+  /**
+   * The TELO RIDE 1 lockup, as the app header draws it since slice 28.7 (L2-172): the mark and the wordmark, `size`
+   * film pixels tall.
+   */
   const lockup = (size = 150) =>
-    `<span class="lockup" style="--s:${size}px">${mark(size)}<span class="wordmark">TELO<span class="wordmark__product">Ride</span></span></span>`;
+    `<span class="lockup" style="--s:${size}px">${mark(size)}<span class="wordmark">TELO<span class="wordmark__product">Ride 1</span></span></span>`;
 
   /** A photograph the design system ships (docs/design-system/assets/images/): 'machines/echelon-ex5s', 'worlds/coast'. */
   const photo = (name) => `background-image:url('../../design-system/assets/images/${name}.jpg')`;

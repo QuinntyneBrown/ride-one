@@ -37,9 +37,8 @@ The page exists in the code as Telo Ride's not-found page and is reshaped. Its m
   loadComponent: () => import('./not-found/not-found-page') }`, always the last route. Today it
   is a child of `MainShell`, so the page shows inside Telo Ride's app header with its navigation,
   and it sits under `authGuard`. For Telo Ride 1 the route shall be the last child of the lazy
-  parent route itself, with no guard, and its `title` shall name the product "Telo Ride 1"
-  (today "Page not found · Telo Ride"). The exact document title is `<TO SUPPLY>`; `L2.md` gives
-  none.
+  parent route itself, with no guard. Its `title` is "Page not found · Telo Ride 1" (L2-172 AC4,
+  slice 28.7).
 - **`NotFoundPage`** (exists, `wz-not-found-page`, default export of
   `frontend/projects/ride/src/app/not-found/not-found-page.ts`): a standalone `OnPush` component
   with no state. It changes in four ways. It draws the `.app` column itself, with a header and

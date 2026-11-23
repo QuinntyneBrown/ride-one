@@ -47,7 +47,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 28.4 | Remove sign-in and progression | Sign-in, display name and accounts; XP, rider levels, streaks, stars, unlocks and class tiers; the ride outbox and recorded rides; feedback and the custom workout; and in `backend/` accounts, authentication, progress, rides, workouts, feedback and the map catalogue, with a migration that drops their tables (ADR 0039). The app's only request is for the class catalogue. | 3 | 28. Make it Telo Ride 1 | L2-132 AC1, AC3 | 100% |
 | 28.5 | Remove Home, Profile, the class library and heart rate | Home, Profile, Settings, Diagnostics with the packet log, the class library, the header's navigation and heart rate (ADR 0040). No menu or navigation is left; `/` shows Class Start for the one class, with no redirect, until slice 30.2 draws The Class, and the old addresses are page not found, with "Back to the class". What Settings set is fixed at its default, and the theme follows the device. | 2 | 28. Make it Telo Ride 1 | L2-080 AC4, L2-167 AC4 | 100% |
 | 28.6 | Remove the marketing application | The `marketing` application, its build, scripts, verify and CI steps, its ESLint boundary and the seven components only it used (ADR 0041, superseding ADR 0027). The workspace is `ride` on `api`, `domain`, `components`, `video` and `world`. | 1 | 28. Make it Telo Ride 1 | L2-146 AC1–2 | 100% |
-| 28.7 | Wordmark | TELO RIDE 1 on every header, and "Telo Ride 1" in every title and message. | 1 | 28. Make it Telo Ride 1 | L2-172 | 0% |
+| 28.7 | Wordmark | TELO RIDE 1 on every header, and "Telo Ride 1" in every title and message. | 1 | 28. Make it Telo Ride 1 | L2-172 | 100% |
 | 28.8 | Host as static files | Static files over HTTPS with an http redirect and HSTS; the backend's projects, tests and CI job go (ADR 0037). | 3 | 28. Make it Telo Ride 1 | L2-149 AC1, L2-009 AC2 | 0% |
 | 29.1 | Connect Bike | The screen as designed: works-with list, searching, the bike to pair, pairing, paired, then The Class. | 3 | 29. Pair the bike | L2-007, L2-011, L2-012 AC1–3, L2-013, L2-014 AC1–2, AC4 | 0% |
 | 29.2 | Say why the bike cannot be reached | Alerts for Bluetooth off, an unsupported browser, plain http and a chooser that will not open. | 2 | 29. Pair the bike | L2-008 AC1, L2-009 AC4, L2-012 AC4, L2-018 | 0% |
@@ -81,8 +81,8 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
 
-**Total:** 50 slices, 99 days. **Complete:** 17 slices, 38 days (38%), 11 of them carried over.
-**To build:** 33 slices, 61 days.
+**Total:** 50 slices, 99 days. **Complete:** 18 slices, 39 days (39%), 11 of them carried over.
+**To build:** 32 slices, 60 days.
 
 ## What a slice waits for
 

@@ -49,7 +49,7 @@ test.describe('Browser support on Connect Bike', () => {
       await expect(connect.blocker).toBeVisible();
       await expect(connect.blockerTitle).toHaveText("This browser can't reach the bike");
       await expect(connect.blockerBody).toHaveText(
-        "Open Telo Ride in Chrome or Edge on a laptop or Android tablet. Safari and Firefox don't support Web Bluetooth yet.",
+        "Open Telo Ride 1 in Chrome or Edge on a laptop or Android tablet. Safari and Firefox don't support Web Bluetooth yet.",
       );
       await expect(connect.deviceName).toHaveCount(0);
       await expect(connect.pairButton).toHaveCount(0);

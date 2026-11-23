@@ -14,7 +14,7 @@ test.describe('Page not found', () => {
     const notFound = new NotFoundPage(page);
     await notFound.open('/no-such-screen');
 
-    await expect(notFound.header.lockup).toHaveAccessibleName('Telo Ride');
+    await expect(notFound.header.lockup).toHaveAccessibleName('Telo Ride 1');
     await expect(notFound.header.fullScreen).toBeVisible();
     await expect(notFound.header.nav).toHaveCount(0);
     await expect(notFound.header.links).toHaveCount(0);

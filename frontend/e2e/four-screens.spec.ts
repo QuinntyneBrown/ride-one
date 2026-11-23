@@ -21,7 +21,7 @@ test.describe('Four screens and no menus', () => {
     await expect(start.title).toHaveText('30 Minute HIIT Cardio');
     await expect(start.start).toBeVisible();
     expect(start.url()).toBe('/');
-    await expect(start.header.lockup).toHaveAccessibleName('Telo Ride');
+    await expect(start.header.lockup).toHaveAccessibleName('Telo Ride 1');
     await expect(start.header.nav).toHaveCount(0);
     await expect(start.header.root.getByRole('link')).toHaveCount(0);
   });

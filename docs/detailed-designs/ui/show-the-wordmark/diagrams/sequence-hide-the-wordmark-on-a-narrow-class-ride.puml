@@ -27,8 +27,8 @@ box "Device — Browser" #F2F4F7
 end box
 rider -> page : Start the class; Class Ride opens
 page -> hdr : Render wz-class-header
-hdr -> lockup : Render wz-lockup, size sm
-lockup -> viewport : Evaluate max-width: 23.99rem on .lockup~--sm .wordmark
+hdr -> lockup : Render wz-lockup, size sm, markOnlyWhenNarrow
+lockup -> viewport : Evaluate max-width: 23.99rem on .lockup~--mark-narrow .wordmark
 alt viewport 384 px wide or more
   viewport --> lockup : No match
   lockup --> rider : The mark and TELO RIDE 1 at 20 px (L2-172 AC3)

@@ -105,3 +105,4 @@ One ready-to-run prompt per slice of [`detailed-journeys.md`](../detailed-journe
 | 99 | 28.4 | [Remove sign-in and progression](28-4-remove-sign-in-and-progression.md) | Make it Telo Ride 1 | 3 |
 | 100 | 28.5 | [Remove Home, Profile and the class library](28-5-remove-home-profile-and-the-class-library.md) | Make it Telo Ride 1 | 2 |
 | 101 | 28.6 | [Remove the marketing application](28-6-remove-the-marketing-application.md) | Make it Telo Ride 1 | 1 |
+| 102 | 28.7 | [Wordmark](28-7-wordmark.md) | Make it Telo Ride 1 | 1 |
