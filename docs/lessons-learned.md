@@ -273,6 +273,23 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 35.1 Restrict third parties (2026-11-23)
+
+**What slowed it down**
+
+- The carried-over policy still named `tile.googleapis.com` (Telo Ride's maps) in the page's and the workers' policies
+  and had no `media-src`, so the music fell back to `default-src`. Both are fixed in
+  `staticwebapp.config.json`; `static-host.spec.ts` now reads the policy's directives and fails for any host but
+  `www.youtube.com`, `www.youtube-nocookie.com` and `i.ytimg.com`.
+- **Order:** the config was fixed before the new spec was written, so the spec was never seen red. A policy test should
+  be run against the old file first.
+- `blob:` stays in `connect-src`, `img-src` and `worker-src` for the course's loader: same-origin by nature, and
+  not tested against a real browser's CSP refusals.
+
+**New lessons**
+
+- Carried-over host config keeps its old third parties; grep it for every host, not only for what the slice adds.
+
 ### 34.4 Web vitals and readouts (2026-11-23)
 
 **What slowed it down**

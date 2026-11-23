@@ -25,10 +25,9 @@ test.describe('Content Security Policy', () => {
       expect(policy).toContain("default-src 'self'");
       expect(policy).toContain("script-src 'self' https://www.youtube.com 'wasm-unsafe-eval'");
       expect(policy).toContain('frame-src https://www.youtube-nocookie.com');
-      expect(policy).toContain("connect-src 'self' https://tile.googleapis.com blob:");
-      expect(policy).toContain(
-        "img-src 'self' https://i.ytimg.com https://tile.googleapis.com blob:",
-      );
+      expect(policy).toContain("connect-src 'self' blob:");
+      expect(policy).toContain("img-src 'self' https://i.ytimg.com blob:");
+      expect(policy).toContain("media-src 'self'");
       expect(policy).toContain("font-src 'self'");
       expect(policy).toContain("frame-ancestors 'none'");
       expect(headers['x-content-type-options']).toBe('nosniff');
