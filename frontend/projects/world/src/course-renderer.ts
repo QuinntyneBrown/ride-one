@@ -202,6 +202,9 @@ export class ThreeCourseRenderer implements CourseRenderer {
     drawCalls: 0,
     triangles: 0,
     shadowMap: false,
+    released: false,
+    held: { geometries: 0, textures: 0 },
+    heldBefore: { geometries: 0, textures: 0 },
     groups: {},
     riders: 0,
     firstMetres: null,
@@ -379,6 +382,7 @@ export class ThreeCourseRenderer implements CourseRenderer {
 
   dispose(): void {
     this.disposed = true;
+    this.reportHeld(this.drawn.heldBefore);
     this.pipeline?.dispose();
     this.pipeline = null;
     this.map?.traverse((part) => {
@@ -405,8 +409,20 @@ export class ThreeCourseRenderer implements CourseRenderer {
     this.casting.clear();
     this.lampShadows = null;
     this.blob = null;
-    this.renderer?.dispose();
+    this.reportHeld(this.drawn.held);
+    const renderer = this.renderer;
     this.renderer = null;
+    void renderer?.dispose().then(() => {
+      this.drawn.released = true;
+    });
+  }
+
+  /** Tells the test-only hook what the renderer holds of geometries and textures now (course-probe.ts). */
+  private reportHeld(into: { geometries: number; textures: number }): void {
+    if (!this.pinned || !this.renderer) return;
+    const { geometries, textures } = this.renderer.info.memory;
+    into.geometries = geometries;
+    into.textures = textures;
   }
 
   private build(map: Object3D, canvas: HTMLCanvasElement): void {

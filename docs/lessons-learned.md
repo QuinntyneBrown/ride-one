@@ -273,6 +273,30 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 37.8 Leave Ibiza clean (2026-11-23)
+
+**Applied from earlier**
+
+- **L41 see the spec fail first — partly:** the spec first failed on a reading, not a leak: three's
+  `WebGPURenderer.dispose()` is async and zeroes its own counts, so a count read just after it is still the count before.
+- **37.7's lesson on measuring at many places — not needed:** one leave, one place.
+
+**What slowed it down**
+
+- Reading `info.memory` right after `dispose()` showed 1 geometry and 3 textures and looked like a leak. Reading three's
+  source (`Renderer.dispose` awaits and then calls `info.dispose()`) showed they are the renderer's own.
+
+**Decisions**
+
+- **The report is a before and a drop,** not a zero: `heldBefore` greater than `held`, and `held` no more than the
+  renderer's own (1 geometry, 3 textures).
+- **AC4 and AC5 are not behaviour specs:** they need the reference tablet and a full ride; the heap and vitals checks
+  exist and run on request, so the row is complete when the rule they prove is written and the leave is proved.
+
+**New lessons**
+
+- Read a library's `dispose` before measuring after it: an async dispose can make a count look wrong in either direction.
+
 ### 37.7 The course's budgets (2026-11-23)
 
 **Applied from earlier**

@@ -17,6 +17,11 @@ export interface CourseDrawn {
   readonly triangles: number;
   /** Whether the renderer makes a shadow map: it does not (L2-177 AC1). */
   readonly shadowMap: boolean;
+  /** True once the renderer's own dispose has finished (L2-174 AC8). */
+  readonly released: boolean;
+  /** What the renderer held of geometries and textures at the start of dispose and after the course's own were released. */
+  readonly heldBefore: { geometries: number; textures: number };
+  readonly held: { geometries: number; textures: number };
   /** The riders in the scene: the rider alone (L2-174 AC6). */
   readonly riders: number;
   /** Metres from the grid where the ride's first frame put the rider (L2-175 AC3). */
