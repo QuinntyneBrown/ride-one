@@ -1,0 +1,52 @@
+WEBVTT
+
+00:00:02.581 --> 00:00:07.795
+Telo Ride 1 is one application, for one class. A second application was still built
+
+00:00:07.795 --> 00:00:09.854
+beside it: a marketing site.
+
+00:00:10.324 --> 00:00:15.522
+That site is removed. It sold races and experience points, which Telo Ride 1 does
+
+00:00:15.522 --> 00:00:20.763
+not have. Its seven components, its scripts and its build steps left with it.
+
+00:00:23.228 --> 00:00:28.145
+The workspace is now the ride app on five libraries. The world library stays,
+
+00:00:28.145 --> 00:00:30.552
+because riding in Ibiza needs it.
+
+00:00:36.133 --> 00:00:40.997
+The app itself did not change. Connect the bike, the class, the ride, and the result
+
+00:00:40.997 --> 00:00:43.961
+look and work as they did, in the same bundle.
+
+00:00:49.038 --> 00:00:53.791
+The class, on every screen from a phone to a desktop, exactly as before.
+
+00:00:59.361 --> 00:01:04.662
+Verify ran ten steps before, and nine now. One production build, and every spec,
+
+00:01:04.662 --> 00:01:07.612
+unit test and backend test still passes.
+
+00:01:12.266 --> 00:01:17.920
+Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class,
+
+00:01:17.920 --> 00:01:19.116
+nothing else.
+
+00:01:19.461 --> 00:01:24.413
+It pairs with a smart bike at home over Bluetooth, plays the class video, or draws
+
+00:01:24.413 --> 00:01:29.425
+the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's
+
+00:01:29.425 --> 00:01:32.926
+resistance for every interval while the rider pedals.
+
+00:01:33.272 --> 00:01:37.247
+Connect the bike, take the class, see your number, and come back to beat it.

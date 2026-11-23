@@ -1,3 +1,0 @@
-# The pitch film and its captions are copied here from docs/videos by `npm run media:sync` (ADR 0027).
-*.mp4
-*.vtt

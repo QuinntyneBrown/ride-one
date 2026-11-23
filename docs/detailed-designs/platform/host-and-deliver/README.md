@@ -84,9 +84,9 @@ Neighbouring features own the adjacent concerns:
   For Telo Ride 1 each feature in this design tree that has a screen behaviour has one tagged
   spec; the specs of removed features leave with them.
 - **What changes in the workflow**: the `dotnet format`, `dotnet build` and `dotnet test` steps,
-  the .NET set-up and NuGet cache, and the marketing build belong to the carried-over backend and
-  the `marketing` application. They leave the workflow in the changes that remove those. Until then
-  they count against the 5 minutes.
+  the .NET set-up and NuGet cache belong to the carried-over backend. They leave the workflow in
+  the change that removes it (28.8). Until then they count against the 5 minutes. The marketing
+  build left with the `marketing` application (ADR 0041).
 - **`deploy` job**: exists. It runs on a push to `main` after the three jobs pass. Today it
   publishes the API with the build in `wwwroot`, migrates the database and deploys to the App
   Service named by the repository variable `TELO_RIDE_WEBAPP`, and is skipped until that variable

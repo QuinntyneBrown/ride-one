@@ -78,7 +78,6 @@ const web = async () => {
       await step('initial bundle gzipped', 'npm run bundle:size', frontend);
       await step('behaviour specs', 'npm run e2e', frontend);
     })(),
-    step('marketing build and budget', 'npm run build:marketing', frontend),
   ]);
 };
 

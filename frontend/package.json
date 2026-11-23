@@ -6,11 +6,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve ride",
-    "start:marketing": "npm run media:sync && ng serve marketing",
     "build": "ng build ride",
     "bundle:size": "node scripts/bundle-size.mjs",
-    "build:marketing": "npm run media:sync && ng build marketing",
-    "media:sync": "node scripts/media-sync.mjs",
     "watch": "ng build ride --watch --configuration development",
     "test": "ng test ride --watch=false",
     "lint": "ng lint && tsc -p e2e/tsconfig.json",
