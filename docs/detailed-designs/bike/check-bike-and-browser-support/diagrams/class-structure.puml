@@ -1,0 +1,102 @@
+@startuml
+' --- shared skin header ---
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam ArrowColor #344054
+skinparam class {
+  BorderColor #344054
+  FontColor #101828
+  BackgroundColor #F9FAFB
+}
+' --------------------------
+title Class structure — Check bike and browser support
+
+enum BluetoothSupportState {
+  ready
+  unsupported-browser
+  insecure-context
+  adapter-off
+}
+
+interface BluetoothSupport {
+  +state: Signal<BluetoothSupportState>
+  +recheck(): Promise<BluetoothSupportState>
+  +secureUrl(): string
+}
+
+class WebBluetoothSupport {
+  -current: WritableSignal<BluetoothSupportState>
+  +state: Signal<BluetoothSupportState>
+  +recheck(): Promise<BluetoothSupportState>
+  +secureUrl(): string
+  +ngOnDestroy(): void
+  -read(): BluetoothSupportState
+  -available(): Promise<boolean>
+}
+
+class SimulatedBluetoothSupport {
+  +state: Signal<BluetoothSupportState>
+  +recheck(): Promise<BluetoothSupportState>
+  +secureUrl(): string
+}
+
+class "isBlocked" as isBlocked <<function>> {
+  +isBlocked(state: BluetoothSupportState): boolean
+}
+
+enum BikeSupportLevel {
+  full-control
+  beta
+}
+
+class SupportedBike {
+  +label: string
+  +level: BikeSupportLevel
+}
+
+class "SUPPORTED_BIKES" as bikes <<constant>> {
+  +readonly SupportedBike[5]
+}
+
+interface Clipboard {
+  +copy(text: string): Promise<void>
+}
+
+class BrowserClipboard {
+  +copy(text: string): Promise<void>
+}
+
+class BrowserNotice <<component>> {
+  +title: string
+  +body: string
+  +tone: 'browser' | 'secure'
+}
+
+class ConnectBlocker <<component>> {
+  +title: string
+  +body: string
+  +icon: 'browser' | 'secure' | 'bluetooth-off' | 'blocked'
+}
+
+class ConnectWorks <<component>> {
+  +bikes: readonly SupportedBike[]
+}
+
+class "connectedBikeGuard" as guard <<function>> {
+  +canActivate(): true | UrlTree
+}
+
+BluetoothSupport <|.. WebBluetoothSupport
+BluetoothSupport <|.. SimulatedBluetoothSupport
+BluetoothSupport --> BluetoothSupportState : state
+isBlocked ..> BluetoothSupportState : reads
+Clipboard <|.. BrowserClipboard
+SupportedBike --> BikeSupportLevel : level
+bikes "1" *-- "5" SupportedBike
+ConnectWorks ..> SupportedBike : lists
+BrowserNotice ..> BluetoothSupport : shown from state by the page
+ConnectBlocker ..> BluetoothSupport : shown from state by the page
+guard ..> isBlocked : blocked is never connected
+@enduml
