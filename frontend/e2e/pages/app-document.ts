@@ -293,6 +293,26 @@ export class AppDocument {
     return this.page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   }
 
+  /** The visible elements whose box reaches outside the window's width: cut off, though nothing scrolls (L2-139 AC1). */
+  cutOff(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      const width = window.innerWidth;
+      const found: string[] = [];
+      for (const element of document.body.querySelectorAll('*')) {
+        const box = element.getBoundingClientRect();
+        if (box.width === 0 || box.height === 0) continue;
+        const style = getComputedStyle(element);
+        if (style.visibility === 'hidden' || style.display === 'none') continue;
+        if (element.closest('svg') && element.tagName !== 'svg') continue;
+        if (element.closest('.visually-hidden')) continue;
+        if (box.left < -0.5 || box.right > width + 0.5) {
+          found.push(`${element.tagName.toLowerCase()}.${element.className}`.slice(0, 80));
+        }
+      }
+      return found;
+    });
+  }
+
   /** A font size in pixels. */
   static fontSize(locator: Locator): Promise<number> {
     return locator.evaluate((element) => parseFloat(getComputedStyle(element).fontSize));

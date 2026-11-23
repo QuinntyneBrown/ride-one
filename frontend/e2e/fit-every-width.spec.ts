@@ -22,6 +22,7 @@ test.describe('Fit every width', () => {
           await expect(shown).toBeAttached();
 
           expect(await new AppDocument(page).scrollsSideways()).toBe(false);
+          expect(await new AppDocument(page).cutOff()).toEqual([]);
         },
       );
     }
