@@ -58,8 +58,9 @@ below is on the path of a running ride; the description says what it takes from 
 - **`BIKE_CONNECTION`** (exists; `WebBluetoothBikeConnection` in `domain/bluetooth`). Bluetooth
   LE between the device and the bike. It does not use the network.
 - **`YouTubeVideoPlayer`** (exists in `video`). The one network dependency of a running ride.
-  When the stream stops, the player's `state` becomes `error`, or the player stalls; the store's
-  `videoUnavailable` signal raises the notice. The store does not read the player to advance
+  When the stream stops, the player's `state` becomes `error`, or the player stalls: it reports
+  `buffering` and no error, and `VideoStallWatch` counts 10 s of the ride without playing (slice
+  31.3). Either way the store's `videoUnavailable` signal raises the notice. The store does not read the player to advance
   the clock or the plan, so they carry on (`L2-135` AC1).
 - **`RIDE_RECORD`** and **`RideRecordStore`** (new; defined in
   [keep the record](../../class-done/keep-the-record/README.md)). The store writes the record

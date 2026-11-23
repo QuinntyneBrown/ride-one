@@ -17,18 +17,20 @@ import {
 import { Subject } from 'rxjs';
 import { SimulatedBikeConnection } from '../bluetooth/simulated-bike-connection';
 import { BikeTelemetry } from './bike-telemetry';
-import { ResistanceController } from './resistance-controller';
+import { ResistanceController, resistanceControl } from './resistance-controller';
 import { RideClock } from './ride-clock';
 
 describe('ResistanceController', () => {
   const ble = signal<BleState>('connected');
   let setResistance: ReturnType<typeof vi.fn<(level: number) => Promise<number>>>;
+  let forgetTarget: ReturnType<typeof vi.fn<() => void>>;
   let controller: ResistanceController;
 
   beforeEach(() => {
     ble.set('connected');
     setResistance = vi.fn(async () => 34);
-    const connection: Partial<BikeConnection> = { ble, setResistance };
+    forgetTarget = vi.fn();
+    const connection: Partial<BikeConnection> = { ble, setResistance, forgetTarget };
     TestBed.configureTestingModule({
       providers: [ResistanceController, { provide: BIKE_CONNECTION, useValue: connection }],
     });
@@ -83,6 +85,59 @@ describe('ResistanceController', () => {
     expect(controller.canControl()).toBe(false);
     expect(controller.last()).toBeNull();
   });
+
+  it('is not set by hand while the bike takes its targets, or is only away (L2-014 AC3)', async () => {
+    await controller.applyPlanLevel(10);
+    expect(controller.byHand()).toBe(false);
+
+    ble.set('disconnected');
+    setResistance.mockRejectedValue(new BikeConnectionError('failed', 'The bike is not connected'));
+    await controller.applyPlanLevel(12);
+
+    expect(controller.byHand()).toBe(false);
+    expect(forgetTarget).not.toHaveBeenCalled();
+  });
+
+  it('once an FTMS bike refuses control it is set by hand: the connection forgets the target and the bike is asked nothing more (L2-014 AC3)', async () => {
+    setResistance.mockRejectedValue(
+      new BikeConnectionError('read-only', 'The bike does not give control'),
+    );
+
+    await controller.applyPlanLevel(10);
+
+    expect(controller.byHand()).toBe(true);
+    expect(forgetTarget).toHaveBeenCalledTimes(1);
+
+    // The next segment's level, a nudge, and the level again after a reconnect: the target moves, nothing is sent.
+    await controller.applyPlanLevel(19);
+    await controller.nudge(1);
+    ble.set('disconnected');
+    ble.set('connected');
+    await controller.applyPlanLevel(19);
+
+    expect(setResistance).toHaveBeenCalledTimes(1);
+    expect(controller.target()).toBe(19);
+    expect(controller.byHand()).toBe(true);
+    expect(controller.canControl()).toBe(false);
+  });
+});
+
+describe('resistanceControl', () => {
+  // Can the app set the bike's resistance (L2-014 AC3, L2-028 AC4)? One case per row.
+  const rows: readonly (readonly [BleState, boolean, boolean, boolean])[] = [
+    // ble, the bike refused control, the controls work, the rider sets it by hand
+    ['connected', false, true, false],
+    ['connected', true, false, true],
+    ['disconnected', false, false, false],
+    ['disconnected', true, false, true],
+    ['connecting', false, false, false],
+    ['idle', false, false, false],
+  ];
+
+  for (const [state, refused, canControl, byHand] of rows)
+    it(`a bike that is ${state} and ${refused ? 'refused control' : 'has not refused control'}: ${canControl ? 'takes a target' : 'takes none'}, ${byHand ? 'set by hand' : 'not set by hand'}`, () => {
+      expect(resistanceControl(state, refused)).toEqual({ canControl, byHand });
+    });
 });
 
 describe('ResistanceController on the simulated bike', () => {

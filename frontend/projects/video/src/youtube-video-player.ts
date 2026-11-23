@@ -7,6 +7,7 @@ const API_URL = 'https://www.youtube.com/iframe_api';
 const EMBED_HOST = 'https://www.youtube-nocookie.com';
 const PLAYING = 1;
 const PAUSED = 2;
+const BUFFERING = 3;
 
 /** The part of `YT.Player` Telo Ride uses. */
 interface YtPlayer {
@@ -58,7 +59,8 @@ function loadApi(document: Document): Promise<YtNamespace> {
  * The class video from YouTube's privacy-enhanced embed (docs/detailed-designs/classes/ride-a-class, ADR 0012). It
  * plays from the start it is given, or waits parked there with autoplay off; with controls off, the frame is also out
  * of the tab order, since the ride controls
- * it. A script that cannot load, or a player error, leaves it in `error`.
+ * it. A script that cannot load, or a player error, leaves it in `error`; a video waiting for more of itself is
+ * `buffering`, which is all the player says when the network has gone.
  */
 export class YouTubeVideoPlayer implements VideoPlayer {
   private readonly current = signal<PlayerState>('loading');
@@ -103,6 +105,7 @@ export class YouTubeVideoPlayer implements VideoPlayer {
         onStateChange: ({ data }: YtEvent) => {
           if (data === PLAYING) this.current.set('playing');
           else if (data === PAUSED) this.current.set('paused');
+          else if (data === BUFFERING) this.current.set('buffering');
         },
         onError: () => this.current.set('error'),
       },

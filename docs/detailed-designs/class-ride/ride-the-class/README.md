@@ -14,6 +14,8 @@ presses the start button on The Class and Class Ride opens at 0:00.
 
 Slice 31.1 built the screen as this document describes it: the address, the guard, the header at every width, the
 bike panel and the layout that does not scroll in landscape. What a later slice changes is marked with its slice.
+Slice 31.3 built the two notices of a ride that goes on short of something: the video that cannot play, which now
+includes a video stalled for want of a network, and the bike that is set by hand.
 
 Local terms:
 
@@ -108,9 +110,17 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
 - **`ClassRideStore`** (exists). A store provided by `ClassRideSession`. On construction it reads the class from
   `THE_CLASS` and starts the ride: `RideClock.start()`, `RideTicker.start()` and `WorkoutEngine.follow(plan)`. It
   exposes `ride`, `elapsed` (the ticker's whole second), `plan` (the engine's `PlanState`), `level`, `canControl`,
-  `power`, `cadence` and `videoUnavailable` as signals, and `playVideo(host)`, `raise()` and `lower()` as actions.
+  `byHand`, `power`, `cadence` and `videoUnavailable` as signals, and `playVideo(host)`, `raise()` and `lower()` as actions.
   Pausing, the lost bike and the finish are designed in the neighbouring features and rebuilt by slice 31.2; the
   result it hands over today is the carried-over one, which journey 32 replaces.
+- **The bike set by hand** (built by slice 31.3; mock `class-ride/by-hand`). When `store.byHand()` is true the
+  session's template draws `wz-inline-message` with the class `class-ride__notice`, tone `warn` and
+  `role="status"`, under the bike panel: “The class can’t set this bike’s resistance. Set it by hand.”
+  (`L2-014` AC3). `byHand` is `ResistanceController.byHand`, designed in
+  [control resistance](../../bike/control-resistance/README.md); the stepper is disabled through `canControl`.
+  The notice stays for the rest of the ride. It sits `space-2` under the panel, and in a landscape window from md
+  the box gives up its height, so the screen still does not scroll (`L2-087` AC5), with the video's notice as
+  well down to 844 × 390 and 768 × 432.
 - **`powerStat(power, target)`** and **`cadenceStat(cadence, aim)`** (`ride/src/app/class-ride/stat-view.ts`;
   built by slice 31.1 from the store's own code, with a unit test per row). Pure helpers that return a `StatView`:
   the value, the line under it and its tone. `powerStat` reads "On target" with tone `on` when
@@ -139,6 +149,12 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
   `cadence`, `resistance` and `powerW`. `speedKmh` stays for the course's rider until journey 37.
 - **`VideoClockSync.check(videoTime, elapsed, offset)`** (exists). It returns the time to seek
   to when the drift exceeds `DRIFT_LIMIT_SECONDS` (1.5), otherwise `null`.
+- **`VideoStallWatch.check(state, second)`** (`domain` `engine/video-stall-watch.ts`; built by slice 31.3, with a
+  unit test per row). With no network YouTube's player reports no error: it stays `loading` or `buffering`. The
+  watch is asked on each tick with the player's state and the ride's whole second, and returns `true` once the
+  video has gone `VIDEO_STALL_SECONDS` (10) of the ride without `playing`. The count is in the ride's seconds, so
+  it stands still while the ride is held, and it starts again whenever the video plays. Provided by
+  `ClassRideSession`.
 
 ### Presentation in `components`
 
@@ -151,8 +167,8 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
 - **`ClassVideo`** (exists, `wz-class-video`). Inputs `videoId`, `title`, `unavailable` and
   `paused`; output `frame`, the element the player embeds in. It draws the cover until the
   player paints over it and, when `unavailable`, the notice
-  “The video can’t play. The bike will still follow the class.” with `role="status"`. The mocks
-  draw no such state (mock gap: the video that cannot play, slice 31.3). In a landscape window from md its box
+  “The video can’t play. The bike will still follow the class.” with `role="status"`, `space-2` under the box
+  (mock `class-ride/video-unavailable`, drawn by slice 31.3). In a landscape window from md its box
   fills the height the stage leaves, never under 8 rem; otherwise it is 16:9.
 - **`ClassWorld`** (exists, `wz-class-world`; carried over, until journey 37). The course in the same box, by the
   same rule, with the class video inset in its corner.
@@ -176,12 +192,16 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
   uses: `load`, `currentTime`, `play`, `pause`, `seekTo`, `destroy` and the signal `state`.
 - **`YouTubeVideoPlayer`** (exists in `video`). It loads the IFrame API script and embeds the
   video from `https://www.youtube-nocookie.com`. A script that cannot load, or a player error,
-  sets `state` to `error` and never rejects.
+  sets `state` to `error` and never rejects. A video waiting for more of itself is `buffering`
+  (YouTube's state 3; added to `PlayerState` by slice 31.3), which is all the player reports when
+  the network has gone.
 
 `ClassRideStore.playVideo(host)` loads the player with `controls: false`, `autoplay: true` and
 `startSeconds` equal to the sync offset plus the ride clock. On each tick `syncVideo` asks
-`VideoClockSync` for a seek. When the factory rejects or `state` is `error`, `videoUnavailable`
-is true and nothing else changes: the clock, the engine and the bike do not depend on the
+`VideoClockSync` for a seek, and asks `VideoStallWatch` whether the video has stalled. When the
+factory rejects, `state` is `error`, or the video has not played for 10 s of the ride,
+`videoUnavailable` is true and nothing else changes; a stalled video that plays again makes it
+false and is sought back onto the clock: the clock, the engine and the bike do not depend on the
 player. The store destroys the player when the page is destroyed (`L2-088` AC6).
 
 ## Requirements
@@ -192,7 +212,7 @@ requirement cited beside it.
 | L2 ID | Refines (L1) | Requirement |
 |-------|--------------|-------------|
 | `L2-087` | `L1-015` | Class Ride, at `/ride`, shall show a header with the wordmark, "Intervals to the Beat · Solo", the clock (`role="timer"`, "5:30 / 20:00", `aria-label="5:30 of 20:00"`), **Pause**, Leave (`aria-label="Leave class"`) and Full screen, and a visually hidden `h1` reading "Intervals to the Beat · solo class ride". The header shall hide the class name below md, shall hide the total "/ 20:00" on a phone, and shall hide the wordmark below 384 px. A production build shall offer no shortcut that finishes the ride early. The `/ride` address, opened without a connected bike, shall open The Class instead. On a landscape viewport 768 px wide or more, Class Ride shall not scroll. In a ride in Ibiza the course shall take the video's box and everything else on the screen shall be as it is with the class video. |
-| `L2-088` | `L1-015` | In a running class ride at 5:30 with a 0:03 offset, the video shall play at 5:33, without player controls. When the video drifts more than 1.5 seconds from the ride clock plus the offset, the video shall seek back into sync. When the ride pauses, the video shall pause, and Resume shall play it from the same place. When the video cannot load, is blocked or the network is lost, the plan, the clock and the bike shall carry on, and a notice under the video shall say “The video can’t play. The bike will still follow the class.” The YouTube player shall use the privacy-enhanced domain (`youtube-nocookie.com`). When the rider leaves or finishes the ride, the player shall be destroyed and shall stop playing. |
+| `L2-088` | `L1-015` | In a running class ride at 5:30 with a 0:03 offset, the video shall play at 5:33, without player controls. When the video drifts more than 1.5 seconds from the ride clock plus the offset, the video shall seek back into sync. When the ride pauses, the video shall pause, and Resume shall play it from the same place. When the video cannot load, is blocked or the network is lost, the plan, the clock and the bike shall carry on, and a notice under the video shall say “The video can’t play. The bike will still follow the class.” A video that has not played for 10 seconds of the ride cannot play; when it plays again the notice shall go. The YouTube player shall use the privacy-enhanced domain (`youtube-nocookie.com`). When the rider leaves or finishes the ride, the player shall be destroyed and shall stop playing. |
 | `L2-089` | `L1-015` | The segment card shall show the current segment's kind ("Recover"), the time left ("0:30", `role="timer"`, `aria-label="Recover: 0:30 left"`), a progress bar and the plan's resistance profile. Power shall read "233 W" with "On target" when power is within 10 % of the segment's target power, otherwise the signed difference in watts ("-39 W"). Cadence shall read "91 rpm" with "Aim 90"; a segment with no aim shall show no aim. The resistance stepper shall read "13" and "of 32" between 48 px "Lower resistance" and "Raise resistance" buttons. At md or wider the bike panel shall be one row of four. The text shall carry "On target" or a difference, never the colour alone. |
 
 ## Diagrams
@@ -238,8 +258,8 @@ offset.
 ### Behaviour: keep the video on the ride clock
 
 On each tick the store compares the video's time with the ride clock plus the sync offset and
-seeks when the drift exceeds 1.5 seconds. A player that cannot play raises the notice and leaves
-the ride running.
+seeks when the drift exceeds 1.5 seconds. A player that cannot play, or that has not played for
+10 seconds of the ride, raises the notice and leaves the ride running.
 
 ![Sequence diagram for keeping the video on the ride clock](diagrams/sequence-keep-the-video-on-the-clock.png)
 

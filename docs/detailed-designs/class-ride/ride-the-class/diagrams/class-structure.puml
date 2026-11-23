@@ -97,6 +97,10 @@ class VideoClockSync {
   +check(videoTime: number, elapsed: number, offset: number): number | null
 }
 
+class VideoStallWatch {
+  +check(state: PlayerState, second: number): boolean
+}
+
 interface VideoPlayer {
   +state: Signal<PlayerState>
   +load(host: HTMLElement, videoId: string, options: PlayerOptions): Promise<void>
@@ -115,6 +119,7 @@ ClassRideStore --> RideTicker
 ClassRideStore --> WorkoutEngine
 ClassRideStore --> BikeTelemetry
 ClassRideStore --> VideoClockSync
+ClassRideStore --> VideoStallWatch
 ClassRideStore --> VideoPlayer : controls
 ClassRideStore ..> StatView : derives
 ClassRideStore ..> PowerModel : compares with

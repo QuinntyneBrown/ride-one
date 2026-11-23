@@ -117,3 +117,4 @@ One ready-to-run prompt per slice of [`detailed-journeys.md`](../detailed-journe
 | 111 | 30.6 | [The Class in a blocked browser](30-6-the-class-in-a-blocked-browser.md) | Open on The Class | 2 |
 | 112 | 31.1 | [Class Ride](31-1-class-ride.md) | Take the class | 3 |
 | 113 | 31.2 | [Pause, lose the bike, leave or finish](31-2-pause-lose-the-bike-leave-or-finish.md) | Take the class | 3 |
+| 114 | 31.3 | [When the video or the bike falls short](31-3-when-the-video-or-the-bike-falls-short.md) | Take the class | 2 |

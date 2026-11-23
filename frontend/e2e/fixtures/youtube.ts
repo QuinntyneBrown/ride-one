@@ -34,13 +34,15 @@ const FAKE_API = `(() => {
       const frame = document.createElement('div');
       frame.dataset.fakeYoutube = options.videoId;
       host.replaceWith(frame);
-      Object.assign(this, { frame, options, base: 0, since: null, seeks: [], destroyed: false });
+      Object.assign(this, { frame, options, base: 0, since: null, seeks: [], destroyed: false, stalled: false });
       players.push(this);
       setTimeout(() => options.events?.onReady?.({ target: this }));
     }
     getIframe() { return this.frame; }
     getCurrentTime() { return this.since === null ? this.base : this.base + (performance.now() - this.since) / 1000; }
-    playVideo() { if (this.since === null) { this.since = performance.now(); this.emit(1); } }
+    playVideo() { if (this.stalled) return; if (this.since === null) { this.since = performance.now(); this.emit(1); } }
+    stall() { this.base = this.getCurrentTime(); this.since = null; this.stalled = true; this.emit(3); }
+    unstall() { this.stalled = false; this.playVideo(); }
     pauseVideo() { this.base = this.getCurrentTime(); this.since = null; this.emit(2); }
     seekTo(seconds) { this.seeks.push(seconds); this.jump(seconds); }
     jump(seconds) { this.base = seconds; if (this.since !== null) this.since = performance.now(); }
@@ -64,6 +66,8 @@ interface FakeWindow {
     getCurrentTime(): number;
     jump(seconds: number): void;
     fail(code: number): void;
+    stall(): void;
+    unstall(): void;
     seeks: number[];
   }[];
 }
@@ -71,7 +75,7 @@ interface FakeWindow {
 /**
  * Answers the YouTube IFrame API's script with a fake player and the class covers with the mocks' picture
  * (docs/detailed-designs/classes/ride-a-class, ADR 0012). A spec can block the script, read what the player was asked,
- * move its time to make it drift, and make it fail.
+ * move its time to make it drift, make it fail, and make it stall as it does when the network goes.
  */
 export class YouTubeFixture {
   private blocked = false;
@@ -147,5 +151,18 @@ export class YouTubeFixture {
       (error) => (window as FakeWindow).__fakeYouTube!.at(-1)!.fail(error),
       code,
     );
+  }
+
+  /**
+   * The network goes mid-ride: the last player runs out of video and buffers (state 3), its time standing still, and
+   * a request to play changes nothing, as YouTube's player behaves with no connection. No error is reported.
+   */
+  stall(): Promise<void> {
+    return this.page.evaluate(() => (window as FakeWindow).__fakeYouTube!.at(-1)!.stall());
+  }
+
+  /** The network is back: the last player plays on from where it stood. */
+  unstall(): Promise<void> {
+    return this.page.evaluate(() => (window as FakeWindow).__fakeYouTube!.at(-1)!.unstall());
   }
 }

@@ -92,6 +92,7 @@
       "title": "Class Ride",
       "route": "/ride",
       "requirements": [
+        "L2-014",
         "L2-023",
         "L2-026",
         "L2-027",
@@ -102,6 +103,7 @@
         "L2-091",
         "L2-092",
         "L2-093",
+        "L2-135",
         "L2-174"
       ],
       "states": [
@@ -109,13 +111,16 @@
         "paused",
         "paused-ibiza",
         "off-target",
+        "video-unavailable",
+        "by-hand",
+        "video-unavailable-by-hand",
         "disconnected",
         "disconnected-ibiza"
       ],
       "not_applicable": {
         "loading": "The ride starts from The Class with the bike already connected and the plan in memory; there is nothing to wait for.",
         "empty": "A ride always has its plan, its clock and the bike’s readings.",
-        "error": "The one failure during a ride is losing the bike: the disconnected state."
+        "error": "A ride has three failures, each its own state: the lost bike (disconnected), the video that cannot play (video-unavailable) and the bike that gives no control (by-hand)."
       }
     },
     {

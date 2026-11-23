@@ -59,7 +59,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 30.6 | The Class in a blocked browser | Chrome-or-Edge and HTTPS alerts under the header, Copy link with its copied state, a disabled start button; the ride's address (`/ride` from 31.1) opens The Class and nothing is asked of Bluetooth. | 2 | 30. Open on The Class | L2-008 AC2–4, L2-009 AC1, AC3, L2-010 | 100% |
 | 31.1 | Class Ride | The screen as designed at `/ride`, which only a connected bike opens: header, clock, segment card, power against target, cadence aim and stepper; no scrolling in landscape from 768 px, with the class video or the course in the box. | 3 | 31. Take the class | L2-087, L2-089 | 100% |
 | 31.2 | Pause, lose the bike, leave or finish | Pause and resume, each announced once; a lost bike holds the ride until it is back, when the segment's level is sent again; Leave returns to The Class with no confirmation; 20:00 finishes the ride (it opens the carried-over result until Class Done is built, 32.2); no resistance command follows a ride. | 3 | 31. Take the class | L2-091, L2-092, L2-093 | 100% |
-| 31.3 | When the video or the bike falls short | The video that cannot play and the FTMS bike that refuses control, each with its notice. | 2 | 31. Take the class | L2-014 AC3, L2-088 AC4 | 0% |
+| 31.3 | When the video or the bike falls short | The video that cannot play, a video stalled for 10 s of the ride included, and the FTMS bike that refuses control, does not answer or has no control point, each with its notice; no resistance command to such a bike, after a reconnect included; neither notice scrolls Class Ride in landscape. | 2 | 31. Take the class | L2-014 AC3, L2-088 AC4, L2-135 AC1 | 100% |
 | 37.1 | The course in the video's box | A ride in Ibiza opens Class Ride at once, with no loading screen and no video player: the clock starts, the box reads "Loading Ibiza Sunset Strip" over the still, then the course is drawn there with the rider alone on the road. World loading and the inset video go; the still becomes one of the solo ride. | 4 | 37. Ride in Ibiza | L2-089 AC6, L2-173 AC9, L2-174 AC1, AC6, L2-175 AC1, AC3 | 0% |
 | 37.2 | Placed by the clock | The rider is on the stretch of the plan's segment at each second, held while paused or while the bike is lost, not drawn in a hidden tab, with the camera closing in at the grid and the finish; everything else on the screen as with the class video. | 3 | 37. Ride in Ibiza | L2-174 AC2, AC4–5, AC9–10 | 0% |
 | 37.3 | The course as built | Each stretch's length and gradient from the plan, the painted grid and the finish arch at the last metre; a bad value in the course's files makes it malformed. | 2 | 37. Ride in Ibiza | L2-174 AC3, AC7, L2-175 AC6, L2 open question 18 | 0% |
@@ -90,8 +90,8 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
 
-**Total:** 59 slices, 119 days. **Complete:** 29 slices, 65 days (55%), 11 of them carried over.
-**To build:** 30 slices, 54 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
+**Total:** 59 slices, 119 days. **Complete:** 30 slices, 67 days (56%), 11 of them carried over.
+**To build:** 29 slices, 52 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
 the plan built riding in Ibiza (L2-174 to L2-177).
 
 ## What a slice waits for
@@ -105,12 +105,13 @@ the plan built riding in Ibiza (L2-174 to L2-177).
   builds a rule that is still a proposal (2), which 31.1 built for the line under Power; 32.2 shows a Time that is
   always 20:00 (3); 31.1 closed the header buttons' size (10) and built `/ride` (7); 31.2 closed
   the words a screen reader hears on Pause and Resume and left open whether Leave ends a lost
-  bike's retries (28).
+  bike's retries (28); 31.3 settled the second notice's words, the 10 seconds of a stalled video and what
+  refusing control is, and left open the two notices together (29).
 - **L2's mock gaps**, each drawn before its slice is built (29.2 drew the HTTPS and chooser alerts,
   30.1 the class that cannot be loaded):
   30.2 drew the video that cannot load and "Ride with";
   31.1 drew power off target (the course on Class Ride is 37.1's, with loading the course);
-  31.2 drew paused and the lost bike's copy in Ibiza; 31.3 (both notices), 32.4
+  31.2 drew paused and the lost bike's copy in Ibiza; 31.3 drew both notices and the two together; 32.4
   (every effort at 0 W), 32.7, 37.1 (loading the course), 37.4 (the notice) and 37.6 (the Music
   button).
 - **Journey 37** follows journey 31: 37.1 builds on Class Ride as designed (31.1) and on the

@@ -69,6 +69,8 @@ export class ClassRidePage {
   readonly statuses: Locator;
   readonly reconnect: Locator;
   readonly videoNotice: Locator;
+  /** The notice that the rider sets the resistance by hand, under the bike panel (L2-014 AC3). */
+  readonly bikeNotice: Locator;
   readonly power: Locator;
   readonly powerHint: Locator;
   readonly powerUnit: Locator;
@@ -121,6 +123,7 @@ export class ClassRidePage {
     this.statuses = page.locator('.class-ride').getByRole('status');
     this.reconnect = page.getByRole('button', { name: 'Reconnect' });
     this.videoNotice = page.locator('.class-video__notice');
+    this.bikeNotice = page.locator('.class-ride__notice');
     const stat = (label: string) =>
       page.locator('.class-stat').filter({ has: page.getByText(label, { exact: true }) });
     this.power = stat('Power').locator('.class-stat__number');
@@ -171,6 +174,14 @@ export class ClassRidePage {
       Math.abs(box.width - over.width) < 1 &&
       Math.abs(box.height - over.height) < 1
     );
+  }
+
+  /** Where `part` is drawn in the window, in CSS pixels. */
+  drawn(part: Locator): Promise<DrawnBox> {
+    return part.evaluate((element) => {
+      const { x, y, width, height } = element.getBoundingClientRect();
+      return { x, y, width, height };
+    });
   }
 
   /** Scrolls the ride's body to its end, as a rider does to reach the stepper in a window too short to hold it. */

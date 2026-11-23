@@ -1,8 +1,11 @@
 import { InjectionToken } from '@angular/core';
 import type { Signal } from '@angular/core';
 
-/** What the player is doing: loading until it plays, and `error` once it cannot (blocked, offline, removed). */
-export type PlayerState = 'loading' | 'playing' | 'paused' | 'error';
+/**
+ * What the player is doing: loading until it plays, `buffering` while it waits for more of the video (for good, with no
+ * network), and `error` once it says it cannot play (blocked, removed).
+ */
+export type PlayerState = 'loading' | 'playing' | 'paused' | 'buffering' | 'error';
 
 /**
  * How a video loads: where it starts, whether YouTube's controls show, whether it plays at once or waits parked at its

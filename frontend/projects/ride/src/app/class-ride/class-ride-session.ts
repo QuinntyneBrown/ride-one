@@ -11,6 +11,7 @@ import {
   ClassStat,
   ClassVideo,
   ClassWorld,
+  InlineMessage,
 } from '@telo/components';
 import {
   BikeTelemetry,
@@ -18,6 +19,7 @@ import {
   RideClock,
   RideTicker,
   VideoClockSync,
+  VideoStallWatch,
   WorkoutEngine,
 } from '@telo/domain';
 import { ClassRideStore } from './class-ride-store';
@@ -45,6 +47,7 @@ import { lostBikeMessage } from './ride-hold';
     ClassVideo,
     ClassWorld,
     ClassWorldScene,
+    InlineMessage,
     RouterLink,
   ],
   templateUrl: './class-ride-session.html',
@@ -59,6 +62,7 @@ import { lostBikeMessage } from './ride-hold';
     ResistanceController,
     BikeTelemetry,
     VideoClockSync,
+    VideoStallWatch,
   ],
 })
 export class ClassRideSession {
