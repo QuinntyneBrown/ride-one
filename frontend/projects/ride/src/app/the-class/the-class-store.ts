@@ -12,6 +12,7 @@ import {
   type TheClassView,
   VIDEO_PLAYER_FACTORY,
   type VideoPlayer,
+  RIDE_RECORD,
 } from '@telo/api';
 import { isBlocked, rideWith } from '@telo/domain';
 import { theClassView } from './the-class-view';
@@ -40,6 +41,7 @@ export class TheClassStore {
   /** The bike this browser remembers names the status before the connection has one (L2-015). */
   private readonly remembered = inject(REMEMBERED_BIKE).get();
   private readonly howToRide = inject(HOW_TO_RIDE);
+  private readonly record = inject(RIDE_RECORD);
   private readonly drawable = inject(COURSE_GRAPHICS).available();
   private readonly playerFactory = inject(VIDEO_PLAYER_FACTORY);
   private readonly kept = signal(this.howToRide.kept());
@@ -70,6 +72,7 @@ export class TheClassStore {
           rideWith: this.rideWith(),
           drawable: this.drawable,
           videoUnavailable: this.playerMissing() || this.player()?.state() === 'error',
+          record: this.record.read(),
         })
       : null,
   );

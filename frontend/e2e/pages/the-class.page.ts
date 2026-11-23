@@ -57,6 +57,8 @@ export class TheClassPage {
   /** The start button the layout shows: in the details column from lg, pinned to the bottom below it. */
   readonly start: Locator;
   readonly startHint: Locator;
+  /** A returning rider's record: Rides, Best output and Last time (L2-084 AC8). */
+  readonly stats: Locator;
   /** What the layout places (L2-171): the video's place, the details column and the bar pinned under one column. */
   readonly media: Locator;
   readonly info: Locator;
@@ -109,6 +111,7 @@ export class TheClassPage {
     this.ibizaDetail = this.ibiza.locator('.ride-with__detail');
     this.start = page.locator('.the-class__start:visible');
     this.startHint = page.locator('.the-class__start-hint:visible');
+    this.stats = page.locator('.the-class__stats');
     this.media = page.locator('.the-class__media');
     this.info = page.locator('.the-class__info');
     this.footer = page.locator('.the-class__footer');
@@ -118,6 +121,14 @@ export class TheClassPage {
 
   async open(): Promise<void> {
     await this.page.goto('/');
+  }
+
+  /** The value of one figure of the record, by its label. */
+  stat(label: string): Locator {
+    return this.stats
+      .locator('.the-class__stat')
+      .filter({ has: this.page.locator('.the-class__stat-label', { hasText: label }) })
+      .locator('.the-class__stat-value');
   }
 
   /** Opens the class ride's address, as a bookmark or a typed address does. */

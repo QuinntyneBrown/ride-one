@@ -31,6 +31,22 @@
               >{{ view().lengthLabel }}</span
             >
           </p>
+          @if (view().record; as record) {
+            <dl class="the-class__stats">
+              <div class="the-class__stat">
+                <dt class="the-class__stat-label">Rides</dt>
+                <dd class="the-class__stat-value">{{ record.rides }}</dd>
+              </div>
+              <div class="the-class__stat">
+                <dt class="the-class__stat-label">Best output</dt>
+                <dd class="the-class__stat-value">{{ record.best }}</dd>
+              </div>
+              <div class="the-class__stat">
+                <dt class="the-class__stat-label">Last time</dt>
+                <dd class="the-class__stat-value">{{ record.last }}</dd>
+              </div>
+            </dl>
+          }
         </div>
         <div class="the-class__action">
           <ng-container [ngTemplateOutlet]="go" />
