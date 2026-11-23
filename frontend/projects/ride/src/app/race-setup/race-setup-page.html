@@ -1,6 +1,7 @@
 <div class="race-setup-page">
   <wz-setup-header>
     <a wz-back-link slot="back" routerLink="/race">Maps</a>
+    <wz-fullscreen-button slot="end" />
   </wz-setup-header>
   <div class="race-setup-page__scroll">
     <main id="main" class="container page setup-layout" tabindex="-1">
@@ -23,7 +24,7 @@
           <wz-mode-options
             [options]="store.modes()"
             [selected]="store.mode()"
-            (choose)="store.mode.set($event)"
+            (choose)="store.choose($event)"
           />
           @if (store.mode() === 'bots') {
             <wz-pack-strength [selected]="store.pack()" (choose)="store.pack.set($event)" />

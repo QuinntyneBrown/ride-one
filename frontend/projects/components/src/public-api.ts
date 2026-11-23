@@ -4,8 +4,18 @@ export { AppHeaderBrand } from './app-header/app-header-brand';
 export { AppHeaderLink } from './app-header/app-header-link';
 export { AppHeaderStreak } from './app-header/app-header-streak';
 export { AppHeaderLevel } from './app-header/app-header-level';
+export { type DiagnosticsPacketCount, DiagnosticsPanel } from './diagnostics/diagnostics-panel';
+export {
+  FeedbackForm,
+  type FeedbackFormCopy,
+  type FeedbackFormStatus,
+} from './feedback/feedback-form';
 export { FullscreenToggle } from './fullscreen-toggle/fullscreen-toggle';
 export { Banner } from './banner/banner';
+export { LoadCard } from './world-loading/load-card';
+export { LoadSteps } from './world-loading/load-steps';
+export { Pill } from './pill/pill';
+export { Progress } from './progress/progress';
 export { ClassTeaser } from './class-teaser/class-teaser';
 export { Door } from './door/door';
 export { MapTile } from './map-tile/map-tile';
@@ -25,17 +35,23 @@ export { ClassShelf } from './class-library/class-shelf';
 export { TierTabs, type TierTab } from './class-library/tier-tabs';
 export { BackLink } from './class-start/back-link';
 export { ClassPlan } from './class-start/class-plan';
+export { ClassSession } from './class-start/class-session';
 export { ClassStartVideo } from './class-start/class-start-video';
 export { ClassSync } from './class-start/class-sync';
 export { RideChoice, type RideOption } from './class-start/ride-choice';
 export { ClassStartHeader } from './class-start/class-start-header';
 export { ClassBike } from './class-ride/class-bike';
+export { ClassBoard, type ClassBoardRow } from './class-ride/class-board';
+export { RaceCountdown } from './race-lobby/race-countdown';
+export { StartClock } from './race-lobby/start-clock';
+export { StartGrid } from './race-lobby/start-grid';
 export { ClassHeader } from './class-ride/class-header';
 export { ClassLost } from './class-ride/class-lost';
 export { ClassResist } from './class-ride/class-resist';
 export { ClassSegment } from './class-ride/class-segment';
 export { ClassStat, type ClassStatTone } from './class-ride/class-stat';
 export { ClassVideo } from './class-ride/class-video';
+export { ClassWorld } from './class-ride/class-world';
 export { InlineMessage, type InlineMessageTone } from './inline-message/inline-message';
 export { Band, type BandSurface } from './band/band';
 export { Features, type FeatureView } from './features/features';
@@ -80,3 +96,49 @@ export { Standings } from './results/standings';
 export { MapStars } from './results/map-stars';
 export { UnlockCard } from './results/unlock-card';
 export { XpEarned } from './results/xp-earned';
+export { Switch } from './switch/switch';
+export { SwitchRow } from './switch/switch-row';
+export { SideNav } from './side-nav/side-nav';
+export { SideNavLink, type SideNavIcon } from './side-nav/side-nav-link';
+export { Setting } from './settings/setting';
+export { SettingsSection } from './settings/settings-section';
+export { SettingsReset } from './settings/settings-reset';
+export { Segmented, type SegmentedOption } from './segmented/segmented';
+export { WorldSettings } from './world-settings/world-settings';
+export { SoundSettings } from './sound-settings/sound-settings';
+export { DeviceSettings, type SavedWorldsRow } from './device-settings/device-settings';
+export { Toast, type ToastTone } from './toast/toast';
+export { ToastRegion } from './toast/toast-region';
+export { DisplaySettings } from './display-settings/display-settings';
+export {
+  DeviceCheck,
+  type DeviceCheckResultView,
+  type DeviceCheckRunningView,
+} from './device-check/device-check';
+export {
+  IntervalLadder,
+  type LadderBounds,
+  type RoundStep,
+} from './custom-workout/interval-ladder';
+export { LevelSlider, type LevelSliderVariant } from './custom-workout/level-slider';
+export { PresetChips, type PresetChip } from './custom-workout/preset-chips';
+export { TrainingClose } from './custom-workout/training-close';
+export { TrainingHeader } from './custom-workout/training-header';
+export { TrainingModes } from './custom-workout/training-modes';
+export { TrainingStepper } from './custom-workout/training-stepper';
+export { PlanPreview, type PlanPreviewFact } from './custom-workout/plan-preview';
+export { VideoFrame } from './custom-workout/video-frame';
+export { VideoSync, type VideoFrameDrawn } from './custom-workout/video-sync';
+export { RideHeader, type RideBikeTone, type RideRun } from './custom-ride/ride-header';
+export { RideOverlay, type RideOverlayKind } from './custom-ride/ride-overlay';
+export { RideLeave } from './custom-ride/ride-leave';
+export { RideWorkoutLink } from './custom-ride/ride-workout-link';
+export { RideReadouts, type RideDelta } from './custom-ride/ride-readouts';
+export { RideInterval } from './custom-ride/ride-interval';
+export { RIDE_KINDS, type TraceSegment } from './custom-ride/ride-kind';
+export { RideTrace } from './custom-ride/ride-trace';
+export { RideView, type RideViewTab } from './custom-ride/ride-view';
+export { RideMetrics, type RideMetric } from './custom-ride/ride-metrics';
+export { RideVideo } from './custom-ride/ride-video';
+export { RideProgress } from './custom-ride/ride-progress';
+export { RideControl, type RideSentRow } from './custom-ride/ride-control';

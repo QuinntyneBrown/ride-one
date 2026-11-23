@@ -24,9 +24,15 @@ export class RacePage {
   readonly boardRows: Locator;
   readonly boardNames: Locator;
   readonly boardGaps: Locator;
+  /** The board's rows marked DNF (L2-124). */
+  readonly boardDnf: Locator;
+  /** The lost-service notice under the board's title, a status region always in the page (L2-126 AC1). */
+  readonly boardNotice: Locator;
   readonly you: Locator;
   readonly position: Locator;
   readonly watts: Locator;
+  /** The watts number itself, without its unit. */
+  readonly wattsValue: Locator;
   readonly target: Locator;
   readonly scenery: Locator;
   readonly sceneryTitle: Locator;
@@ -41,6 +47,8 @@ export class RacePage {
   readonly grade: Locator;
   readonly climbed: Locator;
   readonly distance: Locator;
+  /** The speed readout in km/h, one decimal. */
+  readonly speed: Locator;
   readonly profile: Locator;
   readonly here: Locator;
   readonly resistance: Locator;
@@ -86,8 +94,11 @@ export class RacePage {
     this.boardRows = page.locator('.race-board__row');
     this.boardNames = page.locator('.race-board__name');
     this.boardGaps = page.locator('.race-board__gap');
+    this.boardDnf = page.locator('.race-board__row--dnf');
+    this.boardNotice = page.locator('.race-board__status');
     this.you = page.locator('.race-board__row[aria-current="true"]');
     this.watts = page.locator('.race-power__watts');
+    this.wattsValue = page.locator('.race-power__watts-value');
     this.target = page.locator('.race-power__target-label');
     this.scenery = page.locator('.race-scenery');
     this.sceneryTitle = this.scenery.locator('.race-scenery__title');
@@ -102,6 +113,10 @@ export class RacePage {
     this.grade = page.locator('.race-route__grade');
     this.climbed = page.locator('.race-route__climb');
     this.distance = page.locator('.race-route__km');
+    this.speed = page
+      .locator('.race-power__stats > div')
+      .filter({ has: page.locator('.race-power__stat-label', { hasText: 'Speed' }) })
+      .locator('.race-power__stat-value');
     this.profile = page.locator('.race-route__profile');
     this.here = page.locator('.race-route__here');
     this.resistance = page.locator('.race-resist__readout');

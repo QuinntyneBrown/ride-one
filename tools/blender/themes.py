@@ -1,4 +1,4 @@
-"""The worlds' themes for build_course.py (ADR 0032): each map's palette, sky, land, road edge and scenery.
+"""The worlds' themes for build_course.py (ADR 0034): each map's palette, sky, land, road edge and scenery.
 
 Ibiza Sunset Strip keeps its own scenery in build_course.py; every other course names a theme here. A theme
 is data (colours, the sky the app draws, the shape of the land) and one function that dresses the road with
@@ -76,6 +76,28 @@ CARS = [f"car-{i}" for i in range(3)]
 # Each theme: the sky the app draws (horizon up), the haze, the sun's and the fill light's colours, the land, the
 # road's edge, the turns and the gradient. `palette` recolours the shared materials.
 THEMES: dict[str, dict] = {
+    # Ibiza Sunset Strip, the first map: its land and its scenery are its own (build_terrain and build_scenery in
+    # build_course.py, `own`), and the rest is a theme's: the sunset the app draws, the bends its stages are dealt, the
+    # hills its efforts climb, and what the course file tells the app of its lights.
+    "ibiza": {
+        "own": True,
+        "sky": [0xFFC27A, 0xF7A070, 0xE0708A, 0x7A4F9A, 0x2F2A5E],
+        "haze": 0xF2A77A,
+        "light": [0xFF9A5A, 2.6],
+        "fill": [0xFFD9C0, 0x6A5A7A],
+        "sun_altitude": 0.11,
+        "terrain": {"sea": True},
+        "centre": "yellow",
+        # A coast road: an effort winds up onto a headland through esses and a hairpin, a recovery sweeps back down
+        # to the strip, and the calm stretches between are the strip itself, with a bend in it.
+        "turns": {"work": (("ess", 0.4), ("hairpin", 0.18), ("sweep", 0.3), ("straight", 0.12)),
+                  "recover": (("sweep", 0.5), ("ess", 0.3), ("straight", 0.2)),
+                  "calm": (("sweep", 0.45), ("straight", 0.35), ("ess", 0.2))},
+        # The hills: each effort climbs in the first half of its stretch and holds the headland's height; each
+        # recovery drops off it in its first quarter. Steeper for a level than the flat maps, and the ground
+        # between rolls a little, so the strip itself is never dead level.
+        "grade": {"perLevel": 0.855, "ramp": {"work": 0.5, "recover": 0.25}, "roll": 3.3, "rollWave": 620.0},
+    },
     "prairie": {
         "sky": [0xFFE0A8, 0xF8C987, 0xD8C49A, 0x93B0D0, 0x5578B0],
         "haze": 0xF0D4A0,
@@ -143,9 +165,19 @@ THEMES: dict[str, dict] = {
         "turns": {"work": (("ess", 0.4), ("sweep", 0.25), ("hairpin", 0.1), ("straight", 0.25)),
                   "recover": (("straight", 0.45), ("sweep", 0.35), ("ess", 0.2)),
                   "calm": (("straight", 0.55), ("sweep", 0.3), ("ess", 0.15))},
-        "grade": {"perLevel": 0.45, "roll": 2.5, "rollWave": 640.0},
+        # The harbour bridges: each effort climbs a ramp over the first two fifths of its stretch and runs level across
+        # the bridge; each recovery comes down off it in its first seventh. No rolling ground: the quays are flat.
+        "grade": {"perLevel": 0.45, "ramp": {"work": 0.4, "recover": 0.15}},
+        # Each of those climbs is a bridge: the quay stops, the road crosses water on piers between parapets.
+        "bridges": True,
         "reach": 1100.0,
         "night": True,
+        # After rain: how much of the ground holds water, 0 to 1. The app darkens it and mirrors the lamps in it.
+        "wet": 0.55,
+        # And it is still raining a little: how hard, 0 to 1. The app draws the rain falling through the lamplight.
+        "rain": 0.5,
+        # Street lamps on both kerbs: every this many samples from this one, this far behind the kerb, this tall.
+        "lamps": {"every": 6, "start": 3, "off": 0.7, "height": 7.0, "glow": "glow-lamp"},
     },
     "dolomites": {
         "sky": [0xEAF2F8, 0xC6DDF0, 0x96C0E6, 0x5E98D6, 0x2E66B8],
@@ -202,12 +234,19 @@ THEMES: dict[str, dict] = {
 }
 
 
+# What a window's panel holds beyond its opening, in metres: each side, the sill beneath and the lintel above.
+WINDOW_SURROUND = (0.18, 0.14, 0.24)
+
+
 class Kit:
     """What a theme's scenery is built with."""
 
     def __init__(self, road, st, length, height_at, rng, builders, step, road_half):
         self.road, self.s, self.st, self.length = road, road.s, st, length
         self.height_at, self.rng, self.B = height_at, rng, builders
+        # Coloured lights that stand still (a neon sign, a bridge's lit stays): where each throws its light on the
+        # ground. The course file carries them and the app lights what is near (see `light`).
+        self.lights: list[tuple] = []
         self.n, self.step, self.half = len(road.s), step, road_half
         self.kerb = road_half + 0.6
         # A longer map spreads more scenery over its larger land.
@@ -289,6 +328,64 @@ class Kit:
     def panel(self, b, i: int, along: float, off: float, up: float, w: float, h: float) -> None:
         """A flat panel on a wall facing the road (a window, a sign): two triangles, seen from both sides."""
         b.quad(self.P(i, along - w / 2, off, up), self.P(i, along + w / 2, off, up), self.P(i, along + w / 2, off, up + h), self.P(i, along - w / 2, off, up + h))
+
+    def window(self, i: int, along: float, off: float, up: float, w: float, h: float, lit: bool, yaw: float) -> None:
+        """A window on a wall facing the road: one flat panel the app draws as a frame, panes and the room behind,
+        under a lintel and over a sill. The panel is `WINDOW_SURROUND` larger than the opening for those."""
+        b = self.B.setdefault("windows", type(self.B["tower"])("Windows", "window"))
+        if b.uvs is None:
+            b.uvs = []
+        # The window's own number, the same every build: which room is behind it.
+        number = (i * 7919 + int(along * 13) * 31 + int(up * 7)) % 500
+        side, sill, lintel = WINDOW_SURROUND
+        base = len(b.verts)
+        for da, du, u, v in ((-w / 2 - side, -sill, 0, 0), (w / 2 + side, -sill, 1, 0), (w / 2 + side, h + lintel, 1, 1), (-w / 2 - side, h + lintel, 0, 1)):
+            b.verts.append(self.P(i, along + da, off, up + du))
+            b.uvs.append((u + (2 if lit else 0), v + 2 * number))
+        b.faces.append((base, base + 1, base + 2, base + 3))
+
+    def light(self, at, glow: str, reach: float, strength: float) -> None:
+        """A coloured light at `at`, in a glowing material's colour: it lights the ground, and what stands on it,
+        out to `reach` metres, `strength` strong beneath it against a street lamp's 1."""
+        self.lights.append((at[0], at[1], glow, reach, strength))
+
+    def door(self, i: int, along: float, off: float, up: float, w: float, h: float, lit: bool) -> None:
+        """A loading door on a wall facing the road: one flat panel the app draws as a steel frame and a roller
+        shutter, shut if it is dark and part-way up on a lit bay if it is lit. Its UV is a window's with 4 added
+        across (see `window`)."""
+        b = self.B.setdefault("windows", type(self.B["tower"])("Windows", "window"))
+        if b.uvs is None:
+            b.uvs = []
+        number = (i * 7919 + int(along * 13) * 31 + 5) % 500
+        base = len(b.verts)
+        for da, du, u, v in ((-w / 2, 0, 0, 0), (w / 2, 0, 1, 0), (w / 2, h, 1, 1), (-w / 2, h, 0, 1)):
+            b.verts.append(self.P(i, along + da, off, up + du))
+            b.uvs.append((u + 4 + (2 if lit else 0), v + 2 * number))
+        b.faces.append((base, base + 1, base + 2, base + 3))
+
+    def halo(self, at, glow: str) -> None:
+        """The glow in the air round a light: four corners at one place, which the app spreads to face the eye. Its
+        UV is the corner, 0 or 1 each way; its colour the light's."""
+        b = self.B.setdefault("halos:" + glow, type(self.B["tower"])("Halos", glow))
+        if b.uvs is None:
+            b.uvs = []
+        base = len(b.verts)
+        for u, v in ((0, 0), (1, 0), (1, 1), (0, 1)):
+            b.verts.append(tuple(at))
+            b.uvs.append((u, v))
+        b.faces.append((base, base + 1, base + 2, base + 3))
+
+    def fence(self, i: int, off: float, height: float) -> None:
+        """A railing from this sample of the road to the next: one flat panel, whose posts and rails the app draws.
+        Its UV is the metres along the road and the share of its height."""
+        b = self.B.setdefault("fences", type(self.B["tower"])("Fences", "rail"))
+        if b.uvs is None:
+            b.uvs = []
+        base = len(b.verts)
+        for j, up, v in ((i, 0.0, 0.0), (i + 1, 0.0, 1.0), (i + 1, height, 1.0), (i, height, 0.0)):
+            b.verts.append(self.road.at(j, off, 0.12 + up))
+            b.uvs.append((j * self.step, up / height))
+        b.faces.append((base, base + 1, base + 2, base + 3))
 
     def windows(self, b, i: int, along_c: float, off: float, width: float, floors: int, up0: float, floor_h: float, yaw: float, every: float = 2.6) -> None:
         cols = max(1, int(width / every))
@@ -388,10 +485,16 @@ class Kit:
     def lamp(self, i: int, off: float, glow: str = "glow-lamp", height: float = 6.0) -> None:
         yaw = self.s[i]["h"]
         base = self.P(i, 0, off, 0.12)
-        self.B["dark"].box(base, (0.18, 0.18, height), yaw)
+        # A steel column, slimmer towards its top; a thin arm out over the road; a dark housing at its end with the
+        # lit glass on its underside.
+        self.prism(self.B["dark"], base, 0.1, height, 5, 0.06)
         arm = -1.2 if off > 0 else 1.2
-        self.B["dark"].box(self.P(i, 0, off + arm / 2, height - 0.1), (0.12, 1.4, 0.12), yaw)
-        self.B[glow].box(self.P(i, 0, off + arm, height - 0.35), (0.5, 0.35, 0.22), yaw)
+        self.B["dark"].box(self.P(i, 0, off + arm / 2, height - 0.08), (0.07, abs(arm) + 0.2, 0.07), yaw)
+        self.B["dark"].box(self.P(i, 0, off + arm, height - 0.2), (0.62, 0.3, 0.14), yaw)
+        lo = height - 0.21
+        self.B[glow].quad(self.P(i, -0.25, off + arm - 0.11, lo), self.P(i, -0.25, off + arm + 0.11, lo), self.P(i, 0.25, off + arm + 0.11, lo), self.P(i, 0.25, off + arm - 0.11, lo))
+        self.B[glow].quad(self.P(i, 0.25, off + arm - 0.11, lo), self.P(i, 0.25, off + arm + 0.11, lo), self.P(i, -0.25, off + arm + 0.11, lo), self.P(i, -0.25, off + arm - 0.11, lo))
+        self.halo(self.P(i, 0, off + arm, height - 0.4), glow)
 
     def turbine(self, x, y, z, yaw: float) -> None:
         h = self.rng.uniform(55, 70)
@@ -430,16 +533,18 @@ class Kit:
     def skyline(self, count: int, near: float, far: float, glow: str = "glow-window") -> None:
         cx, cy, reach = self.centre()
         rng = self.rng
+        # The towers are one part of their own, `Skyline`: the app draws their lit windows on them (build_course.py).
+        towers = self.B.setdefault("skyline", type(self.B["tower"])("Skyline", "tower"))
         for k in range(count):
             a = rng.uniform(0, math.tau)
             r = reach + rng.uniform(near, far)
             x, y = cx + math.cos(a) * r, cy + math.sin(a) * r
-            h, w = rng.uniform(40, 160), rng.uniform(18, 34)
+            h, w = rng.uniform(50, 210), rng.uniform(18, 34)
             yaw = a + math.pi / 2
-            self.B["tower"].box((x, y, -2), (w, w * rng.uniform(0.6, 1.0), h), yaw)
-            for f in range(int(h / 9)):
-                if rng.random() < 0.55:
-                    self.B[glow].box((x, y, 4 + f * 9), (w + 0.3, w * rng.uniform(0.6, 1.0) * 0.3 + 0.3, 1.4), yaw)
+            towers.box((x, y, -2), (w, w * rng.uniform(0.6, 1.0), h), yaw)
+            # A lower wing against some, so the skyline steps.
+            if rng.random() < 0.4:
+                towers.box((x + math.cos(yaw) * w * 0.8, y + math.sin(yaw) * w * 0.8, -2), (w * 0.7, w * 0.6, h * rng.uniform(0.35, 0.7)), yaw)
 
     def guardrail(self, left: float, start: int = 2, posts: bool = True) -> None:
         for i in range(start, self.n - 2):
@@ -499,8 +604,19 @@ class Kit:
             side = -1 if k > 0 else 1
             yaw = self.s[i]["h"]
             off = (kerb + 1.0) * side
-            B["arrow"].box(P(i, 0, off, 0.62), (1.9, 0.12, 1.0), yaw)
-            B["dark"].box(P(i, 0, off, 0.0), (0.12, 0.12, 0.62), yaw)
+            # A chevron board on two legs, turned to face the rider coming: yellow, with three black chevrons that
+            # point the way the road bends.
+            B["arrow"].box(P(i, 0, off, 0.7), (0.08, 1.9, 0.95), yaw)
+            for leg in (-0.7, 0.7):
+                B["dark"].box(P(i, 0, off + leg, 0.0), (0.08, 0.08, 0.7), yaw)
+            turn = -side
+            for n_ in range(3):
+                # A black arrowhead: its point the way the road bends.
+                back = off + ((n_ - 1) * 0.58 - 0.2) * turn
+                # Drawn twice, wound each way and a hair apart, so one of the two faces the rider.
+                for along, order in ((-0.06, (0, 1, 2)), (-0.07, (2, 1, 0))):
+                    corners = (P(i, along, back + 0.42 * turn, 1.175), P(i, along, back, 1.52), P(i, along, back, 0.83))
+                    B["dark"].tri(*(corners[j] for j in order))
         return efforts
 
 
@@ -723,16 +839,18 @@ def coast(k: Kit) -> dict:
 def docklands(k: Kit) -> dict:
     """A harbour city after dark: brick warehouses with lit windows and neon, cranes and containers on the quay."""
     B, s, rng = k.B, k.s, k.rng
-    # Lamps both sides, every 24 m.
-    for i in range(3, k.n - 3, 6):
+    # Lamps both sides, every 24 m: the course file tells the app where their light falls.
+    lamps = THEMES["docklands"]["lamps"]
+    for i in range(lamps["start"], k.n - 3, lamps["every"]):
         for side in (1, -1):
-            k.lamp(i, (k.kerb + 0.7) * side, "glow-lamp", 7.0)
+            k.lamp(i, (k.kerb + lamps["off"]) * side, lamps["glow"], lamps["height"])
     # Warehouses on the right.
     i, sheds = 2, 0
     front = k.kerb + 3.0
     while i < k.n - 6:
         off = -(front + 8.0)
-        if k.straight(i, 4, 1 / 70) and k.room(i, off, 18.0, 60.0):
+        on_bridge = any(s[j].get("bridge") for j in range(max(i - 5, 0), min(i + 6, k.n)))
+        if not on_bridge and k.straight(i, 4, 1 / 70) and k.room(i, off, 18.0, 60.0):
             yaw = s[i]["h"]
             width = rng.uniform(16, 26)
             floors = rng.randint(3, 6)
@@ -743,10 +861,30 @@ def docklands(k: Kit) -> dict:
                 cols = int(width / 3.0)
                 for c in range(cols):
                     lit = rng.random() < 0.45
-                    k.panel(B["glow-window" if lit else "window"], i, -width / 2 + (c + 0.5) * width / cols, wall + 0.06, 1.4 + f * 3.6, 1.4, 1.9)
+                    along = -width / 2 + (c + 0.5) * width / cols
+                    if f == 0 and lit and c % 2 == 0:
+                        # A lit ground-floor window or door throws its light on the pavement before it.
+                        k.light(k.P(i, along, wall + 1.8, 0), "glow-window", 5.5, 0.4)
+                    if f == 0 and c % 3 == 1:
+                        # A loading door in every third bay of the ground floor.
+                        k.door(i, along, wall + 0.06, 0.12, 2.5, 3.1, lit)
+                    else:
+                        k.window(i, along, wall + 0.06, 1.4 + f * 3.6, 1.4, 1.9, lit, yaw)
+            # On the roof, what shapes it against the sky: a water tank or a plant room, and a chimney.
+            top = floors * 3.6 + 1.0
+            spot = (i * 37) % 5
+            where = k.P(i, (spot - 2) * width * 0.16, off + ((i * 13) % 7 - 3) * 1.4, top)
+            if spot % 2:
+                k.prism(B["fence"], where, 1.5, 3.2, 6)
+            else:
+                B["wall"].box(where, (4.5, 3.2, 2.4), yaw)
+            B["brick"].box(k.P(i, -width / 2 + 2.0, off - 5.0, top), (1.1, 1.1, 3.4), yaw)
             neon = ("neon-pink", "neon-cyan", "neon-amber", "neon-violet")[sheds % 4]
             B[neon].box(k.P(i, rng.uniform(-width / 4, width / 4), wall + 0.1, floors * 3.6 - 1.2), (width * 0.5, 0.14, 0.3), yaw)
             B[neon].box(k.P(i, -width / 2 + 0.4, wall + 0.4, 3.0), (0.2, 0.2, floors * 3.6 - 3.5), yaw)
+            # The sign's light on the pavement and the road before it.
+            k.light(k.P(i, 0, wall + 3.0, 0), neon, 13.0, 0.75)
+            k.light(k.P(i, -width / 2 + 0.4, wall + 1.6, 0), neon, 7.0, 0.7)
             sheds += 1
             i += int((width + rng.uniform(4, 14)) / k.step) + 1
         else:
@@ -756,7 +894,7 @@ def docklands(k: Kit) -> dict:
     for i in range(8, k.n - 8, 3):
         off = k.kerb + rng.uniform(14, 24)
         x, y, z = k.road.at(i, off)
-        if not k.road.clear_of_road(x, y, 14.0, i) or k.height_at(x, y) < z - 4:
+        if not k.road.clear_of_road(x, y, 14.0, i) or any(s[j].get("bridge") for j in range(max(i - 4, 0), min(i + 5, k.n))):
             continue
         yaw = s[i]["h"]
         if rng.random() < 0.06 and cranes < 26:
@@ -767,9 +905,63 @@ def docklands(k: Kit) -> dict:
             B["crane"].box(k.P(i, 0, off, 32), (9, 9, 6), yaw)
             B["lamp-red"].box(k.P(i, 0, off + 36, 32), (0.6, 0.6, 0.6), yaw)
             cranes += 1
-        elif rng.random() < 0.25:
+        elif rng.random() < 0.14:
             for tier in range(rng.randint(1, 4)):
                 B[rng.choice(CONTAINERS)].box(k.P(i, 0, off, tier * 2.6 - 0.2), (12.0, 2.45, 2.6), yaw)
+    # The quay is a working one: a railing between the pavement and the apron, bollards at the water's edge, drums
+    # and crates, parked lorries and floodlight masts. Dealt from its own numbers, so the rest of the map stands
+    # where it stood.
+    deal = random.Random(k.n * 31 + 7)
+    lorries = masts = 0
+    for i in range(6, k.n - 8):
+        yaw = s[i]["h"]
+        # Nothing of the quay's stands on a bridge, or within a few metres of its ends.
+        if any(s[j].get("bridge") for j in range(i - 3, i + 4)):
+            continue
+        # The railing: a post a sample and two rails on to the next, with a gap for a gate now and then.
+        if (i // 14) % 5 != 2:
+            k.fence(i, k.kerb + 3.0, 1.15)
+        # A mooring bollard every 24 m, a pace in from the edge.
+        if i % 6 == 0:
+            k.prism(B["dark"], k.P(i, 0, k.kerb + 25.55, 0.12), 0.27, 0.62, 5, 0.2)
+        if not k.road.clear_of_road(*k.road.at(i, k.kerb + 12)[:2], 16.0, i):
+            continue
+        roll = deal.random()
+        off = k.kerb + deal.uniform(5.0, 11.5)
+        if roll < 0.04:
+            # Oil drums stood together, some on their sides' colours.
+            for _ in range(deal.randint(2, 6)):
+                c = k.P(i, deal.uniform(-1.4, 1.4), off + deal.uniform(-1.2, 1.2), 0.12)
+                k.prism(B[deal.choice(("container-0", "container-1", "dark", "container-3"))], c, 0.29, 0.88, 6)
+        elif roll < 0.08:
+            # Crates on pallets, stacked one, two or three high.
+            for n_ in range(deal.randint(1, 3)):
+                along = n_ * 1.5 - 1.0
+                for tier in range(deal.randint(1, 3)):
+                    B["fence"].box(k.P(i, along, off, 0.26 + tier * 1.02), (1.2, 1.0, 1.0), yaw + deal.uniform(-0.12, 0.12))
+                B["trunk"].box(k.P(i, along, off, 0.12), (1.25, 1.05, 0.14), yaw)
+        elif roll < 0.095 and i % 2 == 0:
+            # A lorry parked along the quay: cab, chassis, a container on its trailer, its wheels.
+            lorries += 1
+            away = math.pi if deal.random() < 0.5 else 0.0
+            turn = -1 if away else 1
+            B[deal.choice(CONTAINERS)].box(k.P(i, -1.2 * turn, off, 1.32), (12.0, 2.45, 2.6), yaw)
+            B["dark"].box(k.P(i, -0.6 * turn, off, 0.72), (13.6, 1.0, 0.6), yaw)
+            B[deal.choice(("whitewash", "container-1", "container-0", "crane"))].box(k.P(i, 6.6 * turn, off, 0.62), (2.3, 2.4, 2.7), yaw)
+            B["window"].box(k.P(i, 7.72 * turn, off, 2.05), (0.08, 2.1, 0.95), yaw)
+            for along in (6.4, 0.2, -1.2, -5.2, -6.6):
+                for side in (1.05, -1.05):
+                    B["dark"].box(k.P(i, along * turn, off + side, 0.12), (1.0, 0.32, 1.0), yaw)
+        elif i % 30 == 15:
+            # A floodlight mast over the apron.
+            masts += 1
+            base = k.kerb + 13.0
+            B["dark"].box(k.P(i, 0, base, 0.12), (0.34, 0.34, 17.0), yaw)
+            B["dark"].box(k.P(i, 0, base, 17.0), (0.3, 3.2, 0.3), yaw)
+            for side in (-1.3, -0.45, 0.45, 1.3):
+                B["glow-lamp"].box(k.P(i, 0.25, base + side, 16.55), (0.5, 0.6, 0.4), yaw)
+            for side in (-0.9, 0.9):
+                k.halo(k.P(i, 0.3, base + side, 16.5), "glow-lamp")
     # Ships at anchor in the harbour, lit.
     cx, cy, reach = k.centre()
     ships = 0
@@ -789,21 +981,55 @@ def docklands(k: Kit) -> dict:
             B[rng.choice(CONTAINERS)].box((x + math.cos(yaw) * u, y + math.sin(yaw) * u, 5), (11, L * 0.14, 2.6), yaw)
         B["glow-window"].box((x - math.cos(yaw) * L * 0.35, y - math.sin(yaw) * L * 0.35, 11), (L * 0.185, L * 0.145, 0.6), yaw)
         ships += 1
-    k.skyline(int(70 * k.scale), 300, 1400)
-    # The bridges: steel trusses over the road with lights, at every third effort.
+    k.skyline(int(110 * k.scale), 180, 1100)
     efforts = k.gates("neon-cyan", "neon-pink", CROWD, "gold", "bulb")
-    for n_, stage in enumerate(st for st in k.st if st["kind"] == "work"):
-        if n_ % 3:
+    # The harbour bridges: over each one's deck, two pylons with stay cables fanned down to the deck either side of
+    # them, the cables strung with light. Each bridge takes its light's colour in turn.
+    spans, start = [], None
+    for i in range(k.n):
+        if s[i].get("bridge") and start is None:
+            start = i
+        elif not s[i].get("bridge") and start is not None:
+            spans.append((start, i - 1))
+            start = None
+    out = k.kerb + 2.6
+    for n_, (i0, i1) in enumerate(spans):
+        if i1 - i0 < 40:
             continue
-        i = k.road.index((stage["from"] + stage["to"]) / 2)
-        yaw = s[i]["h"]
-        span = k.kerb + 6
-        for side in (1, -1):
-            B["tower"].box(k.P(i, 0, span * side, -1), (3, 3, 12), yaw)
-        B["tower"].box(k.P(i, 0, 0, 10), (4, 2 * span + 3, 2.5), yaw)
-        for q in range(9):
-            B["glow-lamp"].box(k.P(i, -2.1, -span + q * span / 4, 10.4), (0.1, 0.5, 0.5), yaw)
-    return {"efforts": efforts, "warehouses": sheds, "cranes": cranes, "ships": ships}
+        neon = ("neon-cyan", "neon-pink", "neon-amber", "neon-violet")[n_ % 4]
+        for share in (0.3, 0.7):
+            i = i0 + int((i1 - i0) * share)
+            yaw, deck = s[i]["h"], s[i]["z"]
+            top = 38.0
+            for side in (1, -1):
+                # A leg from the sea's bed to the pylon's head, slimmer above the deck.
+                B["tower"].box(k.P(i, 0, out * side, -9.0 - deck), (2.6, 1.8, deck + 9.0 + 1.0), yaw)
+                B["tower"].box(k.P(i, 0, out * side, 1.0), (1.7, 1.2, top - 1.0), yaw)
+                k.halo(k.P(i, 0, out * side, top + 0.6), neon)
+                # The stays: from the head down to the deck's edge, every 16 m out to 96 m each way.
+                head = k.P(i, 0, out * side, top - 1.0)
+                for reach in range(4, 28, 4):
+                    for way in (1, -1):
+                        j = i + reach * way
+                        if j < i0 or j > i1:
+                            continue
+                        foot = k.road.at(j, out * side, 1.0)
+                        for lift, order in ((0.0, (0, 1, 2, 3)), (0.02, (3, 2, 1, 0))):
+                            quad = (
+                                (head[0], head[1], head[2] + lift),
+                                (foot[0], foot[1], foot[2] + lift),
+                                (foot[0], foot[1], foot[2] + 0.16 + lift),
+                                (head[0], head[1], head[2] + 0.16 + lift),
+                            )
+                            B[neon].quad(*(quad[q] for q in order))
+            # The stays' light on the deck: a pool every 16 m as far as they reach.
+            for reach in range(-24, 28, 4):
+                if i0 <= i + reach <= i1:
+                    k.light(k.road.at(i + reach, 0.0), neon, 15.0, 0.55 - 0.012 * abs(reach))
+            # The head beam and a beam under the deck tie the two legs.
+            B["tower"].box(k.P(i, 0, 0, top - 3.0), (1.6, 2 * out + 1.2, 2.2), yaw)
+            B["tower"].box(k.P(i, 0, 0, -3.2), (2.2, 2 * out + 1.8, 1.8), yaw)
+    return {"efforts": efforts, "warehouses": sheds, "cranes": cranes, "ships": ships, "lorries": lorries, "masts": masts}
 
 
 def dolomites(k: Kit) -> dict:

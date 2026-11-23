@@ -3,12 +3,19 @@
 // Description: a group class ride holds one connection to the ride hub and measures its clock offset from five
 // ServerTime calls; when the connection drops it reconnects at once and measures again, and leaving the ride closes
 // it. A solo class ride and the rest of the app hold none: the shared fixture fails any hub request it was not opened
-// for. Joining a session (JoinClassSession) is slice 14.3's; here the ride opens with its session in the address.
-import { hiitCardio } from './fixtures/classes';
+// for. The ride joins its session (JoinClassSession) as it connects; group-class-join.spec.ts covers the join.
+import { hiitCardio, seated } from './fixtures/classes';
 import { echelonBike } from './fixtures/echelon';
+import { connectBike } from './fixtures/class-ride';
 import { expect, test } from './fixtures/test';
 import { ClassRidePage } from './pages/class-ride.page';
+import { WorldLoadingPage } from './pages/world-loading.page';
 import { HomePage } from './pages/home.page';
+
+/** A seat in a session ten minutes away, so World loading counts down to it rather than starting (L2-154 AC1). */
+function laterSession(): { id: string; startsAt: string } {
+  return { id: 'session-0715', startsAt: new Date(Date.now() + 600_000).toISOString() };
+}
 
 test('a group class ride opens one hub connection and measures its clock offset; leaving closes it (L2-120 AC1, AC4; L2-121 AC3) @critical', async ({
   page,
@@ -17,6 +24,7 @@ test('a group class ride opens one hub connection and measures its clock offset;
 }) => {
   hub.open();
   hub.answer('ServerTime', () => Date.now() + 1500);
+  hub.answer('JoinClassSession', () => seated(laterSession()));
   await bluetooth.remember(echelonBike);
   const ride = new ClassRidePage(page);
 
@@ -26,7 +34,8 @@ test('a group class ride opens one hub connection and measures its clock offset;
   expect(hub.negotiations()).toBe(1);
   expect(hub.connections()).toBe(1);
 
-  await ride.leave.click();
+  // The group's World loading holds the connection until the start; Back to class leaves the page and closes it.
+  await new WorldLoadingPage(page).back.click();
   await expect(page).toHaveURL(`/classes/${hiitCardio.id}`);
   await expect.poll(() => hub.connections()).toBe(0);
 });
@@ -38,6 +47,7 @@ test('when the connection drops, the ride reconnects at once and measures its cl
 }) => {
   hub.open();
   hub.answer('ServerTime', () => Date.now());
+  hub.answer('JoinClassSession', () => seated(laterSession()));
   await bluetooth.remember(echelonBike);
   await new ClassRidePage(page).openGroup(hiitCardio.id, 'session-0715');
   await expect.poll(() => hub.invocations('ServerTime').length).toBe(5);
@@ -53,13 +63,17 @@ test('a solo class ride and the screens around it hold no hub connection (L2-120
   page,
   bluetooth,
   hub,
+  webgl,
 }) => {
+  await webgl.disable();
   await bluetooth.remember(echelonBike);
   const home = new HomePage(page);
   await home.open();
   await home.header.link('Classes').click();
   const ride = new ClassRidePage(page);
   await ride.open(hiitCardio.id);
+  await connectBike(bluetooth);
+  await new WorldLoadingPage(page).startRiding();
   await expect(ride.leave).toBeVisible();
   await ride.leave.click();
   await expect(page).toHaveURL(`/classes/${hiitCardio.id}`);

@@ -1,6 +1,6 @@
 # Blender maps
 
-Each Telo Ride map is modelled after a GCN online class (AGENTS.md, Direction; ADR 0032). This folder
+Each Telo Ride map is modelled after a GCN online class (AGENTS.md, Direction; ADR 0034). This folder
 builds a map in Blender from that class's plan.
 
 ```
@@ -17,7 +17,7 @@ It writes:
 
 | File | What it is |
 | --- | --- |
-| `frontend/projects/ride/public/courses/<id>.glb` | The map the Ride app draws: glTF binary, +Y up, coloured by vertex, no textures, no normals (the app shades it flat). |
+| `frontend/projects/ride/public/courses/<id>.glb` | The map the Ride app draws: glTF binary, +Y up, coloured by vertex, no textures, no normals (the app shades it flat, and works out the ground's). |
 | `frontend/projects/ride/public/courses/<id>.course.json` | The road's centre line and the plan's stages along it. The app rides this. |
 | `tools/blender/scenes/<id>.blend` | The Blender scene: open it to look the map over or model it further. The `Guides` collection holds the centre line and is left out of the glb. |
 
@@ -65,9 +65,14 @@ its target resistance (`level`) and its cadence aim (rpm).
 - **Elevation.** A level above the course's mean climbs and one below it descends, 1 % of gradient a
   level, eased over 28 m. Ibiza's mean level is 15.9: the level 24 sprints climb at 8 %, the level
   11 recoveries and the cool-down descend at 5 %.
-- **A catalogue map (ADR 0033)** names its `distanceKm` and `climbingMetres`: the metres a turn of the
+- **A catalogue map (ADR 0035)** names its `distanceKm` and `climbingMetres`: the metres a turn of the
   pedals are set so the road is exactly that long, and every gradient is scaled alike so it climbs exactly
   that much. Each stretch keeps its share of the length and each hill its place.
+- **Ramps.** A theme's `grade` may name a `ramp` (`{"work": 0.4, "recover": 0.15}`): an effort's whole climb is
+  laid in that share of its stretch and the rest runs level, and a recovery's descent likewise, so a small climb is
+  a hill a rider can see. Neon Docklands climbs 8 % onto each of its bridges for its listed 120 m.
+- **Bridges.** A theme with `bridges` (and a `ramp`) builds each effort's climb as a bridge: walkways, parapets and piers
+  in place of the quay, and the land beneath taken down to the sea's bed.
 - **Turns.** Dealt from the course's `seed`: hairpins and esses on the efforts, sweeps on the
   recoveries, straights and gentle sweeps on the warm-up and cool-down. The road never comes within
   46 m of an earlier stretch of itself, and turns for home when it strays far. Change the seed for
@@ -87,7 +92,10 @@ its target resistance (`level`) and its cadence aim (rpm).
 
 ## Themes
 
-Ibiza Sunset Strip's scenery is `build_scenery` here. Every other map names a theme in `themes.py`: its sky
+Ibiza Sunset Strip's land and scenery are `build_terrain` and `build_scenery` here; its theme in `themes.py` is
+marked `own` and gives it the rest (its sky, the bends it is dealt, its ramps and roll, what the course file tells
+the app). `build_scenery` uses the themes' kit for its windows, railings, glows and lights. Every other map names a
+theme in `themes.py`: its sky
 (which the course file carries for the app), haze and lights, a palette for the shared materials, its land
 (farmland, a town in the countryside, a headland over the sea, a harbour, an alpine valley, a beachfront, a
 high pass), its road edge (verge, pavement, cliff, quay, guard rail, beach, parapet), the turns it deals and
@@ -114,11 +122,28 @@ data and scenery in `themes.py`, run the script, and name the world in
 ## Built for low-power tablets
 
 - **Groups and chunks.** Every part hands its faces to the assembly (`assemble`), which joins them into a
-  few groups by material (`Land`, `Solid`, `Leaves`, `Glow`, `Beams`, `Confetti`), puts each face's colour
+  few groups by material (`Land`, `Ground`, `Walls`, `Solid`, `Leaves`, `Glow`, `Beams`, `Confetti`), puts each face's colour
   into its vertices, and cuts each group into chunks of 240 m of road (the land and beams four times as
   long, glow and leaves three). The app draws a chunk only near the camera, in one draw call.
+- **The ground.** What the road builds (asphalt, paint, kerbs, pavements, shoulders) is the `Ground` group, the only
+  one with a UV: each vertex's metres left of the centre line and metres from the start line. The app draws its
+  surface and the lamps' light from that (`docs/course-realism.md`). A theme with street lamps names them (`lamps`)
+  and the course file carries where their light falls.
+- **The walls.** What is built of a material in `WALL_KINDS` (brick, containers, plaster) is the `Walls` group. Its
+  UV is each vertex's metres along its wall and metres above the road beside it, plus 1,000 m for each kind of
+  wall, from which the app draws brick courses, ribs or plaster (`docs/course-realism.md`).
+- **The skyline.** `Kit.skyline` builds its towers into a part named `Skyline`, which becomes one mesh that is not cut
+  into chunks and is always drawn; the app draws their lit windows.
+- **Windows.** `Kit.window` builds a window as one panel of the `Windows` group, its UV its place on the panel, whether
+  it is lit and its own number; the app draws the rest. Nothing a window has is modelled: there are thousands.
+- **Halos.** `Kit.halo` puts four corners at a light's place in the `Halos` group; the app spreads them to face the eye
+  and draws the light's glow. `Kit.lamp` gives every lamp one.
 - **Baked shading.** What stands on the ground is darkened at its foot in its colours.
-- **`pack_glb.py`** rewrites the exported vertex colours as bytes, a quarter of their size.
+- **`pack_glb.py`** rewrites the exported vertex colours as bytes, a quarter of their size, and each mesh's positions as
+  16-bit steps of its own box, a step a centimetre, put back by the mesh's node (KHR_mesh_quantization).
+- **`meshopt_glb.mjs`** then writes the glb's buffers with the meshopt codec (Node, with the app's packages installed):
+  a third of the download, and nothing in the file changed. Without Node the build leaves the glb as the packer
+  wrote it.
 - **`layout`.** Searching the layouts a seed can deal for one whose start and finish look out to sea can
   take minutes. The script prints the layout it chose, and each course file names it (`"layout": 2`) so
   the next build goes straight to it. Remove the line to search again after changing the seed.

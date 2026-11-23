@@ -8,6 +8,7 @@ import {
   type MapDto,
   MAPS_API,
   MAPS_KEY,
+  MONOTONIC_TIME,
   type PackStrengthId,
   type RaceMode,
   type RaceResult,
@@ -17,6 +18,8 @@ import {
   type SceneRider,
   type SceneryRequest,
   type SceneryState,
+  RIDE_SOUND,
+  RIDE_ACTIVITY,
   SCREEN_WAKE_LOCK,
   TICKER,
 } from '@telo/api';
@@ -46,13 +49,21 @@ import {
   routeProfileView,
 } from '@telo/domain';
 import { catchError, of, take } from 'rxjs';
+import { LiveSessionStore, SERVICE_LOST_NOTICE } from '../live/live-session-store';
+import { liveRaceStandings } from './live-race-standings';
+
+/** A race has no class video over its ride sound. */
+const NO_VIDEO = signal(false).asReadonly();
 
 /**
  * The race's state (docs/detailed-designs/race/ride-a-race), provided by the page so it goes when the rider leaves. It
  * reads the map of the address from `MAPS_API` and starts the race the moment it arrives: the clock, the ticker and the
  * engine following the map's plan, which sends each segment's level (L2-063 AC2). The screen stays awake while it runs
  * (L2-133 AC3). Its opponents (docs/detailed-designs/race/race-the-ghost-and-bots) are nine bots, or the ghost of the
- * rider's best in a solo race; each tick ranks them with the rider (L2-060, L2-059 AC1, AC4, AC5).
+ * rider's best in a solo race; each tick ranks them with the rider (L2-060, L2-059 AC1, AC4, AC5). A riders-online race
+ * (`?mode=online&session=…`) first joins its session again and starts its clock at the session's server-time start,
+ * read through the measured offset, so every rider's clock reads the same at the same moment (L2-121 AC3, L2-056 AC4);
+ * until that start it holds at 0:00, and without a seat or an offset it starts at once and rides on with the bike.
  */
 @Injectable()
 export class RaceStore {
@@ -63,6 +74,9 @@ export class RaceStore {
   private readonly telemetry = inject(BikeTelemetry);
   private readonly resistanceControl = inject(ResistanceController);
   private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
+  /** Whether a ride is in progress, so a new version of the app waits for its end (L2-150 AC2). */
+  private readonly activity = inject(RIDE_ACTIVITY);
+  private readonly sound = inject(RIDE_SOUND);
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute).snapshot;
   private readonly mapId = this.route.paramMap.get('mapId') ?? '';
@@ -107,6 +121,14 @@ export class RaceStore {
     (['easy', 'medium', 'hard'] as const).find(
       (pack) => pack === this.route.queryParamMap.get('pack'),
     ) ?? 'medium';
+
+  /** The riders-online session the rider holds a seat in, from the lobby's Go (L2-056 AC3). */
+  private readonly session =
+    this.mode === 'online' ? this.route.queryParamMap.get('session') : null;
+  private readonly live = inject(LiveSessionStore);
+  private readonly time = inject(MONOTONIC_TIME);
+  private startTimer: ReturnType<typeof setTimeout> | undefined;
+  private destroyed = false;
 
   readonly map = this.loaded.asReadonly();
   /** Whether the rider paused the solo race: the clock, the distance and the standings hold (L2-068 AC1). */
@@ -224,6 +246,9 @@ export class RaceStore {
   readonly resistance = this.telemetry.resistance;
   readonly canControl = this.resistanceControl.canControl;
 
+  /** The board's notice while the service is lost and the race carries on (L2-126 AC1); `null` otherwise. */
+  readonly boardNotice = computed(() => (this.live.serviceLost() ? SERVICE_LOST_NOTICE : null));
+
   /** "Standings · 10 riders", or "You vs your best" in a solo race (L2-060 AC1, AC4). */
   readonly boardHeading = computed(() =>
     this.mode === 'solo' ? 'You vs your best' : `Standings · ${this.standings().length} riders`,
@@ -237,7 +262,8 @@ export class RaceStore {
       jersey: row.jersey,
       bot: row.bot,
       you: row.you,
-      gap: row.you ? '' : formatGap(row.gap),
+      gap: row.you ? '' : row.dnf ? 'DNF' : formatGap(row.gap),
+      dnf: row.dnf ?? false,
     })),
   );
 
@@ -265,9 +291,10 @@ export class RaceStore {
     }
     const ahead = rows[you.place - 2];
     const behind = rows[you.place];
+    const value = (row: Standing) => (row.dnf ? 'DNF' : formatGap(row.gap));
     return [
-      ...(ahead ? [{ label: 'Ahead', value: formatGap(ahead.gap) }] : []),
-      ...(behind ? [{ label: 'Behind', value: formatGap(behind.gap) }] : []),
+      ...(ahead ? [{ label: 'Ahead', value: value(ahead) }] : []),
+      ...(behind ? [{ label: 'Behind', value: value(behind) }] : []),
     ];
   });
 
@@ -296,22 +323,62 @@ export class RaceStore {
   });
 
   constructor() {
+    const joined =
+      this.session === null
+        ? null
+        : this.live.join({ kind: 'race', mapId: this.mapId, sessionId: this.session });
     inject(MAPS_API)
       .list()
       .pipe(takeUntilDestroyed())
       .subscribe((maps) => {
         const map = maps.find((each) => each.id === this.mapId);
-        if (map) this.start(map);
+        if (!map) return;
+        this.loaded.set(map);
+        if (joined === null) this.start(map);
+        else void joined.then(() => this.waitForStart(map));
       });
-    // The lock is bound on the route, whose injector outlives the page.
-    this.destroyRef.onDestroy(() => this.wakeLock.release());
+    this.destroyRef.onDestroy(() => {
+      this.destroyed = true;
+      clearTimeout(this.startTimer);
+    });
+    // The lock and the sound are bound on the route, whose injector outlives the page.
+    this.destroyRef.onDestroy(() => {
+      this.wakeLock.release();
+      this.activity.end();
+      this.sound.stop();
+    });
   }
 
-  private start(map: MapDto): void {
+  /**
+   * Starts a riders-online race at its session's start on the monotonic clock, holding at 0:00 until then; one opened
+   * after the start rides from the session's time (L2-121 AC3).
+   */
+  private waitForStart(map: MapDto): void {
+    if (this.destroyed) return;
+    const race = this.live.race();
+    const offset = this.live.offsetMs();
+    if (race === null || offset === null) return this.start(map);
+    const at = Date.parse(race.startsAt) - offset;
+    const wait = at - this.time.now();
+    if (wait <= 0) return this.start(map, at);
+    this.startTimer = setTimeout(() => this.start(map, at), wait);
+  }
+
+  /** Starts the race: now, or from `at`, a riders-online session's start on the monotonic clock. */
+  private start(map: MapDto, at?: number): void {
     this.loaded.set(map);
     this.recorder = new RideRecorder();
     this.wakeLock.hold();
-    this.clock.start();
+    this.activity.begin();
+    // Ride sound follows the pedalling at the race's speed, quiet while paused or out of the race (L2-163).
+    this.sound.play({
+      cadence: this.telemetry.cadence,
+      speedKmh: this.speedKmh,
+      resistance: this.telemetry.resistance,
+      running: this.running,
+      videoPlaying: NO_VIDEO,
+    });
+    this.clock.start(at);
     this.ticker.start();
     this.line = new FinishLine(map.distanceKm * 1000);
     this.engine.follow(map.plan);
@@ -324,6 +391,14 @@ export class RaceStore {
       this.watchBike();
       this.watchPedals();
     });
+  }
+
+  /**
+   * Leave, on its way to Race Setup: a riders-online race tells its session, which marks the rider DNF for everyone at
+   * once (L2-124 AC1); the route then closes the connection.
+   */
+  leave(): void {
+    if (this.mode === 'online') this.live.leaveRace();
   }
 
   /** Holds a solo race where it is; a bots or riders-online race has no Pause (L2-068 AC1, AC3). */
@@ -377,6 +452,7 @@ export class RaceStore {
     this.clock.pause();
     this.ticker.stop();
     this.wakeLock.release();
+    this.activity.end();
   }
 
   /**
@@ -392,12 +468,14 @@ export class RaceStore {
 
   /**
    * The race's opponents: nine bots paced by the pack, or in a solo race the ghost of the rider's best on the map, the
-   * medium pace when there is none or it cannot be read (L2-067 AC1, AC2; L2-050 AC4). Riders online have their own
-   * field with journey 15.
+   * medium pace when there is none or it cannot be read (L2-067 AC1, AC2; L2-050 AC4). Riders online are the
+   * service's, ranked by `rankLive` (slice 15.3).
    */
   private startField(map: MapDto): void {
     if (this.mode === 'bots') {
       this.field = new BotPack(map.id, this.pack);
+      this.rank();
+    } else if (this.mode === 'online') {
       this.rank();
     } else if (this.mode === 'solo') {
       this.ghosts
@@ -414,8 +492,12 @@ export class RaceStore {
     }
   }
 
-  /** Ranks the rider and the field at the last second ridden, the gaps at the rider's speed of the moment. */
+  /**
+   * Ranks the rider and the field at the last second ridden, the gaps at the rider's speed of the moment; riders
+   * online are ranked by the service.
+   */
   private rank(): void {
+    if (this.mode === 'online') return this.rankLive();
     if (!this.field || !this.line) return;
     const power = this.telemetry.powerW();
     const speed =
@@ -428,6 +510,24 @@ export class RaceStore {
   }
 
   /**
+   * A riders-online race: reports the rider's distance and power to the session (L2-123 AC1), then draws the board from
+   * the service's latest standings, and the world's riders at the service's distances (L2-123 AC3).
+   */
+  private rankLive(): void {
+    if (!this.line) return;
+    const you = this.line.hold(YOU, this.ridden(), this.lastSecond);
+    this.live.report(you, this.telemetry.powerW() ?? 0);
+    const race = this.live.race();
+    const standings = this.live.raceStandings();
+    this.standings.set(liveRaceStandings(standings, race));
+    this.riders.set(
+      (standings?.rows ?? [])
+        .filter((row) => row.seat !== race?.seat)
+        .map((row) => ({ jersey: row.jersey, metres: row.distanceMetres - you })),
+    );
+  }
+
+  /**
    * The line: the finish time is the race clock's second, the place is where the rider crossed it, and Results opens
    * with the result and the ride; the clock and the ticker stop, and leaving the page releases the rest (L2-071 AC1).
    * The ride is submitted as it ends (L2-044 AC2).
@@ -437,6 +537,7 @@ export class RaceStore {
     this.clock.pause();
     this.ticker.stop();
     this.wakeLock.release();
+    this.activity.end();
     const raceResult: RaceResult = {
       mapId: this.mapId,
       mapName: this.map()?.name ?? '',
@@ -462,9 +563,10 @@ export class RaceStore {
       kind: 'race',
       mapId: result.mapId,
       mode: result.mode,
-      pack: result.pack,
+      pack: result.mode === 'online' ? null : result.pack,
       place: result.place,
       fieldSize: result.field,
+      ...(this.session ? { sessionId: this.session } : {}),
     };
     this.outbox.submit(ride);
     return ride;

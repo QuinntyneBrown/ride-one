@@ -94,6 +94,9 @@ jobs:
       - name: The ride app, within its budgets
         run: npm run build
         working-directory: frontend
+      - name: The ride app's initial bundle, at most 300 KB gzipped
+        run: npm run bundle:size
+        working-directory: frontend
       - name: The marketing site, within its budgets
         run: npm run build:marketing
         working-directory: frontend
@@ -181,8 +184,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: backend/global.json
-      - name: Build the app
-        run: npm ci --no-audit --no-fund && npm run build
+      - name: Build the app, stamped with its commit for Diagnostics' App version
+        run: npm ci --no-audit --no-fund && npm run build -- --define "TELO_COMMIT='${GITHUB_SHA::7}'"
         working-directory: frontend
       - name: Publish the API with the app in its wwwroot
         run: |

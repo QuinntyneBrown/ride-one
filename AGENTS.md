@@ -59,7 +59,7 @@ prototype disagrees, the specs stand and the mock is brought in line before the 
 
 This repository began as a copy of Telo Ride. Its code, docs and tests still hold Telo Ride's
 other features: races, the World library and its Blender courses (`blender/`, `tools/blender`),
-the class library, sign-in, progression, group classes and live races, the custom workout and the
+the class library, sign-in, progression, group classes and live races, feedback, the custom workout and the
 `marketing` application. The ADRs still describe Telo Ride; `docs/specs/`, `docs/journeys.md`,
 `docs/detailed-journeys.md`, `docs/mocks/` and `docs/detailed-designs/` are rewritten for
 Telo Ride 1.

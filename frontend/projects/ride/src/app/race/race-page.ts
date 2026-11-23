@@ -20,8 +20,10 @@ import {
   WorkoutEngine,
 } from '@telo/domain';
 import { RouterLink } from '@angular/router';
+import { LiveSessionStore } from '../live/live-session-store';
 import { RaceStore } from './race-store';
 import { RaceWorld } from './race-world';
+import { FullscreenButton } from '../fullscreen/fullscreen-button';
 
 /**
  * The race at `/race/:mapId/ride` (docs/mocks/pages/race/): full screen with no app header, the scene behind the HUD.
@@ -30,6 +32,7 @@ import { RaceWorld } from './race-world';
 @Component({
   selector: 'wz-race-page',
   imports: [
+    FullscreenButton,
     Button,
     RaceBar,
     RaceBarButton,
@@ -47,8 +50,22 @@ import { RaceWorld } from './race-world';
   templateUrl: './race-page.html',
   styleUrl: './race-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [RaceStore, RideClock, RideTicker, WorkoutEngine, ResistanceController, BikeTelemetry],
+  host: { '(window:beforeunload)': 'confirmLeaving($event)' },
+  providers: [
+    RaceStore,
+    LiveSessionStore,
+    RideClock,
+    RideTicker,
+    WorkoutEngine,
+    ResistanceController,
+    BikeTelemetry,
+  ],
 })
 export default class RacePage {
   protected readonly store = inject(RaceStore);
+
+  /** While the race runs, closing or reloading the tab asks the rider to confirm (L2-133 AC4). */
+  protected confirmLeaving(event: BeforeUnloadEvent): void {
+    if (this.store.map() !== null && !this.store.dnf()) event.preventDefault();
+  }
 }

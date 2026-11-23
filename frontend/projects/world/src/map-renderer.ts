@@ -1,4 +1,4 @@
-// The renderer the world scene is handed (ADR 0032): it learns the world only when the scene starts, so it imports
+// The renderer the world scene is handed (ADR 0034): it learns the world only when the scene starts, so it imports
 // the course renderer for a world built in Blender and `main`'s renderer for every other, and passes each call on.
 // Neither renderer, nor Three.js, is imported before then. A course follows no real place: when the rider streams
 // one (Old Town's real Bruges, L2-066), `main`'s renderer, which can, takes the canvas over from the course.
@@ -10,6 +10,7 @@ import type {
   TimedSegment as Segment,
   World,
   WorldRenderer,
+  WorldStartOptions,
 } from '@telo/api';
 import { coursePath } from './course-worlds';
 
@@ -22,6 +23,7 @@ export class MapRenderer implements WorldRenderer {
     world: World;
     nextFrame: () => Promise<void>;
     segments?: readonly Segment[];
+    options?: WorldStartOptions;
   } | null = null;
   private size: readonly [number, number, number] | null = null;
   private period: number | null = null;
@@ -35,6 +37,7 @@ export class MapRenderer implements WorldRenderer {
     world: World,
     nextFrame: () => Promise<void>,
     segments?: readonly Segment[],
+    options?: WorldStartOptions,
   ): Promise<boolean> {
     const path = coursePath(world.id);
     const renderer: WorldRenderer =
@@ -47,8 +50,8 @@ export class MapRenderer implements WorldRenderer {
       return false;
     }
     this.renderer = renderer;
-    this.started = path === null ? null : { canvas, world, nextFrame, segments };
-    return renderer.start(canvas, world, nextFrame, segments);
+    this.started = path === null ? null : { canvas, world, nextFrame, segments, options };
+    return renderer.start(canvas, world, nextFrame, segments, options);
   }
 
   resize(width: number, height: number, pixelRatio: number): void {
@@ -98,6 +101,7 @@ export class MapRenderer implements WorldRenderer {
       started.world,
       started.nextFrame,
       started.segments,
+      started.options,
     );
     if (this.disposed || this.renderer !== worldRide) return;
     if (this.size) worldRide.resize(...this.size);

@@ -39,6 +39,12 @@ describe('resultsView', () => {
     ...over,
   });
 
+  it('heads a riders-online race "Live race" (the peers mock)', () => {
+    const view = resultsView({ ...race(1, [rider('You', 1621, true)]), mode: 'online' }, SENDING);
+
+    expect(view.context).toBe('Old Town Criterium · Live race');
+  });
+
   it('reads 2nd of 10 against bots as a podium place, with the standings (AC1, AC3)', () => {
     const view = resultsView(
       race(2, [rider('Pacer Nova', 1592), rider('You', 1598, true), rider('Pacer Rook', 1607)], {
@@ -55,6 +61,7 @@ describe('resultsView', () => {
       podium: true,
       of: 'of 10',
       sub: '26:38 · on the podium',
+      announcement: 'Race results: You finished 2nd of 10.',
       standings: [
         { place: 1, name: 'Pacer Nova', jersey: 'nova', bot: true, you: false, value: '26:32' },
         { place: 2, name: 'You', jersey: 'you', bot: false, you: true, value: '26:38' },
@@ -127,6 +134,7 @@ describe('resultsView', () => {
       podium: false,
       of: null,
       sub: '342 kJ · 84% on target',
+      announcement: 'Class results: You finished 30:00.',
       standings: null,
       again: { label: 'Ride it again', path: '/classes/hiit-cardio-30', query: {} },
       xp: WAITING,
@@ -183,6 +191,7 @@ describe('resultsView', () => {
     it('shows the total and each line in the order returned, and the stars on the map (L2-074 AC1, L2-075 AC1)', () => {
       const view = resultsView(bots, answer({}));
 
+      expect(view.announcement).toBe('Race results: You finished 2nd of 10. +442 XP earned.');
       expect(view.xp).toEqual({
         state: 'ready',
         total: '+442',
