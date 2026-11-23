@@ -157,6 +157,32 @@ export class FakeBluetooth {
     await this.page.evaluate((value) => Object.assign(window, { __fakeBikeOn: value }), on);
   }
 
+  /**
+   * The browser's chooser opens and stays open: `requestDevice` is pending until `pickFromChooser()`, as it is while
+   * the rider reads the list of bikes (L2-011 AC2).
+   */
+  async holdChooser(): Promise<void> {
+    await this.chooser('hold');
+  }
+
+  /** The rider picks the offered bike in the chooser that `holdChooser()` left open. */
+  async pickFromChooser(): Promise<void> {
+    await this.chooser(null);
+    await this.releaseChooser();
+  }
+
+  /** The rider closes the chooser that `holdChooser()` left open, without picking a bike. */
+  async closeChooser(): Promise<void> {
+    await this.chooser('cancel');
+    await this.releaseChooser();
+  }
+
+  private async releaseChooser(): Promise<void> {
+    await this.page.evaluate(() =>
+      (window as unknown as { __fakeChooserPick?: () => void }).__fakeChooserPick?.(),
+    );
+  }
+
   /** The chooser opens again as usual. */
   async allowChooser(): Promise<void> {
     await this.chooser(null);
@@ -172,7 +198,7 @@ export class FakeBluetooth {
     return [...this.order];
   }
 
-  private async chooser(mode: 'cancel' | 'block' | null): Promise<void> {
+  private async chooser(mode: 'cancel' | 'block' | 'hold' | null): Promise<void> {
     await this.page.addInitScript((m) => Object.assign(window, { __fakeChooser: m }), mode);
     await this.page.evaluate((m) => Object.assign(window, { __fakeChooser: m }), mode);
   }
@@ -334,7 +360,13 @@ function installInPage(): void {
     Object.assign(new EventTarget(), {
       requestDevice: async (options: unknown) => {
         await report({ kind: 'request', options: JSON.parse(JSON.stringify(options)) });
-        const mode = (window as unknown as { __fakeChooser?: string | null }).__fakeChooser;
+        const chooser = () =>
+          (window as unknown as { __fakeChooser?: string | null }).__fakeChooser;
+        if (chooser() === 'hold')
+          await new Promise<void>((resolve) =>
+            Object.assign(window, { __fakeChooserPick: resolve }),
+          );
+        const mode = chooser();
         if (mode === 'cancel')
           throw new DOMException('User cancelled the requestDevice() chooser.', 'NotFoundError');
         if (mode === 'block')

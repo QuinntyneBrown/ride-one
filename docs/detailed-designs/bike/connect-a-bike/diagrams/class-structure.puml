@@ -113,7 +113,6 @@ class ConnectView <<union>> {
 class ConnectDevice <<component>> {
   +name: string
   +identifier: string | null
-  +signal: string | null
   +state: 'idle' | 'searching' | 'paired'
 }
 

@@ -1765,8 +1765,6 @@ textarea.input { height: auto; min-height: var(--space-28); padding-block: var(-
 .connect__pair-btn:disabled:active { transform: none; }
 .mock-note.connect__note { position: static; margin-top: var(--space-4); max-width: none; }
 .connect__note a { text-decoration: underline; }
-/* The chooser hint under the pair button (mt-3 text-sm muted) */
-.connect__hint { margin-top: var(--space-3); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
 
 /* Blocker: Bluetooth off / unsupported browser (mt-8 rounded-xl bg-panel p-5) */
 .connect-blocker { margin-top: var(--space-8); border-radius: var(--radius-xl); background: var(--color-panel); padding: var(--space-5); }

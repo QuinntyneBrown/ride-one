@@ -36,11 +36,6 @@ export default class ConnectBikePage {
     return { name: bike?.name ?? OFFERED, identifier: bike?.identifier ?? null, state };
   });
 
-  /** The chooser hint shows while the rider is choosing (L2-012 AC5). */
-  protected readonly choosing = computed(() =>
-    ['default', 'searching'].includes(this.store.view().kind),
-  );
-
   /** The plain words for a chooser that could not open (L2-012 AC4). */
   protected readonly failure = computed(() => {
     const view = this.store.view();
@@ -61,7 +56,7 @@ export default class ConnectBikePage {
       case 'default':
         return { label: `Pair ${OFFERED}`, busy: false, disabled: false };
       case 'searching':
-        return { label: 'Searching…', busy: true, disabled: true };
+        return { label: 'Searching…', busy: false, disabled: true };
       case 'pairing':
         return { label: 'Pairing…', busy: true, disabled: true };
       case 'paired':

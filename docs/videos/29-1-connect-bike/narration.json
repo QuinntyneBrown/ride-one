@@ -1,0 +1,74 @@
+{
+  "voice": "af_heart",
+  "bpm": 92.99,
+  "beatsPerBar": 4,
+  "gapBeats": 1,
+  "outroSeconds": 3,
+  "music": {
+    "file": "../assets/music/beautiful-boom-bap.mp3",
+    "offset": 0.009,
+    "duckDb": 16,
+    "betweenDb": 5,
+    "fadeSeconds": 2
+  },
+  "scenes": [
+    {
+      "id": "hook",
+      "bars": 4,
+      "lines": [
+        "A new rider starts on Connect Bike. This slice draws it as designed: pair the bike once, then take the class."
+      ]
+    },
+    {
+      "id": "rest",
+      "bars": 5,
+      "lines": [
+        "At rest, the screen has the wordmark, the bike, one button, and the bikes it works with. The hint under the button is gone, and nothing else is there."
+      ]
+    },
+    {
+      "id": "search",
+      "bars": 5,
+      "lines": [
+        "Press the button, by touch or by keyboard, and the browser opens its list of bikes. While it is open, the card says it is looking for bikes nearby."
+      ]
+    },
+    {
+      "id": "pair",
+      "bars": 5,
+      "lines": [
+        "Pick the bike, and the card names it while the button says pairing. When the bike answers, the card gets a check."
+      ]
+    },
+    {
+      "id": "class",
+      "bars": 4,
+      "lines": [
+        "Half a second later, the class opens with the bike connected, and the bike is remembered."
+      ]
+    },
+    {
+      "id": "widths",
+      "bars": 4,
+      "lines": [
+        "On a phone the photo follows the content. From a wide tablet up, it sits on the left."
+      ]
+    },
+    {
+      "id": "proof",
+      "bars": 5,
+      "lines": [
+        "Ten new specs were written first, and three failed on the old screen. Now one hundred and sixty-two specs and every unit test pass."
+      ]
+    },
+    {
+      "id": "close",
+      "bars": 12,
+      "lines": [
+        "Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class, nothing else.",
+        "It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's resistance for every interval while the rider pedals.",
+        "Connect the bike, take the class, see your number, and come back to beat it."
+      ]
+    }
+  ]
+}
