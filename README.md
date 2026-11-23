@@ -10,8 +10,9 @@
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4.svg)
 
 Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: **one class, nothing
-else.** It pairs with a smart bike at home over Bluetooth, plays the class video and sets the
-bike's resistance for every interval while you pedal. Connect the bike, take the class, see your
+else.** It pairs with a smart bike at home over Bluetooth, plays the class video, or draws the
+Ibiza Sunset Strip course to music if you choose it, and sets the bike's resistance for every
+interval while you pedal. Connect the bike, take the class, see your
 number, and come back to beat it.
 
 The frontend is the product: an Angular app that talks to the bike over Web Bluetooth in Chrome or
@@ -44,22 +45,24 @@ Four screens, in order:
 1. **Connect Bike.** A new rider pairs the bike through the browser's chooser. Telo Ride 1
    remembers it and opens on The Class next time. Bluetooth turned off and an unsupported browser
    each say what is wrong and how to fix it.
-2. **The Class.** The home screen, and the only class: **30 Minute HIIT Cardio** (GCN Training).
-   It shows the class video, its title and length, and a chart of what the bike will do. One
+2. **The Class.** The home screen, and the only class: **Intervals to the Beat** (GCN Training,
+   20:00). It shows the class video, its title and length, a chart of what the bike will do, and
+   the choice to ride with the class video or in Ibiza, on the Ibiza Sunset Strip course. One
    button starts it, or says "Connect your bike" when no bike is connected. The header shows the
    connected bike and lets the rider change it. A returning rider also sees how many times they
    have ridden it, and their best and last output.
-3. **Class Ride.** The video plays in sync while the class's plan sets the target resistance; the
-   rider just pedals. Power, cadence and the interval countdown sit under the video. It is always
+3. **Class Ride.** The video plays in sync, or the course is drawn as the rider rides, while the
+   class's plan sets the target resistance; the rider just pedals. In Ibiza, *Beautiful Boom Bap*
+   plays in the background. Power, cadence and the interval countdown sit under the video. It is always
    solo, so the rider can pause, leave or finish.
 4. **Class Done.** The ride's output in kJ, in gold when it beats the rider's best, with time,
-   average watts and how much of the ride was on target, then the eight efforts as bars. **Done**
+   average watts and how much of the ride was on target, then the class's efforts as bars. **Done**
    goes back to The Class.
 
 ## What Telo Ride 1 leaves out
 
-Everything Telo Ride has beyond the one class: the class library, races, maps and the 3D world,
-group classes and live races, XP, rider levels, stars and unlocks, sign-in, and the custom
+Everything Telo Ride has beyond the one class: the class library, races, every map and world but
+Ibiza Sunset Strip, group classes and live races, XP, rider levels, stars and unlocks, sign-in, and the custom
 workout. There are no menus.
 
 ## Design
@@ -91,12 +94,13 @@ being cut down to Telo Ride 1. What the one class needs is already built there a
 - **A solo class.** The video in sync, the plan driving resistance, the clock, pause, leave and
   finish.
 
-Still to do: The Class and Class Done as Telo Ride 1 designs them, the TELO RIDE 1 wordmark,
+Still to do: the change of class to Intervals to the Beat, riding in Ibiza and its music
+(`docs/specs/`), The Class and Class Done as Telo Ride 1 designs them, the TELO RIDE 1 wordmark,
 keeping the rider's ride count and best and last output, and taking out what Telo Ride 1 leaves
 out. The code for those features (races, the 3D world and its Blender courses, sign-in,
 progression, group classes, the marketing site) and the docs that describe them
-([`docs/journeys.md`](docs/journeys.md), [`docs/specs/`](docs/specs/), the ADRs) are still
-Telo Ride's until each is rewritten or removed.
+(the detailed designs and the ADRs) are still Telo Ride's until each is rewritten or removed.
+[`docs/journeys.md`](docs/journeys.md) lists what is carried over and what is left to build.
 
 ## Supported bikes and browsers
 
@@ -227,7 +231,7 @@ site (`frontend/projects/marketing`) are still in the tree; Telo Ride 1 does not
 | [Echelon protocol](docs/protocol/echelon-ble-messages.md) | The Bluetooth messages and their [frames](docs/protocol/echelon-ble-frames.md) |
 | [Architecture decisions](docs/adr/README.md) | Why the architecture is the way it is |
 | [Requirements](docs/specs/L1.md) | Telo Ride 1's requirements (L1, with acceptance criteria in [L2](docs/specs/L2.md)) |
-| [User journeys](docs/journeys.md) | Telo Ride's journeys and progress; slices in [detailed journeys](docs/detailed-journeys.md) |
+| [User journeys](docs/journeys.md) | Telo Ride 1's journeys and progress; slices in [detailed journeys](docs/detailed-journeys.md) |
 | [Detailed designs](docs/detailed-designs/README.md) | Telo Ride 1's designs, one per feature, with C4, class and sequence diagrams |
 | [Backend](backend/README.md) | The .NET projects and their commands |
 | [Deployment](docs/deployment.md) | Settings, hosting and release |

@@ -8,8 +8,13 @@ an overview, the building blocks, the level-2 (L2) requirements it realizes from
 [`docs/specs/L2.md`](../specs/L2.md), and its C4, class and sequence diagrams. The diagrams are
 PlantUML sources in the feature's `diagrams/` folder, rendered to PNG beside them.
 
-Each L2 requirement belongs to exactly one design. A gap the requirements leave open is marked
+Each L2 requirement they cover belongs to exactly one design. A gap the requirements leave open is marked
 `<TO SUPPLY>` and cites the open question or mock gap in `L2.md`.
+
+The designs were written against the requirements as they stood before the class became Intervals
+to the Beat. They still describe 30 Minute HIIT Cardio (30:00, eight efforts) and the class video
+only. Riding in Ibiza and its music (`L2-173` to `L2-177`) have no design yet, and `L2-169` is
+designed as the eight efforts. A feature is brought in line with `L2.md` before it is built.
 
 ## Bike
 
