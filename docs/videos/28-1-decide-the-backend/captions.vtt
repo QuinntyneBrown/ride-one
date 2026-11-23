@@ -1,0 +1,49 @@
+WEBVTT
+
+00:00:02.581 --> 00:00:06.804
+One question was left open. Does Telo Ride 1 keep a backend?
+
+00:00:10.324 --> 00:00:15.304
+The backend signs riders in, keeps their progress, runs live races and group
+
+00:00:15.304 --> 00:00:20.780
+classes, and lists the classes. Telo Ride 1 leaves out all of it but one class.
+
+00:00:23.228 --> 00:00:27.900
+The requirements already point one way: static files, your record kept on your
+
+00:00:27.900 --> 00:00:31.255
+device, and a ride that finishes without a network.
+
+00:00:36.133 --> 00:00:40.214
+So the answer is no. The class ships with the app, and there is nothing to keep
+
+00:00:40.214 --> 00:00:40.927
+running.
+
+00:00:49.038 --> 00:00:53.742
+The backend goes piece by piece, each with the slice that removes what it served,
+
+00:00:53.742 --> 00:00:56.249
+and the build stays green all the way.
+
+00:01:01.942 --> 00:01:06.112
+Nothing on screen changes today. The app looks the same at every width.
+
+00:01:12.266 --> 00:01:17.920
+Telo Ride 1, from the Telo family, is the focused edition of Telo Ride: one class,
+
+00:01:17.920 --> 00:01:19.116
+nothing else.
+
+00:01:19.461 --> 00:01:24.413
+It pairs with a smart bike at home over Bluetooth, plays the class video, or draws
+
+00:01:24.413 --> 00:01:29.425
+the Ibiza Sunset Strip course to music if the rider chooses it, and sets the bike's
+
+00:01:29.425 --> 00:01:32.926
+resistance for every interval while the rider pedals.
+
+00:01:33.272 --> 00:01:37.247
+Connect the bike, take the class, see your number, and come back to beat it.

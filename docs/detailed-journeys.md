@@ -41,14 +41,14 @@ Not counted, though their code stays until a slice below replaces or removes it:
 
 | # | Slice | Description | Days | Journey | Requirements | % complete |
 |---|-------|-------------|------|---------|--------------|-----------|
-| 28.1 | Decide the backend | An ADR on whether Telo Ride 1 keeps the backend for the class catalogue or ships the class with the app. | 1 | 28. Make it Telo Ride 1 | L2 open question 1 | 0% |
+| 28.1 | Decide the backend | ADR 0037: Telo Ride 1 has no backend; the one class ships with the app and the rider's record stays on the device. | 1 | 28. Make it Telo Ride 1 | L2 open question 1 | 100% |
 | 28.2 | Remove races | The race, the lobby, Race Setup, Map Select, ghost and bots, with their tests (ADR 0036). The `world` library and the Blender courses stay for riding in Ibiza; the other seven courses go in 30.1, the backend's race code after 28.1. | 3 | 28. Make it Telo Ride 1 | L1 (left out) | 100% |
 | 28.3 | Remove group classes and live races | The ride hub client and everything that uses it. | 1 | 28. Make it Telo Ride 1 | L1 (left out) | 0% |
 | 28.4 | Remove sign-in and progression | Sign-in, display name, accounts, XP, rider levels, streaks, stars, unlocks and recorded rides. | 3 | 28. Make it Telo Ride 1 | L2-132 AC1 | 0% |
 | 28.5 | Remove Home, Profile, the class library and heart rate | No menu or navigation is left; `/` opens the one class until slice 30.2 draws The Class. | 2 | 28. Make it Telo Ride 1 | L2-080 AC4, L2-167 AC4 | 0% |
 | 28.6 | Remove the marketing application | The workspace is `ride` on `api`, `domain`, `components` and `video`; an ADR supersedes ADR 0027. | 1 | 28. Make it Telo Ride 1 | L2-146 AC1–2 | 0% |
 | 28.7 | Wordmark | TELO RIDE 1 on every header, and "Telo Ride 1" in every title and message. | 1 | 28. Make it Telo Ride 1 | L2-172 | 0% |
-| 28.8 | Host as static files | Static files over HTTPS with an http redirect and HSTS; the backend goes if 28.1 says so. | 3 | 28. Make it Telo Ride 1 | L2-149 AC1, L2-009 AC2 | 0% |
+| 28.8 | Host as static files | Static files over HTTPS with an http redirect and HSTS; the backend's projects, tests and CI job go (ADR 0037). | 3 | 28. Make it Telo Ride 1 | L2-149 AC1, L2-009 AC2 | 0% |
 | 29.1 | Connect Bike | The screen as designed: works-with list, searching, the bike to pair, pairing, paired, then The Class. | 3 | 29. Pair the bike | L2-007, L2-011, L2-012 AC1–3, L2-013, L2-014 AC1–2, AC4 | 0% |
 | 29.2 | Say why the bike cannot be reached | Alerts for Bluetooth off, an unsupported browser, plain http and a chooser that will not open. | 2 | 29. Pair the bike | L2-008 AC1, L2-009 AC4, L2-012 AC4, L2-018 | 0% |
 | 30.1 | The one class | `gcn-30-hiit` with its plan, validated; no other class; a class that cannot be loaded says so. | 2 | 30. Open on The Class | L2-080 AC1–4 | 0% |
@@ -81,12 +81,12 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
 
-**Total:** 50 slices, 99 days. **Complete:** 12 slices, 30 days (30%), 11 of them carried over.
-**To build:** 38 slices, 69 days.
+**Total:** 50 slices, 99 days. **Complete:** 13 slices, 31 days (31%), 11 of them carried over.
+**To build:** 37 slices, 68 days.
 
 ## What a slice waits for
 
-- **28.1** decides where the class comes from, so 30.1, 28.8 and 35.1 follow it.
+- **28.1** decided where the class comes from (ADR 0037: with the app, no backend), so 30.1, 28.8 and 35.1 follow it.
 - **L2's open questions:** 30.1 and 30.3 need the warm-up and cool-down cadence aims (11); 32.5
   builds a rule that is still a proposal (2); 32.2 shows a Time that is always 30:00 (3).
 - **L2's mock gaps**, each drawn before its slice is built: 29.2 (the HTTPS and chooser alerts),
