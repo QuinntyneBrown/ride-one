@@ -53,9 +53,8 @@
             @for (effort of efforts(); track effort.number) {
               <li
                 class="class-done__effort"
+                [class]="shareClass(effort)"
                 [class.class-done__effort--peak]="effort.strongest"
-                [style.--share]="effort.height / 100"
-                [style.--index]="$index"
               >
                 <span class="class-done__watts"
                   ><span class="visually-hidden">Effort {{ effort.number }}: </span>{{ effort.watts
