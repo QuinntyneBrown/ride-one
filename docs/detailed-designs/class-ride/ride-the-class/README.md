@@ -223,6 +223,17 @@ of it was carried over from Telo Ride's class ride at `/classes/:id/ride`; slice
   fetches `courses/ibiza.glb`, `courses/ibiza.course.json` and `riders/rider.glb` from the app's origin, and draws
   the course with one rider (`L2-174` AC6): the code that made a field of other riders, a ghost and their
   shadows is gone. How the course itself is drawn is unchanged.
+- **A course that cannot be drawn** (slice 37.4; `L2-175` AC2, AC4, AC5; the mock `class-ride/ibiza-unavailable`).
+  `CourseScene` emits `unavailable` once when the renderer's start fails (a file that is not there or `parseCourse`
+  refuses) or when the canvas's graphics context is lost and does not come back within 3 seconds
+  (`webglcontextlost` is cancelled and given that long; `webglcontextrestored` ends the wait). It then stops its
+  loop, hides the canvas and releases the renderer. `CourseSceneHost` re-emits it, `ClassRideStore.failCourse()`
+  keeps it (`courseUnavailable`), and `wz-class-course` takes it as `unavailable`: the still stays, "Loading …"
+  goes and `wz-inline-message` (`class-course__notice`, a polite status) says "Ibiza can’t be drawn. The bike will
+  still follow the class." under the box. The plan, the clock and the bike do not wait on the course. The course
+  is kept on the device by the service worker: `ngsw-config.json`'s lazy `assets` group lists `/courses/**` and
+  `/riders/**`, so what the first ride fetches is served to the second, with or without a network. WebGPU
+  device loss is not watched (open question 31).
 - **`parseCourse`** (`world`'s `course.ts`, built by slice 37.3). The gate every course file passes before the
   renderer draws from it; a file it refuses is a course that cannot be drawn (the renderer's `start` returns
   false, and slice 37.4 says so). The file is data (`L2-175` AC6): the plan's stages must lie end to end (each

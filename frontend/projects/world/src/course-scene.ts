@@ -17,11 +17,15 @@ import { FrameScheduler } from './frame-scheduler';
 import { MotionPreference } from './motion-preference';
 import { SceneDriver } from './scene-driver';
 
+/** How long a lost graphics context has to come back before the course is given up (L2-175 AC2). */
+const CONTEXT_GRACE_MS = 3_000;
+
 /**
  * The course drawn on a canvas that fills the box it is put in (L2-174 AC1). It loads the renderer on first render,
  * which fetches the course's files (L2-175 AC1), draws on the app's frame loop while the ride runs, and emits `drawn`
  * once, when the ride's first frame has been drawn where the clock puts the rider (AC3); until then the canvas is
- * unseen and unnamed. It emits `unavailable` once when the course cannot be drawn. Leaving stops the loop and
+ * unseen and unnamed. It emits `unavailable` once when the course cannot be drawn: its files cannot be loaded, or its
+ * graphics context is lost and does not come back within a few seconds (L2-175 AC2). Leaving stops the loop and
  * disposes the renderer (L2-174 AC8).
  */
 @Component({
@@ -70,6 +74,33 @@ export class CourseScene implements AfterViewInit {
     let observer: ResizeObserver | null = null;
     let screen: MediaQueryList | null = null;
     let destroyed = false;
+    let watched: HTMLCanvasElement | null = null;
+    let lostTimer: ReturnType<typeof setTimeout> | undefined;
+
+    // A lost graphics context gets a few seconds to come back; if it does not the course is given up: the loop stops,
+    // the renderer is released, the canvas is hidden again and the page is told, as when its files cannot be loaded.
+    const giveUp = () => {
+      lostTimer = undefined;
+      if (destroyed || !renderer) return;
+      stop?.();
+      stop = null;
+      observer?.disconnect();
+      observer = null;
+      this.driver.set(null);
+      this.shown.set(false);
+      renderer.dispose();
+      renderer = null;
+      this.unavailable.emit();
+    };
+    const onContextLost = (event: Event) => {
+      event.preventDefault();
+      clearTimeout(lostTimer);
+      lostTimer = setTimeout(giveUp, CONTEXT_GRACE_MS);
+    };
+    const onContextRestored = () => {
+      clearTimeout(lostTimer);
+      lostTimer = undefined;
+    };
 
     // The tab's return or another screen may change the display's refresh rate: measure it again, judging and
     // drawing nothing meanwhile.
@@ -99,6 +130,9 @@ export class CourseScene implements AfterViewInit {
     };
     destroyRef.onDestroy(() => {
       destroyed = true;
+      clearTimeout(lostTimer);
+      watched?.removeEventListener('webglcontextlost', onContextLost);
+      watched?.removeEventListener('webglcontextrestored', onContextRestored);
       stop?.();
       observer?.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
@@ -109,6 +143,9 @@ export class CourseScene implements AfterViewInit {
     // Draws with a started renderer from now on: sized to its canvas, on the loop, until the scene goes.
     const begin = (loaded: CourseRenderer, canvas: HTMLCanvasElement) => {
       renderer = loaded;
+      watched = canvas;
+      canvas.addEventListener('webglcontextlost', onContextLost);
+      canvas.addEventListener('webglcontextrestored', onContextRestored);
       const resize = () => loaded.resize(canvas.clientWidth, canvas.clientHeight, devicePixelRatio);
       resize();
       observer = new ResizeObserver(resize);

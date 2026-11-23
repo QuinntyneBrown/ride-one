@@ -113,6 +113,7 @@
         "paused",
         "ibiza",
         "ibiza-loading",
+        "ibiza-unavailable",
         "paused-ibiza",
         "off-target",
         "video-unavailable",

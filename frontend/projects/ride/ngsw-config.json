@@ -22,7 +22,7 @@
       "installMode": "lazy",
       "updateMode": "prefetch",
       "resources": {
-        "files": ["/courses/ibiza-sunset-strip.jpg", "/machines/**"]
+        "files": ["/courses/**", "/riders/**", "/machines/**"]
       }
     }
   ]

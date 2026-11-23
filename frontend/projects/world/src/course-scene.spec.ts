@@ -317,6 +317,49 @@ describe('CourseScene start and leave (L2-174 AC8)', () => {
     expect(renderer.calls).toEqual(['dispose']);
   });
 
+  // A lost graphics context that does not come back means the course cannot be drawn (L2-175 AC2).
+  describe('a lost graphics context', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('emits unavailable, hides the canvas and releases the renderer when it does not come back', async () => {
+      const renderer = new FakeRenderer();
+      const { fixture, unavailable } = await scene(renderer);
+      const canvas = fixture.nativeElement.querySelector('canvas') as HTMLCanvasElement;
+      vi.useFakeTimers();
+
+      const lost = new Event('webglcontextlost', { cancelable: true });
+      canvas.dispatchEvent(lost);
+      expect(lost.defaultPrevented).toBe(true);
+      vi.advanceTimersByTime(2_999);
+      expect(unavailable()).toBe(0);
+      vi.advanceTimersByTime(1);
+
+      expect(unavailable()).toBe(1);
+      expect(renderer.calls.filter((call) => call === 'dispose')).toHaveLength(1);
+      fixture.detectChanges();
+      expect(canvas.getAttribute('aria-hidden')).toBe('true');
+      // Said once, and the renderer is not released again when the scene goes.
+      fixture.destroy();
+      expect(unavailable()).toBe(1);
+      expect(renderer.calls.filter((call) => call === 'dispose')).toHaveLength(1);
+    });
+
+    it('carries on when the context comes back in time', async () => {
+      const renderer = new FakeRenderer();
+      const { fixture, unavailable } = await scene(renderer);
+      const canvas = fixture.nativeElement.querySelector('canvas') as HTMLCanvasElement;
+      vi.useFakeTimers();
+
+      canvas.dispatchEvent(new Event('webglcontextlost', { cancelable: true }));
+      vi.advanceTimersByTime(1_000);
+      canvas.dispatchEvent(new Event('webglcontextrestored'));
+      vi.advanceTimersByTime(10_000);
+
+      expect(unavailable()).toBe(0);
+      expect(renderer.calls).not.toContain('dispose');
+    });
+  });
+
   it('releases the renderer when the scene is destroyed', async () => {
     const renderer = new FakeRenderer();
     const { fixture } = await scene(renderer);

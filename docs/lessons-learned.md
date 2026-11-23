@@ -273,6 +273,38 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 37.4 When Ibiza cannot be drawn (2026-11-23)
+
+**Applied from earlier**
+
+- **L41, L242 see the spec fail first, and take the rule away — saved time:** the four cannot-draw specs failed on the
+  missing notice, and the offline spec failed at the second ride until the worker kept the files.
+- **L3 format first; L25 asserted batches; L35 check what exists — saved time:** `CourseScene` already emitted
+  `unavailable`; only the host, the store, the box and the worker's list were missing.
+- **L43 a paused clock stalls the first frame — saved time once learned:** the first cannot-draw spec installed a
+  clock and waited for the notice, which never came; the cases run on the real clock.
+
+**What slowed it down**
+
+- `CourseSceneHost` re-emitted `drawn` and nothing else, so `(unavailable)` on it was silently a DOM event. It took
+  three instrumented runs to see it. An output bound on a directive that does not declare it is not an error.
+- The first full-doc Prettier run of slice 37.3 had taught that `docs/` is not formatted; this slice did not repeat it.
+
+**Decisions**
+
+- **The notice is `wz-inline-message` under the box,** as the class video's is, with `class-course__notice`.
+- **A lost context has 3 seconds** to come back (`CONTEXT_GRACE_MS`); then the course is given up for the ride.
+- **WebGPU device loss is not watched** (open question 31): the app runs WebGL 2 where WebGPU is absent, and no
+  device-lost path could be tried here.
+- **AC4 and AC5 are the worker's job:** `/courses/**` and `/riders/**` join the lazy `assets` group of
+  `ngsw-config.json`. The spec proves them together: a second ride with the network gone draws the course.
+
+**New lessons**
+
+- Bind an output on `CourseSceneHost` only after declaring it there; a spec that asserts the page's change is the
+  only thing that catches a missing re-emit.
+- A spec about a failing load does not need Playwright's clock: leave it real and wait on the notice.
+
 ### 37.3 The course as built (2026-11-23)
 
 **Applied from earlier**

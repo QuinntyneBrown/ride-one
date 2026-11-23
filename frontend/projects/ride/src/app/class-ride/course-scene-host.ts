@@ -30,6 +30,8 @@ export class CourseSceneHost {
   readonly running = input.required<boolean>();
   /** Emitted once the course's first frame has been drawn, where the clock puts the rider (L2-175 AC3). */
   readonly drawn = output<void>();
+  /** Emitted once when the course's files cannot be loaded or are malformed, or its graphics context is lost for good (L2-175 AC2). */
+  readonly unavailable = output<void>();
 
   private readonly scene = signal<ComponentRef<CourseScene> | null>(null);
   /** Reduced motion as this device asks for it (L2-142). */
@@ -44,6 +46,7 @@ export class CourseSceneHost {
       const scene = host.createComponent(library.CourseScene);
       untracked(() => this.bind(scene));
       scene.instance.drawn.subscribe(() => this.drawn.emit());
+      scene.instance.unavailable.subscribe(() => this.unavailable.emit());
       this.scene.set(scene);
     });
     effect(() => {

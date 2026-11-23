@@ -1,11 +1,11 @@
 <div class="class-course">
-  @if (loading()) {
+  @if (loading() || unavailable()) {
     <img class="class-course__still" [src]="still().url" [alt]="still().alt" />
   }
   <div class="class-course__scene">
     <ng-content select="[slot=scene]" />
   </div>
-  @if (loading()) {
+  @if (loading() && !unavailable()) {
     <p class="class-course__loading" role="status">Loading {{ name() }}</p>
   }
   @if (paused()) {
@@ -14,3 +14,8 @@
     </div>
   }
 </div>
+@if (unavailable()) {
+  <wz-inline-message class="class-course__notice" tone="warn" role="status"
+    >Ibiza can’t be drawn. The bike will still follow the class.</wz-inline-message
+  >
+}

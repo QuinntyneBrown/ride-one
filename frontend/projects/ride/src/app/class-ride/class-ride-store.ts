@@ -88,6 +88,9 @@ export class ClassRideStore {
   private readonly courseShown = signal(false);
   /** Whether the course's first frame has been drawn; until then its box reads "Loading …" (L2-175 AC1). */
   readonly courseDrawn = this.courseShown.asReadonly();
+  private readonly courseFailed = signal(false);
+  /** Whether the course cannot be drawn: its still stays and a notice says so (L2-175 AC2). */
+  readonly courseUnavailable = this.courseFailed.asReadonly();
   readonly ride = this.loaded.asReadonly();
   readonly elapsed = this.ticker.second;
   /** Where the plan stands. */
@@ -165,6 +168,11 @@ export class ClassRideStore {
       },
       () => this.playerMissing.set(true),
     );
+  }
+
+  /** The course's files could not be loaded, were malformed, or its graphics context was lost for good. */
+  failCourse(): void {
+    this.courseFailed.set(true);
   }
 
   /** The course's first frame has been drawn: it takes the box from its still (L2-175 AC1, AC3). */
