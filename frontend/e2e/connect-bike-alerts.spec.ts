@@ -16,7 +16,10 @@ import { AppDocument } from './pages/app-document';
 import { ConnectBikePage } from './pages/connect-bike.page';
 
 const FTMS = 0x1826;
-const REQUEST = { filters: [{ services: [ECHELON_SERVICE] }, { services: [FTMS] }] };
+const REQUEST = {
+  filters: [{ services: [ECHELON_SERVICE] }, { services: [FTMS] }, { namePrefix: 'ECH' }],
+  optionalServices: [ECHELON_SERVICE, FTMS],
+};
 const LEAD =
   'Pedal once to wake it up. Telo Ride 1 reads your power and sets resistance for every hill and interval.';
 const WORKS_WITH = [
