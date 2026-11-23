@@ -1,5 +1,5 @@
 // Acceptance test
-// Traces to: L2-151 AC1, AC2, AC5; L2-152 AC1, AC6, AC7; L2-153 AC1, AC2; L2-156 AC4
+// Traces to: L2-151 AC1, AC2, AC5; L2-152 AC1, AC6, AC7; L2-153 AC1, AC2
 // Description: a solo world class opens World loading before the class ride: Intervals to the Beat in Ibiza Sunset
 // Strip, and the load card building the shaders and warming up the first frames with the course's renderer (its files
 // held by the spec so the build can be seen), then Start riding. Ibiza Sunset Strip is built into the app and has no
@@ -12,11 +12,12 @@ import {
   targetResistanceWrite,
 } from './fixtures/echelon';
 import { connectBike } from './fixtures/class-ride';
+import { keptRideWith } from './fixtures/how-to-ride';
 import { expect, test } from './fixtures/test';
 import { theClass } from './fixtures/the-class';
 import { WorldAssets } from './fixtures/world-assets';
 import { ClassRidePage } from './pages/class-ride.page';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 import { WorldLoadingPage } from './pages/world-loading.page';
 
 const PLAN =
@@ -27,6 +28,8 @@ test.describe('World loading', () => {
   let loading: WorldLoadingPage;
 
   test.beforeEach(async ({ page, bluetooth }) => {
+    // The rider chose Ibiza Sunset Strip on The Class: the ride is in the course (L2-173 AC5).
+    await keptRideWith(page, 'ibiza');
     await bluetooth.remember(echelonBike);
     assets = await WorldAssets.install(page);
     loading = new WorldLoadingPage(page);
@@ -103,33 +106,6 @@ test.describe('World loading', () => {
     },
   );
 
-  test('without WebGPU or WebGL 2 the class is ready as a panorama (L2-156 AC4)', async ({
-    page,
-    bluetooth,
-    webgl,
-  }) => {
-    await webgl.disable();
-    await new ClassRidePage(page).open(theClass.id);
-    await connectBike(bluetooth);
-
-    await expect(loading.cardTitle).toHaveText('Ibiza Sunset Strip is ready as a panorama');
-    await expect(loading.step(0).label).toHaveText('Download the panorama: Done');
-    await expect(loading.step(0).detail).toHaveText('Built into the app');
-    await expect(loading.step(1).label).toHaveText('Build the shaders: Not needed');
-    await expect(loading.step(1).detail).toHaveText('Not needed for the panorama');
-    await expect(loading.step(2).label).toHaveText('Warm up the first frames: Not needed');
-    await expect(loading.facts.last()).toHaveText('Panorama');
-    await expect(loading.notice).toContainText('This browser can’t draw 3D worlds.');
-    await expect(loading.notice).toContainText(
-      'Neither WebGPU nor WebGL 2 is on here, so you ride with the world’s panorama. The plan, clock and bike work the same.',
-    );
-    await expect(loading.progress).toHaveAttribute('aria-valuenow', '100');
-    await expect(loading.start).toBeEnabled();
-    await expect(loading.hint).toHaveText(
-      'Turn on graphics acceleration in Chrome or Edge to ride the 3D world.',
-    );
-  });
-
   test('Back to class leaves World loading while the world is being built and opens the class at `/` (L2-151 AC5)', async ({
     page,
   }) => {
@@ -141,6 +117,6 @@ test.describe('World loading', () => {
     await loading.back.click();
 
     await expect(page).toHaveURL('/');
-    await expect(new ClassStartPage(page).start).toBeVisible();
+    await expect(new TheClassPage(page).start).toBeVisible();
   });
 });

@@ -2610,6 +2610,26 @@ a.map-row:hover .map-row__name, a.map-row[data-state="hover"] .map-row__name { c
 .btn.the-class__start:disabled { opacity: 1; background: var(--color-raised); color: var(--color-faint); }
 .the-class__start-hint { margin-top: var(--space-2); text-align: center; font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
 
+/* Ride with (L2-173): the one choice the rider has, a radio group on The Class between the summary and the length.
+   The chosen option is edged and tinted volt, carries aria-checked and fills its mark; one that cannot be chosen is
+   dashed and muted and says why under its name, so colour never carries either alone. Each option is 44px or taller. */
+.the-class__ride-with { margin-top: var(--space-6); }
+.ride-with__title { font-size: var(--font-size-sm); line-height: var(--line-height-sm); font-weight: var(--font-weight-medium); color: var(--color-muted); }
+.ride-with__options { margin-top: var(--space-2); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); }
+@media (min-width: 40rem) and (max-width: 63.99rem) { .ride-with__options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ride-with__option { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-height: var(--target-comfortable); border-radius: var(--radius-lg); border: var(--border-width-hairline) solid var(--color-line); padding: var(--space-2) var(--space-3); text-align: left; transition: border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard); }
+.ride-with__option:hover, .ride-with__option[data-state="hover"] { border-color: var(--color-faint); }
+.ride-with__option[aria-checked="true"] { border-color: var(--color-volt); background: color-mix(in srgb, var(--color-volt) 10%, transparent); }
+.ride-with__option[aria-disabled="true"] { border-style: dashed; border-color: var(--color-line); cursor: not-allowed; }
+.ride-with__mark { display: grid; flex-shrink: 0; place-items: center; width: var(--space-5); height: var(--space-5); border-radius: var(--radius-full); border: var(--border-width-thick) solid var(--color-faint); }
+.ride-with__mark::before { content: ""; width: var(--space-2-5); height: var(--space-2-5); border-radius: var(--radius-full); background: var(--color-volt-fg); scale: 0; transition: scale var(--duration-fast) var(--ease-standard); }
+.ride-with__option[aria-checked="true"] .ride-with__mark { border-color: var(--color-volt-fg); }
+.ride-with__option[aria-checked="true"] .ride-with__mark::before { scale: 1; }
+.ride-with__text { min-width: 0; }
+.ride-with__name { display: block; font-weight: var(--font-weight-semibold); }
+.ride-with__option[aria-disabled="true"] .ride-with__name { color: var(--color-muted); }
+.ride-with__detail { display: block; font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
+
 /* ---------- Class Done (frame 6eiQRDcbF5DL67X51aRw3D): the number, the eight efforts, Done ---------- */
 .class-done__class { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
 .class-done__body { margin-inline: auto; display: flex; min-height: 100%; max-width: var(--layout-container-narrow); flex-direction: column; padding: var(--space-8) var(--layout-margin); }

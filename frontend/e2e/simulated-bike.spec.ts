@@ -5,7 +5,7 @@
 import { ECHELON_NOTIFY, echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
 import { ConnectBikePage } from './pages/connect-bike.page';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 
 /** A `D1` frame: 5 s, no revolutions, 80 rpm (docs/protocol/echelon-ble-frames.md). */
 const WORKOUT_FRAME = [
@@ -27,6 +27,6 @@ test.describe('Simulated bike in production', () => {
     await expect.poll(() => bluetooth.writes().length).toBe(3);
     await bluetooth.notify(ECHELON_NOTIFY, WORKOUT_FRAME);
     await expect(connect.pairButton).toHaveText('Paired');
-    await expect.poll(() => new ClassStartPage(page).url()).toBe('/');
+    await expect.poll(() => new TheClassPage(page).url()).toBe('/');
   });
 });

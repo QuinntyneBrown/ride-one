@@ -7,7 +7,7 @@ import { startClassRide } from './fixtures/class-ride';
 import { echelonBike } from './fixtures/echelon';
 import { openResults, soloClass } from './fixtures/results';
 import { expect, test } from './fixtures/test';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 import { ConnectBikePage } from './pages/connect-bike.page';
 import { NotFoundPage } from './pages/not-found.page';
 import { ResultsPage } from './pages/results.page';
@@ -46,7 +46,7 @@ test.describe('Wordmark', () => {
     bluetooth,
   }) => {
     await bluetooth.remember(echelonBike);
-    const start = new ClassStartPage(page);
+    const start = new TheClassPage(page);
     await start.open();
     await expect(start.title).toBeVisible();
 
@@ -96,7 +96,7 @@ test.describe('Wordmark', () => {
     await page.setViewportSize({ width: 383, height: 800 });
     const wordmark = new Wordmark(page);
     await bluetooth.remember(echelonBike);
-    const start = new ClassStartPage(page);
+    const start = new TheClassPage(page);
     await start.open();
     await expect(start.title).toBeVisible();
     await expect(wordmark.words).toBeVisible();

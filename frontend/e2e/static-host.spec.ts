@@ -10,7 +10,7 @@ import { echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
 import { NotFoundPage } from './pages/not-found.page';
 import { StaticHost } from './pages/static-host';
-import { WorldLoadingPage } from './pages/world-loading.page';
+import { ClassRidePage } from './pages/class-ride.page';
 
 const YEAR = 'max-age=31536000';
 
@@ -31,7 +31,7 @@ test.describe('Static host', () => {
       expect(ride.headers['content-security-policy']).toContain("frame-ancestors 'none'");
       expect(ride.headers['x-content-type-options']).toBe('nosniff');
       expect(ride.headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
-      await expect(new WorldLoadingPage(page).title).toHaveText('Intervals to the Beat');
+      await expect(new ClassRidePage(page).name).toContainText('Intervals to the Beat');
 
       const unknown = await host.open('/no-such-screen/at-all');
       expect(unknown.status).toBe(200);

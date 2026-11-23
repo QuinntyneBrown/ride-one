@@ -5,7 +5,7 @@
 import { ECHELON_NOTIFY, ECHELON_WRITE, echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
 import { ConnectBikePage } from './pages/connect-bike.page';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 
 /** A `D1` frame: 5 s, no revolutions, 80 rpm (docs/protocol/echelon-ble-frames.md). */
 const WORKOUT_FRAME = [
@@ -30,7 +30,7 @@ test.describe('The remembered bike', () => {
       await connect.pair();
       await expect.poll(() => bluetooth.log()).toEqual(INITIALISED);
       await bluetooth.notify(ECHELON_NOTIFY, WORKOUT_FRAME);
-      const start = new ClassStartPage(page);
+      const start = new TheClassPage(page);
       await expect.poll(() => start.url()).toBe('/');
 
       await start.open();
@@ -46,7 +46,7 @@ test.describe('The remembered bike', () => {
   );
 
   test('a rider with no remembered bike starts on Connect Bike (L2-011)', async ({ page }) => {
-    const start = new ClassStartPage(page);
+    const start = new TheClassPage(page);
     await start.open();
 
     await expect(new ConnectBikePage(page).pairButton).toHaveText('Pair Echelon EX-5s');

@@ -15,7 +15,7 @@ import {
 import { theClass } from './fixtures/the-class';
 import { expect, test } from './fixtures/test';
 import type { YouTubeFixture } from './fixtures/youtube';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 import { ResultsPage } from './pages/results.page';
 
 /** Waits for the fake player, then lets it get ready: its onReady runs on the paused clock. */
@@ -122,7 +122,7 @@ test.describe('Pause, leave or finish a class', () => {
     await ride.leave.click();
     await page.clock.runFor(100);
     await expect(page).toHaveURL('/');
-    const start = new ClassStartPage(page);
+    const start = new TheClassPage(page);
     await expect(async () => {
       await page.clock.runFor(16);
       await expect(start.title).toHaveText(theClass.title, { timeout: 50 });

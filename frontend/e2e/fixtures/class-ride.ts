@@ -10,9 +10,11 @@ import type { ApiFixture } from './api';
 import type { FakeBluetooth } from './fake-bluetooth';
 import { expect } from './test';
 import { ClassRidePage } from '../pages/class-ride.page';
+import { TheClassPage } from '../pages/the-class.page';
 import { WorldLoadingPage } from '../pages/world-loading.page';
 import { theClass } from './the-class';
-import { FakeWebGl } from './webgl';
+import { keptRideWith } from './how-to-ride';
+import { YouTubeFixture } from './youtube';
 
 /** When a class ride spec's clock starts; the ride itself starts a minute later, on a paused clock. */
 export const RIDE_START = new Date('2026-11-21T18:00:00Z').getTime();
@@ -29,12 +31,13 @@ export async function connectBike(bluetooth: FakeBluetooth): Promise<void> {
 }
 
 /**
- * Opens Intervals to the Beat solo with the remembered Echelon and starts it on Playwright's paused clock: World loading
- * gets the class's world ready on the running clock (without 3D: these specs ride the class, not its world, so nothing
- * is built), and once the bike is connected the clock is paused and the spec presses Start riding, so the ride starts
- * at a known time and the spec moves it on by hand. Change detection waits on a timer, so the paused clock is stepped
- * for the ride to render. Resolves once the ride's first command has gone and the page has rendered. The class ships
- * with the app, so no request is answered for it (ADR 0037); `api` is taken so the shared fixture watches for one.
+ * Starts Intervals to the Beat with the class video, as a rider does, on Playwright's paused clock: The Class opens
+ * with the remembered Echelon on the running clock, and once the bike is connected and the video's box has settled
+ * the clock is paused and the spec presses Start class, so the ride starts at a known time and the spec moves it on
+ * by hand. Change detection waits on a timer, so the paused clock is stepped a millisecond at a time until the ride's
+ * first command has gone. Resolves once the page has rendered, a tenth of a second into the ride. The player The
+ * Class parked is forgotten before the ride starts, so `youtube.players()` lists the ride's own. The class ships with
+ * the app, so no request is answered for it (ADR 0037); `api` is taken so the shared fixture watches for one.
  */
 export async function startClassRide(
   page: Page,
@@ -42,27 +45,29 @@ export async function startClassRide(
   api: ApiFixture,
 ): Promise<ClassRidePage> {
   void api;
-  await new FakeWebGl(page).disable();
   await page.clock.install({ time: RIDE_START });
   await bluetooth.remember(echelonBike);
-  const ride = new ClassRidePage(page);
-  await ride.open(theClass.id);
+  const home = new TheClassPage(page);
+  await home.open();
   await connectBike(bluetooth);
-  const loading = new WorldLoadingPage(page);
-  await expect(loading.start).toBeEnabled();
+  await expect(home.start).toHaveText('Start class');
+  await home.videoSettled();
+  await YouTubeFixture.forgetPlayers(page);
   await page.clock.pauseAt(RIDE_START + 60_000);
-  await loading.start.click();
-  await page.clock.runFor(1);
-  // The ride starts the moment the rider presses Start riding, and its first command shows it has.
+  await home.start.click();
+  // The ride starts the moment Class Ride opens, and its first command shows it has.
   await expect
-    .poll(() => bluetooth.writes().map((write) => write.hex))
+    .poll(async () => {
+      await page.clock.runFor(1);
+      return bluetooth.writes().map((write) => write.hex);
+    })
     .toContain(targetResistanceWrite(theClass.segments[0].level));
   await page.clock.runFor(100);
-  return ride;
+  return new ClassRidePage(page);
 }
 
 /**
- * Opens Intervals to the Beat solo with the remembered Echelon and rides it in its world, on the running clock: World
+ * Opens Intervals to the Beat with the remembered Echelon and Ibiza Sunset Strip chosen (L2-173), and rides it in its world, on the running clock: World
  * loading builds Ibiza Sunset Strip and warms it up, the bike connects, the rider presses Start riding, and the world
  * has faded in over its panorama. The world is drawn, in software here, so a spec that takes WebGPU away draws it with
  * WebGL 2.
@@ -73,6 +78,7 @@ export async function startClassRideInWorld(
   api: ApiFixture,
 ): Promise<ClassRidePage> {
   void api;
+  await keptRideWith(page, 'ibiza');
   await bluetooth.remember(echelonBike);
   const ride = new ClassRidePage(page);
   const loading = new WorldLoadingPage(page);

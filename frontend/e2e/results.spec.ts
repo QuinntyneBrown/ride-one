@@ -7,7 +7,7 @@ import { startClassRide } from './fixtures/class-ride';
 import { ECHELON_NOTIFY, echelonBike, resistanceFrame, workoutFrame } from './fixtures/echelon';
 import { openResults, soloClass } from './fixtures/results';
 import { expect, test } from './fixtures/test';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 import { ResultsPage } from './pages/results.page';
 
 test.describe('Results', () => {
@@ -71,7 +71,7 @@ test.describe('Results', () => {
 
     await results.done.click();
     await expect(page).toHaveURL('/');
-    await expect(new ClassStartPage(page).title).toHaveText('Intervals to the Beat');
+    await expect(new TheClassPage(page).title).toHaveText('Intervals to the Beat');
   });
 
   test('Results with no ride sends the rider to the class', async ({ page, bluetooth }) => {
@@ -79,6 +79,6 @@ test.describe('Results', () => {
     await new ResultsPage(page).open();
 
     await expect(page).toHaveURL('/');
-    await expect(new ClassStartPage(page).main).toBeAttached();
+    await expect(new TheClassPage(page).main).toBeAttached();
   });
 });

@@ -5,7 +5,7 @@
 // follows once it is paired.
 import { expect, test } from './fixtures/test';
 import { ConnectBikePage } from './pages/connect-bike.page';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 
 test.describe('Simulated bike', () => {
   test(
@@ -23,7 +23,7 @@ test.describe('Simulated bike', () => {
       await expect(connect.deviceIdentifier).toHaveText('EX5S-0bf669f1');
       await expect(connect.pairButton).toHaveText('Paired');
       await expect(connect.pairedCheck).toBeVisible();
-      await expect.poll(() => new ClassStartPage(page).url()).toBe('/');
+      await expect.poll(() => new TheClassPage(page).url()).toBe('/');
     },
   );
 });

@@ -13,7 +13,7 @@ import {
 } from './fixtures/ftms';
 import { expect, test } from './fixtures/test';
 import { ConnectBikePage } from './pages/connect-bike.page';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 
 const FTMS = 0x1826;
 /** A `D1` frame: 5 s, no revolutions, 80 rpm (docs/protocol/echelon-ble-frames.md). */
@@ -89,7 +89,7 @@ test.describe('Pair a bike', () => {
 
       await expect(connect.pairedCheck).toBeVisible();
       await expect(connect.pairButton).toHaveText('Paired');
-      await expect.poll(() => new ClassStartPage(page).url()).toBe('/');
+      await expect.poll(() => new TheClassPage(page).url()).toBe('/');
     },
   );
 

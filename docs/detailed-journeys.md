@@ -52,7 +52,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 29.1 | Connect Bike | The screen as designed: the offered bike and the works-with list at rest, searching while the browser's list of bikes is open, the bike picked there pairing, paired, then The Class. | 3 | 29. Pair the bike | L2-007, L2-011, L2-012 AC1–3, L2-013, L2-014 AC1–2, AC4 | 100% |
 | 29.2 | Say why the bike cannot be reached | Alerts for Bluetooth off, an unsupported browser, plain http and a chooser that will not open. | 2 | 29. Pair the bike | L2-008 AC1, L2-009 AC4, L2-012 AC4, L2-018 | 100% |
 | 30.1 | The one class | `intervals-to-the-beat` with its 33-segment plan, the course's, shipped with the app and validated; no other class and no other course (ADR 0042); a class that cannot be loaded says so. | 2 | 30. Open on The Class | L2-080 AC1–5 | 100% |
-| 30.2 | The Class | Header with bike status, parked video, title, summary, length and the start button's three states. | 3 | 30. Open on The Class | L2-019, L2-084 AC1, AC4, AC6–7, AC9 | 0% |
+| 30.2 | The Class | The screen in the place of Class Start (ADR 0044): the header's bike status as a link to Connect Bike, the parked video and its cover when it cannot load, title, summary, length, "Start class" or "Connect your bike"; and "Ride with": "Class video" or "Ibiza Sunset Strip", kept on the device, with the course's still, disabled where the course cannot be drawn. The ride follows the choice: the video alone, or the carried-over ride in the course until journey 37. | 3 | 30. Open on The Class | L2-019, L2-084 AC1, AC4, AC6–7, AC9, L2-173 AC1–7 | 100% |
 | 30.3 | What the bike will do | Average target power, the resistance profile and the efforts in words. | 1 | 30. Open on The Class | L2-084 AC2–3 | 0% |
 | 30.4 | The Class by form factor | One screen with no scrolling in landscape from 1024 px; one column with the start button pinned below. | 2 | 30. Open on The Class | L2-171 AC1–3, AC5 | 0% |
 | 30.5 | Open where the rider belongs | A new rider opens on Connect Bike, a returning one on The Class; the remembered bike reconnects without the chooser. | 2 | 30. Open on The Class | L2-015, L2-167 AC1–3 | 0% |
@@ -60,6 +60,15 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 31.1 | Class Ride | The screen as designed at `/ride`: header, clock, segment card, power against target, cadence aim and stepper. | 3 | 31. Take the class | L2-087, L2-089 | 0% |
 | 31.2 | Pause, lose the bike, leave or finish | Pause and resume; a lost bike holds the ride until it is back; Leave returns to The Class; 30:00 opens Class Done. | 3 | 31. Take the class | L2-091, L2-092, L2-093 | 0% |
 | 31.3 | When the video or the bike falls short | The video that cannot play and the FTMS bike that refuses control, each with its notice. | 2 | 31. Take the class | L2-014 AC3, L2-088 AC4 | 0% |
+| 37.1 | The course in the video's box | A ride in Ibiza opens Class Ride at once, with no loading screen and no video player: the clock starts, the box reads "Loading Ibiza Sunset Strip" over the still, then the course is drawn there with the rider alone on the road. World loading and the inset video go; the still becomes one of the solo ride. | 4 | 37. Ride in Ibiza | L2-089 AC6, L2-173 AC9, L2-174 AC1, AC6, L2-175 AC1, AC3 | 0% |
+| 37.2 | Placed by the clock | The rider is on the stretch of the plan's segment at each second, held while paused or while the bike is lost, not drawn in a hidden tab, with the camera closing in at the grid and the finish; everything else on the screen as with the class video. | 3 | 37. Ride in Ibiza | L2-174 AC2, AC4–5, AC9–10 | 0% |
+| 37.3 | The course as built | Each stretch's length and gradient from the plan, the painted grid and the finish arch at the last metre; a bad value in the course's files makes it malformed. | 2 | 37. Ride in Ibiza | L2-174 AC3, AC7, L2-175 AC6, L2 open question 18 | 0% |
+| 37.4 | When Ibiza cannot be drawn | Files that cannot be loaded or a lost graphics context leave the still and "Ibiza can’t be drawn. The bike will still follow the class."; the course is kept after its first load and drawn without a network. | 2 | 37. Ride in Ibiza | L2-175 AC2, AC4–5 | 0% |
+| 37.5 | Music | *Beautiful Boom Bap*, self-hosted, looping through a ride in Ibiza only: fetched when that ride starts, paused with the ride, playing on in a hidden tab, released on leaving. The course's deep house track goes. | 3 | 37. Ride in Ibiza | L2-176 AC1–4, AC6, AC8–9 | 0% |
+| 37.6 | The Music button | A "Music" toggle on Class Ride in Ibiza, kept on the device; disabled, with no alert, when the music cannot be loaded or played. | 1 | 37. Ride in Ibiza | L2-176 AC5, AC7 | 0% |
+| 37.7 | The course's budgets | At most 120,000 triangles and 140 draw calls a frame, no shadow map or texture; the model and the music within their sizes; resolution and bloom stepped by measured frames. | 2 | 37. Ride in Ibiza | L2-177 AC1–3 | 0% |
+| 37.8 | Leave Ibiza clean | Leaving or finishing stops the frame loop and disposes the course, the rider and the renderer; the interface's frames and the heap over a full ride hold on the reference tablet. | 2 | 37. Ride in Ibiza | L2-174 AC8, L2-177 AC4–5 | 0% |
+| 37.9 | One record whichever way | A ride in Ibiza counts toward the one record, with no count or best of its own. | 1 | 37. Ride in Ibiza | L2-173 AC8 | 0% |
 | 32.1 | Keep the record | Ride count, best output and last output kept on the device, fixed in size; a ride left early changes nothing. | 2 | 32. See your number | L2-132 AC2–4, L2-168 AC1–3, AC5 | 0% |
 | 32.2 | Class Done | Output in kJ, time and average watts; Done returns to The Class; `/done` with no ride opens The Class. | 3 | 32. See your number | L2-078, L2-079 AC1 | 0% |
 | 32.3 | Best output | "New best output" in gold with the previous best, "Your best is still", or the first ride's number to beat. | 1 | 32. See your number | L2-077 | 0% |
@@ -81,8 +90,9 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 0% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 0% |
 
-**Total:** 50 slices, 99 days. **Complete:** 22 slices, 49 days (49%), 11 of them carried over.
-**To build:** 28 slices, 50 days.
+**Total:** 59 slices, 119 days. **Complete:** 23 slices, 52 days (44%), 11 of them carried over.
+**To build:** 36 slices, 67 days. Slice 30.2 added journey 37, nine slices and 20 days: no slice of
+the plan built riding in Ibiza (L2-174 to L2-177).
 
 ## What a slice waits for
 
@@ -90,9 +100,14 @@ Not counted, though their code stays until a slice below replaces or removes it:
 - **30.1** is built: the app calls no API (ADR 0042). **28.8** is built after it: the backend is gone and the host is
   Azure Static Web Apps (ADR 0043), so 35.1 narrows the policy in `staticwebapp.config.json`.
 - **L2's open questions:** 30.1 closed the class's words and its warm-up and cool-down cadence
-  aims (11); 30.3's line under the plan and 30.2's control words are still its proposals; 32.5
+  aims (11); 30.2 built "Ride with" in L2-173's words; 30.3's line under the plan and the words of
+  L2-175 and L2-176 (37.1, 37.4, 37.6) are still its proposals; 37.3 settles how steep a level is (18); 32.5
   builds a rule that is still a proposal (2); 32.2 shows a Time that is always 30:00 (3).
 - **L2's mock gaps**, each drawn before its slice is built (29.2 drew the HTTPS and chooser alerts,
   30.1 the class that cannot be loaded):
-  30.2 (the video that cannot load), 31.1 (power off target), 31.3 (both notices), 32.4
-  (every effort at 0 W) and 32.7.
+  30.2 drew the video that cannot load and "Ride with";
+  31.1 (power off target, and the course on Class Ride), 31.3 (both notices), 32.4
+  (every effort at 0 W), 32.7, 37.1 (loading the course), 37.4 (the notice) and 37.6 (the Music
+  button).
+- **Journey 37** follows journey 31: 37.1 builds on Class Ride as designed (31.1) and on the
+  choice 30.2 built; 37.2 to 37.8 follow 37.1; 37.9 waits for the record (32.1).

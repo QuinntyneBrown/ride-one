@@ -6,7 +6,7 @@
 // recorder and listeners) costs far more than that each round.
 import { startClassRide } from '../fixtures/class-ride';
 import { expect, test } from '../fixtures/test';
-import { ClassStartPage } from '../pages/class-start.page';
+import { TheClassPage } from '../pages/the-class.page';
 import { WorldLoadingPage } from '../pages/world-loading.page';
 import { expectHeldHeap, usedHeap } from './heap';
 
@@ -21,7 +21,7 @@ test('a class ride, entered and left six times, holds the heap', async ({
 }) => {
   const ride = await startClassRide(page, bluetooth, api);
   await page.clock.resume();
-  const start = new ClassStartPage(page);
+  const start = new TheClassPage(page);
   const loading = new WorldLoadingPage(page);
   const leave = async () => {
     await expect(ride.clock).toBeVisible();
@@ -30,6 +30,8 @@ test('a class ride, entered and left six times, holds the heap', async ({
   };
 
   await leave();
+  // The rounds ride in Ibiza Sunset Strip, the heavier of the two ways to ride (L2-173).
+  await start.ibiza.click();
   const first = await usedHeap(page);
   for (let round = 0; round < ROUNDS; round++) {
     await start.start.click();

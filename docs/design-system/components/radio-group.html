@@ -220,6 +220,22 @@
   &lt;/div&gt;
 &lt;/fieldset&gt;</code></pre></details>
       </div>
+      <div class="ds-example">
+        <div class="ds-example__stage"><div class="ds-demo-col">
+          <div class="ride-with"><h3 class="ride-with__title" id="ds-ride-with-1">Ride with</h3><div class="ride-with__options" role="radiogroup" aria-labelledby="ds-ride-with-1"><button class="ride-with__option" type="button" role="radio" aria-checked="false" tabindex="-1"><span class="ride-with__mark" aria-hidden="true"></span><span class="ride-with__text"><span class="ride-with__name">Class video</span></span></button><button class="ride-with__option" type="button" role="radio" aria-checked="true" tabindex="0"><span class="ride-with__mark" aria-hidden="true"></span><span class="ride-with__text"><span class="ride-with__name">Ibiza Sunset Strip</span><span class="ride-with__detail">8.4 km · 159 m of climbing</span></span></button></div></div>
+          <div class="ride-with"><h3 class="ride-with__title" id="ds-ride-with-2">Ride with</h3><div class="ride-with__options" role="radiogroup" aria-labelledby="ds-ride-with-2"><button class="ride-with__option" type="button" role="radio" aria-checked="true" tabindex="0"><span class="ride-with__mark" aria-hidden="true"></span><span class="ride-with__text"><span class="ride-with__name">Class video</span></span></button><button class="ride-with__option" type="button" role="radio" aria-checked="false" aria-disabled="true" tabindex="-1"><span class="ride-with__mark" aria-hidden="true"></span><span class="ride-with__text"><span class="ride-with__name">Ibiza Sunset Strip</span><span class="ride-with__detail">This browser can’t draw Ibiza.</span></span></button></div></div>
+        </div></div>
+        <div class="ds-example__caption"><span>Ride with (The Class, L2-173): two options of at least 44px each, the chosen one told by <code>aria-checked</code> and a filled mark. An option the browser cannot offer is <code>aria-disabled</code>, stays readable and says why; the arrow keys pass over it.</span></div>
+        <details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class="ride-with"&gt;
+  &lt;h2 class="ride-with__title" id="ride-with"&gt;Ride with&lt;/h2&gt;
+  &lt;div class="ride-with__options" role="radiogroup" aria-labelledby="ride-with"&gt;
+    &lt;button class="ride-with__option" type="button" role="radio" aria-checked="true" tabindex="0"&gt;
+      &lt;span class="ride-with__mark" aria-hidden="true"&gt;&lt;/span&gt;
+      &lt;span class="ride-with__text"&gt;&lt;span class="ride-with__name"&gt;Class video&lt;/span&gt;&lt;/span&gt;
+    &lt;/button&gt; …
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre></details>
+      </div>
     </section>
 
     <section class="ds-section" id="sizes" data-na="One size for each: cards fill their column (16px padding), plain radios are a 16px circle with a 14px label."><h2><a href="#sizes">Sizes</a></h2>
@@ -372,6 +388,7 @@
         <li><a href="../../mocks/pages/race-setup/new-rider.html">pages/race-setup/new-rider</a> — the locked "Riders online" card</li>
         <li><a href="../../mocks/pages/custom-setup/default.html">pages/custom-setup/default</a> and <a href="../../mocks/pages/custom-setup/flat.html">flat</a> — training mode cards</li>
         <li><a href="../../mocks/pages/class-start/default.html">pages/class-start/default</a> — "How do you want to ride?" cards</li>
+        <li><a href="../../mocks/pages/the-class/default.html">pages/the-class/default</a>, <a href="../../mocks/pages/the-class/ibiza.html">ibiza</a> and <a href="../../mocks/pages/the-class/cannot-draw.html">cannot-draw</a> — "Ride with" (Telo Ride 1, slice 30.2)</li>
       </ul>
       <p>Drift fixed during extraction:</p>
       <ul>

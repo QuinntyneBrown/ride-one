@@ -7,7 +7,7 @@
 <meta name="mock:kind" content="page">
 <meta name="mock:screen" content="the-class">
 <meta name="mock:state" content="needs-https">
-<meta name="mock:requirements" content="L2-008 L2-009 L2-010 L2-019 L2-080 L2-084 L2-144">
+<meta name="mock:requirements" content="L2-008 L2-009 L2-010 L2-019 L2-080 L2-084 L2-144 L2-173">
 <meta name="description" content="Plain http: a banner offers Open over HTTPS, and the start button is disabled.">
 <link rel="stylesheet" href="../../../design-system/tokens/tokens.css">
 <link rel="stylesheet" href="../../../design-system/assets/components.css">
@@ -31,18 +31,26 @@
     <main id="main" class="the-class__body">
       <div class="the-class__media">
         <div class="the-class__video">
-          <img class="photo photo--yt" src="../../assets/images/classes/gcn-30-hiit.jpg" alt="Video: 30 Minute HIIT Cardio, GCN Training">
-          <p class="mock-note">The YouTube player (QUoToFsMNig, with its controls) loads here, parked at 0:12, where the ride’s 0:00 lands. Its cover stands in for it.</p>
+          <img class="photo photo--yt" src="../../assets/images/classes/gcn-30-hiit.jpg" alt="Video: Intervals to the Beat, GCN Training">
+          <p class="mock-note">The YouTube player (il_OFz6o42I, with its controls) loads here, parked at 0:03, where the ride’s 0:00 lands. Its cover stands in for it; the picture drawn here is still the earlier class’s.</p>
         </div>
       </div>
 
       <section class="the-class__info" aria-labelledby="class-title">
-        <p class="the-class__meta">GCN Training · HIIT</p>
-        <h1 class="the-class__title" id="class-title">30 Minute HIIT Cardio</h1>
-        <p class="the-class__summary">Eight 30-second maximal efforts with a recovery that shrinks each round. The classic.</p>
+        <p class="the-class__meta">GCN Training · Intervals</p>
+        <h1 class="the-class__title" id="class-title">Intervals to the Beat</h1>
+        <p class="the-class__summary">Seventeen efforts from 15 seconds to 1:15, ridden to the beat, with five fast sprints to finish.</p>
+
+        <div class="ride-with the-class__ride-with">
+          <h2 class="ride-with__title" id="ride-with">Ride with</h2>
+          <div class="ride-with__options" role="radiogroup" aria-labelledby="ride-with">
+            <button class="ride-with__option" type="button" role="radio" aria-checked="true" tabindex="0"><span class="ride-with__mark" aria-hidden="true"></span><span class="ride-with__text"><span class="ride-with__name">Class video</span></span></button>
+            <button class="ride-with__option" type="button" role="radio" aria-checked="false" tabindex="-1"><span class="ride-with__mark" aria-hidden="true"></span><span class="ride-with__text"><span class="ride-with__name">Ibiza Sunset Strip</span><span class="ride-with__detail">8.4 km · 159 m of climbing</span></span></button>
+          </div>
+        </div>
 
         <div class="the-class__facts">
-          <p class="the-class__length"><span class="the-class__duration">30:00</span><span class="the-class__duration-label">start to finish</span></p>
+          <p class="the-class__length"><span class="the-class__duration">20:00</span><span class="the-class__duration-label">start to finish</span></p>
           <dl class="the-class__stats">
             <div class="the-class__stat"><dt class="the-class__stat-label">Rides</dt><dd class="the-class__stat-value">6</dd></div>
             <div class="the-class__stat"><dt class="the-class__stat-label">Best output</dt><dd class="the-class__stat-value">342 kJ</dd></div>
@@ -82,6 +90,9 @@
     <li><a href="default.html">default</a></li>
     <li><a href="returning.html">returning</a></li>
     <li><a href="no-bike.html">no-bike</a></li>
+    <li><a href="ibiza.html">ibiza</a></li>
+    <li><a href="video-unavailable.html">video-unavailable</a></li>
+    <li><a href="cannot-draw.html">cannot-draw</a></li>
     <li><a href="needs-chromium.html">needs-chromium</a></li>
     <li><a href="needs-https.html" aria-current="page">needs-https</a></li>
     <li><a href="cannot-load.html">cannot-load</a></li>

@@ -29,14 +29,6 @@ import {
 /** World loading is slow once it has run this long without the world being ready (L2-155 AC1). */
 const SLOW_SECONDS = 20;
 
-/** Whether this browser can draw a 3D world: WebGPU, or else WebGL 2 (L2-156 AC4). */
-function draws3d(): boolean {
-  if ((navigator as Navigator & { gpu?: unknown }).gpu) return true;
-  const gl = document.createElement('canvas').getContext('webgl2');
-  gl?.getExtension('WEBGL_lose_context')?.loseContext();
-  return gl !== null;
-}
-
 /**
  * World loading for a solo world class (L2-151, L2-152, L2-156; docs/detailed-designs/classes/load-a-class-world/),
  * provided by the class ride page, so leaving it releases everything the load acquired. It imports the `world`
@@ -45,8 +37,7 @@ function draws3d(): boolean {
  * programs over a few frames and rehearses the ride's first frame, so the shaders are built and the first frames warm
  * when it resolves. `start` reports the programs it builds in batches and the frame rate its warm-up held (slice 16.2),
  * and a build that fails at a level steps down to the one below (`startStepping`). After 20 seconds without the world
- * being ready it warns and offers Low or the panorama (L2-155). Where neither WebGPU nor WebGL 2 draws, the panorama is
- * all there is to download.
+ * being ready it warns and offers Low or the panorama (L2-155).
  */
 @Injectable()
 export class WorldLoadStore {
@@ -75,7 +66,10 @@ export class WorldLoadStore {
   private readonly progress = signal<WorldDownloadProgress>({ received: 0, total: 0 });
   private readonly startPercent = signal(0);
   private readonly backend = signal<Backend | null>(null);
-  /** Neither WebGPU nor WebGL 2 draws here, or the renderer could not start: the class rides the panorama. */
+  /**
+   * The renderer could not start: the class rides the panorama. A browser with neither WebGPU nor WebGL 2 never opens
+   * World loading: it rides with the class video (L2-173 AC6).
+   */
   private readonly panoramaOnly = signal(false);
   /** The quality level the world is built at: `main`'s starting level, or Low (L2-152 AC7, L2-155 AC3). */
   private readonly tier = signal<WorldTier>('low');
@@ -167,7 +161,6 @@ export class WorldLoadStore {
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.release());
-    this.panoramaOnly.set(!draws3d());
     this.timer = setInterval(() => this.tick(), 1000);
     void this.load(this.dto());
   }

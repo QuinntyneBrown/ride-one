@@ -6,7 +6,7 @@ const clock = (seconds: number): string =>
   `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 
 /**
- * What a plan says in words, for Class Start (L2-084 AC2):
+ * What a plan says in words, for The Class (L2-084 AC2):
  * - its structure: the efforts and their length, then the recoveries from the first to the last ("8 × 0:30 · 3:00 →
  *   1:30 recover"); a plan with no effort reads "Level {n} throughout", or "Steady at level {n}" for its longest segment;
  * - its expected average power: each segment's target power (L2-023 AC3) weighted by its duration, rounded.

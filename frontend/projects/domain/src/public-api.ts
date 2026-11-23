@@ -36,6 +36,9 @@ export { BrowserDisplayPreferences } from './browser/browser-display-preferences
 export { BrowserFullscreen } from './browser/browser-fullscreen';
 export { LiveRegionAnnouncer } from './browser/live-region-announcer';
 export { BrowserScreenWakeLock } from './browser/browser-screen-wake-lock';
+export { BrowserCourseGraphics } from './browser/browser-course-graphics';
+export { HOW_TO_RIDE_KEY, HowToRideStore } from './storage/how-to-ride-store';
+export { rideWith } from './engine/ride-with';
 export { PlanSummary } from './engine/plan-summary';
 export { ConsoleAppLogger, redact } from './diagnostics/console-app-logger';
 export { type BrokenClassRule, ClassRule } from './engine/class-rule';

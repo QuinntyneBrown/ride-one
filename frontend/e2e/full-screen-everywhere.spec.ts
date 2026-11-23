@@ -3,7 +3,7 @@ import { screens } from './fixtures/screens';
 import { expect, test } from './fixtures/test';
 import { AppDocument } from './pages/app-document';
 
-// Slice 24.2, Full screen (L2-144): every page header offers Full screen, from Class Start to a class ride and
+// Slice 24.2, Full screen (L2-144): every page header offers Full screen, from The Class to a class ride and
 // Results.
 //
 // Given any screen, when the rider presses "Full screen" in its header, then the app fills the display and

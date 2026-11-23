@@ -9,7 +9,7 @@ import { echelonBike, targetResistanceWrite } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
 import { ShippedClassData, theClass } from './fixtures/the-class';
 import { ClassRidePage } from './pages/class-ride.page';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 import { NotFoundPage } from './pages/not-found.page';
 import { ResultsPage } from './pages/results.page';
 
@@ -26,7 +26,7 @@ test.describe('The one class', () => {
     youtube,
   }) => {
     await bluetooth.remember(echelonBike);
-    const start = new ClassStartPage(page);
+    const start = new TheClassPage(page);
     await start.open();
 
     await expect(start.title).toHaveText('Intervals to the Beat');
@@ -88,7 +88,7 @@ test.describe('The one class', () => {
   }) => {
     await bluetooth.remember(echelonBike);
     const data = await ShippedClassData.break(page);
-    const start = new ClassStartPage(page);
+    const start = new TheClassPage(page);
     await start.open();
 
     await expect(start.unavailable).toHaveText(
@@ -116,7 +116,7 @@ test.describe('The one class', () => {
     await ShippedClassData.break(page);
     await new ClassRidePage(page).open(theClass.id);
 
-    const start = new ClassStartPage(page);
+    const start = new TheClassPage(page);
     await expect(start.unavailable).toHaveText(
       'The class can’t be loaded. Reload Telo Ride 1 to try again.',
     );

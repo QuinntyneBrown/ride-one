@@ -141,6 +141,7 @@
   --font-weight-black: 800; /* the wide italic */
 
   --line-height-none: 1;
+  --line-height-display: 0.95; /* the wide italic class title (leading-[0.95]) */
   --line-height-tight: 1.25;
   --line-height-snug: 1.375;
   --line-height-normal: 1.5;
@@ -319,6 +320,9 @@
   --classes-segment-easy: var(--color-plan-easy);
   --classes-start-aside-width: 26.25rem;
   --classes-board-width: 17.5rem;
+  /* area: Telo Ride 1 (The Class) */
+  --the-class-aside-width: 23.75rem; /* lg: grid-cols-[minmax(0,1fr)_380px] */
+  --the-class-aside-width-xl: 26.25rem; /* xl: 420px */
   /* area: profile */
   --profile-aside-width: 21.25rem;
   /* area: setup */

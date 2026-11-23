@@ -4,7 +4,7 @@
 // header, with the wordmark and Full screen, and leads back to the class.
 import { echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 import { NotFoundPage } from './pages/not-found.page';
 
 test.describe('Page not found', () => {
@@ -31,7 +31,7 @@ test.describe('Page not found', () => {
     await notFound.open('/no-such-screen');
     await notFound.backToClass.click();
 
-    const start = new ClassStartPage(page);
+    const start = new TheClassPage(page);
     await expect.poll(() => start.url()).toBe('/');
     await expect(start.title).toBeVisible();
   });

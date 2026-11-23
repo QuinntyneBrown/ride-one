@@ -2,6 +2,7 @@ import type { EnvironmentProviders, Provider } from '@angular/core';
 import { MONOTONIC_TIME, SCREEN_WAKE_LOCK, WORLD_RENDERER } from '@telo/api';
 import { BrowserScreenWakeLock } from '@telo/domain';
 import { provideClassVideo } from '../classes/provide-class-video';
+import { provideHowToRide } from '../classes/provide-how-to-ride';
 import { provideTheClass } from '../classes/provide-the-class';
 
 /**
@@ -14,6 +15,8 @@ import { provideTheClass } from '../classes/provide-the-class';
 export function provideClassRide(): (Provider | EnvironmentProviders)[] {
   return [
     provideTheClass(),
+    // How the rider chose to ride: with the class video alone, or in the course (L2-173 AC5).
+    provideHowToRide(),
     { provide: MONOTONIC_TIME, useValue: { now: () => performance.now() } },
     { provide: SCREEN_WAKE_LOCK, useClass: BrowserScreenWakeLock },
     provideClassVideo(),

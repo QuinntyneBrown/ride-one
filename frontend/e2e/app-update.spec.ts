@@ -13,7 +13,7 @@ import { appCached } from './fixtures/app-cache';
 import { startClassRide } from './fixtures/class-ride';
 import { expect, test } from './fixtures/test';
 import { AppUpdate } from './pages/app-update';
-import { ClassStartPage } from './pages/class-start.page';
+import { TheClassPage } from './pages/the-class.page';
 import { ResultsPage } from './pages/results.page';
 
 test.use({ serviceWorkers: 'allow' });
@@ -25,7 +25,7 @@ test('a new version deployed is offered when the app opens, and Reload loads it 
   page,
   context,
 }) => {
-  const start = new ClassStartPage(page);
+  const start = new TheClassPage(page);
   const update = new AppUpdate(page);
   await start.open();
   await expect(start.title).toBeVisible();
@@ -50,7 +50,7 @@ test('during a ride the new version waits, and is offered when the ride ends (L2
   bluetooth,
   api,
 }) => {
-  const start = new ClassStartPage(page);
+  const start = new TheClassPage(page);
   const update = new AppUpdate(page);
   await start.open();
   await expect(start.title).toBeVisible();
@@ -77,7 +77,7 @@ test('the rider can dismiss the offer, and the page stays (L2-150 AC2)', async (
   page,
   context,
 }) => {
-  const start = new ClassStartPage(page);
+  const start = new TheClassPage(page);
   const update = new AppUpdate(page);
   await start.open();
   await expect(start.title).toBeVisible();

@@ -24,7 +24,7 @@ export class AppDocument {
 
   constructor(private readonly page: Page) {
     this.root = page.locator('html');
-    this.container = page.locator('main.container');
+    this.container = page.locator('main.container, main.the-class__body');
     this.app = page.locator('wz-root');
     this.announcement = page.locator('.live-announcer');
     this.fullScreen = page

@@ -8,9 +8,7 @@ import { startClassRide } from './fixtures/class-ride';
 import { theClass } from './fixtures/the-class';
 import { echelonBike } from './fixtures/echelon';
 import { expect, test } from './fixtures/test';
-import { ClassRidePage } from './pages/class-ride.page';
-import { ClassStartPage } from './pages/class-start.page';
-import { WorldLoadingPage } from './pages/world-loading.page';
+import { TheClassPage } from './pages/the-class.page';
 
 test.use({ serviceWorkers: 'allow' });
 
@@ -23,20 +21,13 @@ test('once opened, the app opens again and a solo class starts with no network (
   context,
   bluetooth,
   api,
-  webgl,
 }) => {
-  await webgl.disable();
-  const start = new ClassStartPage(page);
+  const start = new TheClassPage(page);
   await start.open();
   await expect(start.title).toHaveText('Intervals to the Beat');
   await appCached(page);
   await page.reload();
   await expect(start.title).toHaveText('Intervals to the Beat');
-  // World loading opens for the class before the network goes.
-  await new ClassRidePage(page).open(theClass.id);
-  await expect(new WorldLoadingPage(page).cardTitle).toHaveText(
-    'Ibiza Sunset Strip is ready as a panorama',
-  );
 
   await context.setOffline(true);
   api.offline();
@@ -53,7 +44,7 @@ test('with the service worker in control, the worker fetches the player for the 
   api,
   youtube,
 }) => {
-  const start = new ClassStartPage(page);
+  const start = new TheClassPage(page);
   await start.open();
   await appCached(page);
   await page.reload();

@@ -19,6 +19,14 @@ export { APP_LOGGER, type AppLogger } from './diagnostics/app-logger';
 export type { ClassDefinition, ClassVideo } from './classes/class-definition';
 export { ClassError, type ClassErrorCode } from './classes/class-error';
 export { THE_CLASS, type TheClassSource } from './classes/the-class';
+export {
+  COURSE_GRAPHICS,
+  type CourseGraphics,
+  HOW_TO_RIDE,
+  type HowToRide,
+  type RideWith,
+} from './classes/how-to-ride';
+export type { Picture, RideWithOption, StartAction, TheClassView } from './classes/the-class-view';
 export { MONOTONIC_TIME, type MonotonicTime } from './time/monotonic-time';
 export { TICKER, type Ticker } from './time/ticker';
 export {
