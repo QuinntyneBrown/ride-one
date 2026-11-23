@@ -33,7 +33,6 @@ class "describeError" as describeError <<function>> {
 }
 
 class WebBluetoothBikeConnection {
-  +lastError: Signal<string | null>
   +frames: Observable<Uint8Array>
   -report(error: unknown): void
 }
@@ -52,7 +51,6 @@ ConsoleLogger ..|> Logger
 Logger ..> LogArea : names
 ConsoleLogger ..> describeError : formats with
 WebBluetoothBikeConnection --> Logger : reports to
-WebBluetoothBikeConnection ..> describeError : formats lastError with
 appConfig ..> ConsoleLogger : binds
 eslint ..> ConsoleLogger : allows console in
 @enduml

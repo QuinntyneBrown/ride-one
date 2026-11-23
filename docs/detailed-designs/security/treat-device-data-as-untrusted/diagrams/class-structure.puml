@@ -37,14 +37,17 @@ class RememberedBikeStore {
   -parse(value: unknown): BikeInfo | null
 }
 
-class "Record store" as RecordStore <<new>> {
-  +read(): record or absent
-  -parse(value: unknown): record or absent
+class RideRecordStore <<new>> {
+  +current: Signal<RecordData | null>
+  +add(outputKj: number): RecordOutcome
+}
+
+class RecordRule <<new>> {
+  +parse(value: unknown): RecordData | null
 }
 
 class WebBluetoothBikeConnection {
   +bike: Signal<BikeInfo | null>
-  +lastError: Signal<string | null>
   +frames: Observable<Uint8Array>
 }
 
@@ -70,6 +73,7 @@ bikeIdentity ..> BikeIdentity : returns
 WebBluetoothBikeConnection ..> bikeIdentity : names the device with
 WebBluetoothBikeConnection --> BikeInfo : holds
 RememberedBikeStore ..> BikeInfo : parses and stores
+RideRecordStore ..> RecordRule : reads through
 BikeTelemetry --> WebBluetoothBikeConnection : subscribes to frames
 BikeTelemetry ..> EchelonFrameDecoder : decodes with
 BikeTelemetry ..> IndoorBikeDataDecoder : decodes with

@@ -38,7 +38,8 @@ Neighbouring features own the adjacent concerns:
 - **Routes** (`ride`, `ride.routes.ts`): exists and changes. Today the lazy parent route provides
   `provideSession()`, guards every child with `authGuard`, and has a `sign-in` child. Telo Ride 1
   has the four screens and Page not found only. The parent route keeps `provideBikeConnection()`
-  and loses the session provider, the guard and the sign-in route.
+  and loses the session provider, the guard and the sign-in route, as
+  [Open the app](../../the-class/open-the-app/README.md) describes.
 - **No field for identity**: none of the four screens in `docs/mocks/pages/` holds an input for
   an email, a name or a password, and no screen links to one.
 - **No cookie**: no code in `frontend/projects/` writes `document.cookie`, and with no backend in
@@ -55,17 +56,17 @@ Neighbouring features own the adjacent concerns:
   value under the `localStorage` key `telo-ride.bike` and has no other dependency than the
   document's window. Today the value holds `id`, `name`, `identifier`, `kind` and `pairedAt`;
   `L2-015` AC4 asks for the name and the browser's identifier only, and
-  [Keep the bike connected](../../bike/keep-the-bike-connected/README.md) settles the fields.
-- **Record store** (`domain`, `storage/`): new, introduced by
-  [Keep the record](../../class-done/keep-the-record/README.md) with its contract and token in
-  `api`. It keeps one JSON value of fixed size in `localStorage`: the ride count, the best output
-  and the last output (`L2-168` AC5). Its key is `<TO SUPPLY>` by that feature.
-- **Storage contracts carry no network method**: `RememberedBike` is `get`, `save` and `forget`.
-  The record's contract has the same shape. Neither implementation injects `HttpClient`.
+  [Keep the bike connected](../../bike/keep-the-bike-connected/README.md) reduces it to `id` and
+  `name`.
+- **`RideRecordStore`** (`domain`, `storage/ride-record-store.ts`): new, introduced by
+  [Keep the record](../../class-done/keep-the-record/README.md) behind `RideRecord` and
+  `RIDE_RECORD` (`api`, `rides/ride-record.ts`). It keeps one JSON value of fixed size under the
+  `localStorage` key `telo-ride.record`: `rides`, `bestOutputKj` and `lastOutputKj` (`L2-168` AC5).
+- **Storage contracts carry no network method**: `RememberedBike` is `get`, `save` and `forget`;
+  `RideRecord` is `current` and `add`. Neither implementation injects `HttpClient`.
 - **Nothing else is kept**: the app uses no IndexedDB, no `sessionStorage` and no Cache Storage
-  for rider data. The theme preference of
-  [Switch theme and full screen](../../ui/switch-theme-and-full-screen/README.md) is a display
-  setting, not data about the rider.
+  for rider data. The theme follows the device's colour scheme and is not stored
+  ([Switch theme and full screen](../../ui/switch-theme-and-full-screen/README.md)).
 
 ### No request for a ride (`L2-132` AC3)
 
@@ -74,9 +75,11 @@ Neighbouring features own the adjacent concerns:
 - **Carried over**: `HttpRidesApi` and `RideOutbox` (`api`, `rides/`), `SessionRideOutbox`
   (`domain`, `storage/session-ride-outbox.ts`), `HttpRiderProgressApi` and the SignalR client
   (`api`, `live/`) upload rides and progress for Telo Ride. `ride.routes.ts` binds
-  `RIDER_PROGRESS_API` today; Telo Ride 1 binds none of them. Whether any HTTP client remains for
-  the class definition is `<TO SUPPLY>` (`L2.md` open question 1). Whatever is decided, the record
-  and the remembered bike are in no request.
+  `RIDER_PROGRESS_API` today; Telo Ride 1 binds none of them. `ClassRideStore`
+  (`ride`, `class-ride/class-ride-store.ts`) exists and today hands a finished ride to
+  `RIDE_OUTBOX`; for Telo Ride 1 it calls `RIDE_RECORD.add` only. Whether an HTTP client remains
+  behind `CLASSES_API` for the class definition is `<TO SUPPLY>` (`L2.md` open question 1).
+  Whatever is decided, the record and the remembered bike are in no request.
 - **Policy backstop**: `connect-src 'self'` of `L2-131` leaves the page no connection to another
   origin.
 - **Proof in the specs**: the `guard` fixture in `frontend/e2e/fixtures/test.ts` exists. It fails a
@@ -86,7 +89,7 @@ Neighbouring features own the adjacent concerns:
 ### Clearing site data (`L2-132` AC4)
 
 Both stores read `localStorage` when the app opens and hold no second copy. After the rider clears
-the site's data, both reads return nothing, the opening guard of
+the site's data, both reads return `null`, `rememberedBikeGuard` of
 [Open the app](../../the-class/open-the-app/README.md) finds a new rider, and Connect Bike opens.
 The browser's Bluetooth permission for the bike is separate from site data in some browser
 versions; with no remembered bike the app does not use it.
@@ -118,8 +121,9 @@ container outside the device takes part.
 
 ### Components
 
-`ride.routes.ts` binds the two storage contracts to `RememberedBikeStore` and the record store,
-and both write to `localStorage` only. No route, guard or provider for a session remains.
+`ride.routes.ts` binds `REMEMBERED_BIKE` to `RememberedBikeStore` and `RIDE_RECORD` to
+`RideRecordStore`, and both write to `localStorage` only. No route, guard or provider for a session
+remains.
 
 ![C4 component view for keeping data on the device](diagrams/c4-component.png)
 
@@ -132,8 +136,9 @@ configuration hold no session and no `HttpClient`, which the `guard` fixture pro
 
 ### Behaviour: record a finished ride on the device
 
-When the ride clock reaches 30:00 the record store updates one `localStorage` value. The browser's
-network stack is not used, and Class Done shows the result without asking for an account.
+When the ride clock reaches 30:00, `ClassRideStore` calls `RIDE_RECORD.add` and `RideRecordStore`
+updates one `localStorage` value. The browser's network stack is not used, and Class Done shows the
+result without asking for an account.
 
 ![Sequence diagram for recording a finished ride on the device](diagrams/sequence-record-a-finished-ride-on-the-device.png)
 

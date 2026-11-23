@@ -23,8 +23,8 @@ Neighbouring features own the adjacent concerns:
 
 - [Restrict third parties](../restrict-third-parties/README.md) owns the Content Security Policy
   whose `connect-src 'self'` blocks a request to any logging endpoint (`L2-131`).
-- [Treat device data as untrusted](../treat-device-data-as-untrusted/README.md) owns showing a
-  Bluetooth error to the rider as text (`L2-129`).
+- [Treat device data as untrusted](../treat-device-data-as-untrusted/README.md) owns the rule
+  that a Bluetooth error's name and message are text wherever they appear (`L2-129`).
 - [Keep the bike connected](../../bike/keep-the-bike-connected/README.md) owns the drop and
   recovery that produce most Bluetooth errors (`L2-017`).
 - [Read bike telemetry](../../bike/read-bike-telemetry/README.md) owns decoding the notifications
@@ -42,7 +42,9 @@ Neighbouring features own the adjacent concerns:
   exists. It sets the `lastError` signal to the text of `describeError` and calls
   `console.error(text)`. Today the line carries the error but not the area. For Telo Ride 1 the
   method calls `Logger.error('bluetooth', error)` in place of `console.error`, so the line names
-  both (`L2-115` AC3).
+  both (`L2-115` AC3). [Keep the bike connected](../../bike/keep-the-bike-connected/README.md)
+  drops `lastError` from the `BikeConnection` contract, because the rider sees only the app's own
+  message (`L2-017` AC5); the console line is then the only place the error text goes.
 - **`provideBrowserGlobalErrorListeners()`** (`ride`, `app.config.ts`): exists. It routes an
   uncaught error and an unhandled promise rejection to Angular's `ErrorHandler`, whose default
   implementation writes them to `console.error`. No custom `ErrorHandler` is provided.
@@ -67,7 +69,7 @@ Neighbouring features own the adjacent concerns:
   node or stack is passed as a further argument. It holds no buffer and sends nothing.
 - **Binding** (`ride`, `app.config.ts`): new. `{ provide: LOGGER, useClass: ConsoleLogger }`,
   bound in the composition root because every screen shares it.
-- **Callers**: the record store of [Keep the record](../../class-done/keep-the-record/README.md)
+- **Callers**: `RideRecordStore` of [Keep the record](../../class-done/keep-the-record/README.md)
   logs a refused write under `storage` (`L2-168` AC4), and the video player's failure is logged
   under `video` (`L2-088` AC4). Each caller logs an error once, where it is handled.
 - **`no-console`** (`frontend/eslint.config.js`): new. The rule is set to `error` for every
@@ -123,9 +125,9 @@ through the token, and `BikeTelemetry` decodes notifications without writing a l
 
 ### Behaviour: log an error
 
-A failed GATT connection reaches `WebBluetoothBikeConnection.report`, which sets `lastError` and
-logs once under `bluetooth`. `ConsoleLogger` writes one plain-text line and no request leaves the
-page.
+A failed GATT connection reaches `WebBluetoothBikeConnection.report`, which logs once under
+`bluetooth`. `ConsoleLogger` writes one plain-text line, no request leaves the page, and the rider
+sees the app's own message.
 
 ![Sequence diagram for logging an error](diagrams/sequence-log-an-error.png)
 

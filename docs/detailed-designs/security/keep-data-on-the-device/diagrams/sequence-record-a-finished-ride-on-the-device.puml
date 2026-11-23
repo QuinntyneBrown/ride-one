@@ -16,25 +16,25 @@ skinparam package {
 }
 actor "Rider" as rider
 box "Frontend — Ride app (ride application)" #E0F2FE
-  participant "Class Ride page" as ride
-  participant "Class Done page" as done
+  participant "ClassRideStore" as ride
+  participant "ClassDonePage" as done
 end box
 box "Frontend — Ride app (domain library)" #ECFDF3
-  participant "Record store" as store
+  participant "RideRecordStore" as store
 end box
 box "Device — Browser" #F2F4F7
   participant "localStorage" as ls
   participant "Network stack" as net
 end box
 rider -> ride : Ride the class to 30:00
-ride -> store : Record the finished ride's output (L2-168 AC1)
-store -> ls : getItem(record key)
+ride -> store : add(outputKj) through RIDE_RECORD (L2-168 AC1)
+store -> ls : getItem("telo-ride.record"), on first use
 ls --> store : Stored record or null
 store -> store : Add one to the count, set last, raise best
-store -> ls : setItem(record key, JSON) (L2-132 AC2)
+store -> ls : setItem("telo-ride.record", JSON) (L2-132 AC2)
 ls --> store : Written on the device
 note over store, net : No fetch, beacon, WebSocket or cookie is used for the ride (L2-132 AC1, AC3)
-store --> ride : Updated record
+store --> ride : RecordOutcome
 ride -> done : Navigate to /done
 done --> rider : Show the output, with no prompt for an account (L2-132 AC1)
 @enduml

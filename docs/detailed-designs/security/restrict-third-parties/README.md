@@ -87,8 +87,10 @@ The policy below is the value the static host sends for Telo Ride 1.
   other than the app's own.
 - **`ClassVideo`** (`components`, `class-ride/class-video.ts`, selector `wz-class-video`): exists.
   It builds the cover address `https://i.ytimg.com/vi/<videoId>/hqdefault.jpg`, with the video id
-  passed through `encodeURIComponent`. The block that shows the cover on The Class is owned by
-  [Show The Class](../../the-class/show-the-class/README.md).
+  passed through `encodeURIComponent`. Class Ride uses it
+  ([Ride the class](../../class-ride/ride-the-class/README.md)). Whether The Class reads its cover
+  from `i.ytimg.com` or from a bundled image is `<TO SUPPLY>` in
+  [Show The Class](../../the-class/show-the-class/README.md); `img-src` admits both.
 - **Fonts**: exist. `projects/ride/src/styles/fonts.css` holds the `@font-face` rules, which point
   at the eight WOFF2 files in `projects/ride/public/fonts/` (ADR 0005). The production build sets
   `optimization.fonts` to `false` in `angular.json`, so the build inlines no font provider.
@@ -96,8 +98,8 @@ The policy below is the value the static host sends for Telo Ride 1.
   origin. No analytics, advertising or tracking snippet is added to it.
 - **`frontend/package.json`**: exists. It holds no analytics, advertising or tracking package.
 - **No other origin in code**: `connect-src 'self'` leaves the app no cross-origin `fetch`. Where
-  the class definition comes from is `<TO SUPPLY>` (`L2.md` open question 1); under this policy it
-  is either bundled with the app or served from the app's own origin.
+  the class definition behind `CLASSES_API` comes from is `<TO SUPPLY>` (`L2.md` open question 1);
+  under this policy it is either bundled with the app or served from the app's own origin.
 
 ### What is left out
 
@@ -164,8 +166,9 @@ loads bundles, styles and fonts from the same origin and requests nothing else.
 
 ### Behaviour: load the class video
 
-The cover comes from `i.ytimg.com`, the IFrame API from `www.youtube.com` and the player frame from
-`www.youtube-nocookie.com`. The browser checks each against its directive before the request.
+On Class Ride the cover comes from `i.ytimg.com`, the IFrame API from `www.youtube.com` and the
+player frame from `www.youtube-nocookie.com`. The browser checks each against its directive before
+the request.
 
 ![Sequence diagram for loading the class video](diagrams/sequence-load-the-class-video.png)
 

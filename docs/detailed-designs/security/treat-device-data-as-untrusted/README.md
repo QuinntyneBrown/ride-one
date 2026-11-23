@@ -42,12 +42,15 @@ Neighbouring features own the adjacent concerns:
   keeps both at zero.
 - **`ConnectDevice`** (`components`, `connect-device/`, selector `wz-connect-device`): exists. It
   takes the bike's `name` and `identifier` as inputs and renders them by interpolation. The
-  states it shows, and the alert in which Connect Bike renders an error, are owned by
-  [Connect a bike](../../bike/connect-a-bike/README.md).
-- **`BikeConnection.lastError`** (`api`, `bike/bike-connection.ts`): exists. A
-  `Signal<string | null>` that carries `name: message` as produced by `describeError`. A screen
-  renders it as text and branches only on `BikeConnectionError.code` (`blocked`, `failed`,
-  `read-only`), never on the message.
+  states it shows are owned by [Connect a bike](../../bike/connect-a-bike/README.md).
+- **Error names and messages**: `describeError` (`domain`, `bluetooth/describe-error.ts`) exists
+  and renders a Web Bluetooth error as the string `name: message`. That string goes to the console
+  as one text argument ([Log to the console only](../log-to-the-console-only/README.md)). The
+  `BikeConnection.lastError` signal (`api`, `bike/bike-connection.ts`) exists and carries the same
+  string; [Keep the bike connected](../../bike/keep-the-bike-connected/README.md) drops it, because
+  the rider sees only the app's own message (`L2-017` AC5). A screen branches on
+  `BikeConnectionError.code` (`blocked`, `failed`, `read-only`) and never parses or shows the
+  message.
 - **Content Security Policy**: the policy of
   [Restrict third parties](../restrict-third-parties/README.md) is the second line of defence. A
   script injected through device text would not be from the app's origin and would not run.
@@ -60,8 +63,8 @@ Neighbouring features own the adjacent concerns:
   length limit. For Telo Ride 1 it exports `DEVICE_NAME_MAX = 64` and cuts `name` to that length.
   The identifier is derived from the same advertised name and is cut to the same limit.
 - **Single point of entry**: `WebBluetoothBikeConnection` builds `BikeInfo` only through
-  `bikeIdentity`, and `RememberedBikeStore.save` receives that `BikeInfo`. The cut name is therefore
-  the one shown and the one stored.
+  `bikeIdentity`, and `ConnectBikeStore` passes that `BikeInfo` to `RememberedBikeStore.save`. The
+  cut name is therefore the one shown and the one stored.
 - **`RememberedBikeStore.parse`**: exists. For Telo Ride 1 it also cuts a stored `name` to
   `DEVICE_NAME_MAX` on read, because the stored value is itself untrusted.
 
@@ -72,15 +75,19 @@ Neighbouring features own the adjacent concerns:
   `telo-ride.bike` inside a `try` block and passes the parsed JSON to `parse`, which returns `null`
   unless `id` is a non-empty string, `name` is a string, `identifier` is a string or `null`, and
   `kind` is `echelon` or `ftms`. A thrown `SecurityError`, a `JSON.parse` failure and a failed check
-  all yield `null`. The fields kept for Telo Ride 1 are set by `L2-015` AC4.
-- **Record store** (`domain`, `storage/`): new, introduced by
-  [Keep the record](../../class-done/keep-the-record/README.md). It follows the same shape: a
-  guarded read, then a `parse` function that returns the record only when the ride count is a
-  non-negative integer and the best output and last output are finite, non-negative numbers. Any
-  other value is absent.
-- **Opening guard** (`ride`): `rememberedBikeGuard` (`bike/remembered-bike.guard.ts`) exists and
-  reads `REMEMBERED_BIKE`. [Open the app](../../the-class/open-the-app/README.md) reshapes it to
-  read the record as well. With both absent, the rider is a new rider and Connect Bike opens.
+  all yield `null`. [Keep the bike connected](../../bike/keep-the-bike-connected/README.md)
+  reduces the stored fields to `id` and `name` (`L2-015` AC4), and `parse` then checks those two.
+- **`RideRecordStore`** (`domain`, `storage/ride-record-store.ts`) and **`RecordRule.parse`**
+  (`domain`, `engine/record-rule.ts`): new, introduced by
+  [Keep the record](../../class-done/keep-the-record/README.md) behind `RideRecord` and
+  `RIDE_RECORD` in `api`. The store follows the same shape: a guarded read of the key
+  `telo-ride.record`, then `RecordRule.parse`, which returns a `RecordData` only when `rides` is a
+  whole number of at least 1 and both outputs are finite numbers of at least 0. Any other value is
+  `null`.
+- **`rememberedBikeGuard`** (`ride`, `bike/remembered-bike.guard.ts`): exists and reads
+  `REMEMBERED_BIKE`. [Open the app](../../the-class/open-the-app/README.md) reshapes it to read
+  `RIDE_RECORD.current()` as well. With both `null`, the rider is a new rider and Connect Bike
+  opens.
 - **No repair, no error screen**: an out-of-rule value is not rewritten or deleted on read. The
   next successful pairing or finished ride overwrites it.
 
@@ -128,30 +135,30 @@ storage on the device. It validates both before use.
 ### Components
 
 `bikeIdentity` bounds the name before `WebBluetoothBikeConnection` exposes or stores it.
-`RememberedBikeStore` and the record store parse what they read, and the two decoders return `null`
+`RememberedBikeStore` and `RideRecordStore` parse what they read, and the two decoders return `null`
 for a malformed frame.
 
 ![C4 component view for treating device data as untrusted](diagrams/c4-component.png)
 
 ### Class structure
 
-`BikeInfo` is built only through `bikeIdentity`. Each store has a private `parse` that returns the
-value or nothing, and each decoder returns `TelemetrySample | null`.
+`BikeInfo` is built only through `bikeIdentity`. Each store reads through a `parse` that returns
+the value or `null`, and each decoder returns `TelemetrySample | null`.
 
 ![Class diagram for treating device data as untrusted](diagrams/class-structure.png)
 
 ### Behaviour: show device text
 
 A device advertises a name that may be hostile or too long. `bikeIdentity` cuts it to 64 characters,
-the store saves the cut name, and `ConnectDevice` renders it by interpolation. Connect Bike renders
-`lastError` the same way.
+the store saves the cut name, and `ConnectDevice` renders it by interpolation. An error's name and
+message go to the console as one string, and the rider reads the app's own words.
 
 ![Sequence diagram for showing device text](diagrams/sequence-show-device-text.png)
 
 ### Behaviour: open with malformed storage
 
-The opening guard reads the remembered bike and the record. A missing key, unparsable text, a
-thrown read and a value outside its rules all come back as absent, and Connect Bike opens.
+`rememberedBikeGuard` reads the remembered bike and the record. A missing key, unparsable text, a
+thrown read and a value outside its rules all come back as `null`, and Connect Bike opens.
 
 ![Sequence diagram for opening with malformed storage](diagrams/sequence-open-with-malformed-storage.png)
 

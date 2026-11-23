@@ -16,7 +16,7 @@ skinparam package {
 }
 actor "Rider" as rider
 box "Frontend — Ride app (ride application)" #E0F2FE
-  participant "ConnectBikePage" as page
+  participant "ConnectBikePage and ConnectBikeStore" as page
 end box
 box "Frontend — Ride app (components library)" #E0F2FE
   participant "ConnectDevice" as card
@@ -29,6 +29,7 @@ end box
 box "Device — Browser" #F2F4F7
   participant "navigator.bluetooth" as ble
   participant "localStorage" as ls
+  participant "console" as console
 end box
 box "Device — Smart bike" #F2F4F7
   participant "Bike" as bike
@@ -41,16 +42,16 @@ ble --> conn : BluetoothDevice with name and id
 conn -> identity : bikeIdentity(device.name, device.id)
 identity -> identity : Cut the name to 64 characters (L2-129 AC2)
 identity --> conn : BikeIdentity
-conn -> store : save(BikeInfo)
+conn --> page : BikeInfo; the bike signal changes
+page -> store : save(BikeInfo) once paired
 store -> ls : setItem with the cut name (L2-129 AC2)
-conn --> page : bike signal changes
 page -> card : Bind name and identifier as inputs
 card -> card : Render by interpolation into text nodes (L2-129 AC1)
 card --> rider : The name shows as text and nothing runs
-opt connect() fails
+opt a Web Bluetooth call fails
   ble --> conn : Reject with an error name and message
-  conn --> page : lastError holds "name: message"
-  page -> page : Render lastError by interpolation in its alert
-  page --> rider : The error shows as text (L2-129 AC1)
+  conn -> console : One string, "name: message", never markup (L2-129 AC1, L2-115)
+  conn --> page : BikeConnectionError with a code
+  page --> rider : The app's own words for the code (L2-017 AC5)
 end
 @enduml

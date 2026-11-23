@@ -16,7 +16,7 @@ skinparam package {
 }
 actor "Rider" as rider
 box "Frontend — Ride app (ride application)" #E0F2FE
-  participant "The Class page" as page
+  participant "ClassRidePage" as page
 end box
 box "Frontend — Ride app (components library)" #E0F2FE
   participant "ClassVideo" as cover
@@ -32,7 +32,7 @@ box "External — YouTube" #FFF4E5
   participant "www.youtube.com" as yt
   participant "www.youtube-nocookie.com" as nocookie
 end box
-rider -> page : Open The Class
+rider -> page : Start the class
 page -> cover : Bind the video id
 cover -> browser : Request the cover image
 browser -> browser : Check img-src: i.ytimg.com is listed (L2-131 AC1)

@@ -20,7 +20,7 @@ box "External — CI" #FFF4E5
   participant "Page object" as po
 end box
 box "Frontend — Ride app (ride application)" #E0F2FE
-  participant "ConnectBikePage" as page
+  participant "ConnectBikePage and ConnectBikeStore" as page
 end box
 box "Frontend — Ride app (domain library)" #ECFDF3
   participant "WebBluetoothBikeConnection" as conn

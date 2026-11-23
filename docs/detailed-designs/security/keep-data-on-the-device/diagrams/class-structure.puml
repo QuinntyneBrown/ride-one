@@ -26,16 +26,21 @@ class RememberedBikeStore {
   +forget(): void
 }
 
-class "Record store" as RecordStore <<new>> {
-  key: <TO SUPPLY>
-  +read(): record or absent
-  +write(record): void
+interface RideRecord <<new>> {
+  +current: Signal<RecordData | null>
+  +add(outputKj: number): RecordOutcome
 }
 
-class "Record" as Record <<type>> {
-  ride count
-  best output (kJ)
-  last output (kJ)
+class RideRecordStore <<new>> {
+  key = "telo-ride.record"
+  +current: Signal<RecordData | null>
+  +add(outputKj: number): RecordOutcome
+}
+
+class RecordData <<type>> {
+  +rides: number
+  +bestOutputKj: number
+  +lastOutputKj: number
 }
 
 class "localStorage" as LocalStorage <<browser>> {
@@ -60,9 +65,10 @@ class "guard" as Guard <<fixture>> {
 
 RememberedBikeStore ..|> RememberedBike
 RememberedBikeStore --> LocalStorage : only persistence
-RecordStore --> LocalStorage : only persistence
-RecordStore ..> Record : stores
+RideRecordStore ..|> RideRecord
+RideRecordStore --> LocalStorage : only persistence
+RideRecordStore ..> RecordData : stores
 Routes ..> RememberedBikeStore : binds
-Routes ..> RecordStore : binds
+Routes ..> RideRecordStore : binds
 Guard ..> Config : proves no request leaves
 @enduml

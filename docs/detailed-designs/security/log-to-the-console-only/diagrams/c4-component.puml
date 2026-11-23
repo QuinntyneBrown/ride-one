@@ -21,6 +21,5 @@ Rel(config, logger, "Provides")
 Rel(conn, contract, "Injects LOGGER")
 Rel(logger, contract, "Implements")
 Rel(logger, describe, "Formats the error with")
-Rel(conn, describe, "Formats lastError with")
 Rel(telemetry, conn, "Subscribes to frames of")
 @enduml

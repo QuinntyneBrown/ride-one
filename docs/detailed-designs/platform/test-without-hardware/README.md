@@ -86,6 +86,9 @@ Neighbouring features own the adjacent concerns:
   names the link "Back to the class".
 - **The Class** and **Class Done** page objects: new, as `e2e/pages/the-class.page.ts`
   (`TheClassPage`) and `e2e/pages/class-done.page.ts` (`ClassDonePage`).
+- **Storage**: Playwright gives each spec a fresh browser context, so `localStorage` starts empty.
+  A spec seeds a returning rider by writing `telo-ride.bike` and `telo-ride.record` before the app
+  loads.
 - **Rule**: a spec holds no selector. A page object locates by role and by the mocks' BEM classes.
   Page objects for Telo Ride's other screens (`home.page.ts`, `race.page.ts`, `profile.page.ts`
   and the rest) are carried over and leave with their screens.

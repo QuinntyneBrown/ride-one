@@ -58,7 +58,8 @@ Neighbouring features own the adjacent concerns:
   `FtmsLink`, `GattWriteQueue`, `KeepaliveScheduler`, `DeviceReconnector`,
   `SimulatedBikeConnection`), `engine/` (`WorkoutEngine`, `RideClock`, `ResistanceController`,
   `BikeTelemetry`), `storage/` (`RememberedBikeStore`) and `browser/` (`BrowserFullscreen`,
-  `BrowserScreenWakeLock`).
+  `BrowserScreenWakeLock`). The screen features add to these folders, for example
+  `RideRecordStore` in `storage/`.
 - **`components`**: exists. One folder per design-system block, each a standalone component as
   `name.ts`, `name.html` and `name.scss`. The blocks for the four screens are owned by the screen
   features; blocks for Telo Ride's other screens are carried over.

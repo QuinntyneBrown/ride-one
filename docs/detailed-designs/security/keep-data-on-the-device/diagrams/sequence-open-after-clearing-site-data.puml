@@ -17,11 +17,11 @@ skinparam package {
 actor "Rider" as rider
 box "Frontend — Ride app (ride application)" #E0F2FE
   participant "Router" as router
-  participant "Opening guard" as guard
+  participant "rememberedBikeGuard" as guard
 end box
 box "Frontend — Ride app (domain library)" #ECFDF3
   participant "RememberedBikeStore" as bikeStore
-  participant "Record store" as recordStore
+  participant "RideRecordStore" as recordStore
 end box
 box "Device — Browser" #F2F4F7
   participant "Site settings" as settings
@@ -35,10 +35,10 @@ guard -> bikeStore : get()
 bikeStore -> ls : getItem("telo-ride.bike")
 ls --> bikeStore : null
 bikeStore --> guard : null
-guard -> recordStore : Read the record
-recordStore -> ls : getItem(record key)
+guard -> recordStore : current()
+recordStore -> ls : getItem("telo-ride.record")
 ls --> recordStore : null
-recordStore --> guard : Absent
+recordStore --> guard : null
 note over guard, ls : No other copy exists: no server, cookie, IndexedDB or cache holds the record (L2-132 AC2)
 guard --> router : New rider: redirect to /connect
 router --> rider : Connect Bike opens (L2-132 AC4)
