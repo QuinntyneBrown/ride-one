@@ -73,8 +73,7 @@ Neighbouring features own the adjacent concerns:
 - **`app.config.ts`** (`ride`): exists. It provides zoneless change detection, the router and the
   browser's global error listeners, and no `HttpClient`.
 - **Carried over**: `HttpRidesApi` and `RideOutbox` (`api`, `rides/`), `SessionRideOutbox`
-  (`domain`, `storage/session-ride-outbox.ts`), `HttpRiderProgressApi` and the SignalR client
-  (`api`, `live/`) upload rides and progress for Telo Ride. `ride.routes.ts` binds
+  (`domain`, `storage/session-ride-outbox.ts`), `HttpRiderProgressApi` upload rides and progress for Telo Ride (the SignalR client went with ADR 0038). `ride.routes.ts` binds
   `RIDER_PROGRESS_API` today; Telo Ride 1 binds none of them. `ClassRideStore`
   (`ride`, `class-ride/class-ride-store.ts`) exists and today hands a finished ride to
   `RIDE_OUTBOX`; for Telo Ride 1 it calls `RIDE_RECORD.add` only. Whether an HTTP client remains

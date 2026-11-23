@@ -1,8 +1,8 @@
 import type { Page } from '@playwright/test';
 
 /**
- * Makes, in the page, the browser calls the app will make once its Bluetooth, API and hub clients exist
- * (slices 2.3, 9.1 and 14.1). It lets the harness spec prove the fakes from the outside before the app uses them.
+ * Makes, in the page, the browser calls the app will make once its Bluetooth and API clients exist
+ * (slices 2.3 and 9.1). It lets the harness spec prove the fakes from the outside before the app uses them.
  */
 export class AppCalls {
   constructor(private readonly page: Page) {}
@@ -68,59 +68,6 @@ export class AppCalls {
         };
       },
       { method, path },
-    );
-  }
-
-  /**
-   * Connects to the ride hub as the SignalR client will: negotiate, open the WebSocket, and exchange the JSON
-   * handshake. Every invocation the hub sends is kept for `hubHeard()`. Resolves once the handshake is answered.
-   */
-  async joinHub(): Promise<void> {
-    await this.page.evaluate(async () => {
-      const page = window as unknown as { hub: WebSocket; hubHeard: unknown[] };
-      const negotiated = await fetch('/hubs/ride/negotiate?negotiateVersion=1', { method: 'POST' });
-      const { connectionToken } = (await negotiated.json()) as { connectionToken: string };
-      page.hubHeard = [];
-      page.hub = new WebSocket(`ws://${location.host}/hubs/ride?id=${connectionToken}`);
-      await new Promise<void>((resolve, reject) => {
-        page.hub.onerror = () => reject(new Error('the ride hub refused the WebSocket'));
-        page.hub.onopen = () => page.hub.send('{"protocol":"json","version":1}\x1e');
-        page.hub.onmessage = (event: MessageEvent<string>) => {
-          for (const frame of event.data.split('\x1e').filter(Boolean)) {
-            const message = JSON.parse(frame) as {
-              type?: number;
-              target?: string;
-              arguments?: unknown[];
-            };
-            if (message.type === undefined) resolve();
-            else if (message.type === 1)
-              page.hubHeard.push({ target: message.target, arguments: message.arguments });
-          }
-        };
-      });
-    });
-  }
-
-  /** Invokes `target` on the hub without waiting for a result, as `connection.send` does. */
-  async sendToHub(target: string, ...args: unknown[]): Promise<void> {
-    await this.page.evaluate(
-      ({ target, args }) =>
-        (window as unknown as { hub: WebSocket }).hub.send(
-          `${JSON.stringify({ type: 1, target, arguments: args })}\x1e`,
-        ),
-      { target, args },
-    );
-  }
-
-  /** The invocations the hub has sent the page, oldest first. */
-  hubHeard(): Promise<unknown[]> {
-    return this.page.evaluate(() => (window as unknown as { hubHeard: unknown[] }).hubHeard);
-  }
-
-  /** Starts negotiating with the ride hub and ignores the outcome, as a careless app would. */
-  async tryHub(): Promise<void> {
-    await this.page.evaluate(() =>
-      fetch('/hubs/ride/negotiate?negotiateVersion=1', { method: 'POST' }).catch(() => undefined),
     );
   }
 }

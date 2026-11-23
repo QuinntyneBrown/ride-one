@@ -1,9 +1,8 @@
 // Acceptance test
 // Traces to: L2-035 AC1, AC2 (Ride alone), AC3 (Ride alone)
 // Description: Home's Classes door reads "Classes" with "All classes", and its teaser shows the featured class, the
-// first open class on the 30 min shelf, with its length and "Ride alone", which opens Class Start with alone chosen.
-// Group sessions come with slice 14.2, so the door has no next session and no "Join group" yet
-// (docs/mocks/pages/home/no-groups.html).
+// first open class on the 30 min shelf, with its length and "Ride alone", which opens Class Start with Start class.
+// Telo Ride 1 has no group sessions (ADR 0038), so the door has no next session and no "Join group".
 import { echelonBike } from './fixtures/echelon';
 import { midRiderProgress } from './fixtures/progress';
 import { expect, test } from './fixtures/test';
@@ -16,7 +15,7 @@ test.beforeEach(async ({ api, bluetooth }) => {
   api.answer('GET', '/api/progress', midRiderProgress);
 });
 
-test('the Classes door features 30 Minute HIIT Cardio, and Ride alone opens Class Start with alone chosen (L2-035 AC1 to AC3) @critical', async ({
+test('the Classes door features 30 Minute HIIT Cardio, and Ride alone opens Class Start with Start class (L2-035 AC1 to AC3) @critical', async ({
   page,
 }) => {
   const home = new HomePage(page);
@@ -29,7 +28,7 @@ test('the Classes door features 30 Minute HIIT Cardio, and Ride alone opens Clas
 
   await home.teaserActions.click();
   await expect(page).toHaveURL('/classes/hiit-cardio-30');
-  await expect(new ClassStartPage(page).alone).toBeChecked();
+  await expect(new ClassStartPage(page).start).toBeVisible();
 });
 
 test('All classes opens the Class Library (L2-035 AC1)', async ({ page }) => {

@@ -226,11 +226,11 @@ function removeFromPage(): void {
 
 /** Runs in the page before any app script. It must not close over anything outside itself. */
 function installInPage(): void {
-  type Bike = {
+  interface Bike {
     name: string;
     services: Record<string, string[]>;
     values?: Record<string, number[]>;
-  };
+  }
   const report = (window as unknown as { __fakeBluetoothReport(r: unknown): Promise<void> })
     .__fakeBluetoothReport;
   const offered = (): Bike | undefined => (window as unknown as { __fakeBike?: Bike }).__fakeBike;

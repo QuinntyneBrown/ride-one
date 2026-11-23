@@ -151,7 +151,7 @@ public sealed class RideTests(SignInApi api) : IClassFixture<SignInApi>
         { "mapId", "mapId", "atlantis" },
         { "mapId", "mapId", null },
         { "mode", "mode", "tandem" },
-        { "sessionId", "mode", "online" },
+        { "mode", "mode", "online" },
         { "pack", "pack", null },
         { "place", "place", 11 },
         { "elapsedSeconds", "elapsedSeconds", 0 },

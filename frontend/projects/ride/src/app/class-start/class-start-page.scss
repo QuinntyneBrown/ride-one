@@ -1,7 +1,7 @@
 @use '../../styles/page';
 
 // Block class-start (docs/design-system/assets/components.css, Class Start): the header over the scrolling page, one
-// column on a phone and, from lg, the class beside the aside with the ride choice.
+// column on a phone and, from lg, the class beside the aside with Start class.
 .class-start-page {
   display: flex;
   flex-direction: column;
@@ -30,6 +30,13 @@
     grid-template-columns: minmax(0, 1fr) var(--classes-start-aside-width);
     gap: var(--space-12);
     padding-block: var(--space-10);
+  }
+}
+
+// The Start class button: under the class on a phone, at the head of the aside from lg.
+.class-start__go {
+  @media (min-width: 64rem) {
+    align-self: start;
   }
 }
 

@@ -5,7 +5,6 @@ using Telo.Ride.Application;
 using Telo.Ride.Domain.Accounts;
 using Telo.Ride.Domain.Feedback;
 using Telo.Ride.Domain.Maps;
-using Telo.Ride.Domain.Results;
 using Telo.Ride.Domain.Rides;
 using Telo.Ride.Domain.Workouts;
 using Telo.Ride.Infrastructure;
@@ -34,7 +33,6 @@ public sealed class UnreachableDatabaseApi : TeloRideApiFactory
 
         public DbSet<FeedbackReport> FeedbackReports => db.FeedbackReports;
 
-        public DbSet<SessionResult> SessionResults => db.SessionResults;
 
         public Task<bool> CanConnectAsync(CancellationToken cancellationToken) =>
             throw new InvalidOperationException("The database cannot be reached.");

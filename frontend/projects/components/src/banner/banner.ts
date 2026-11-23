@@ -23,7 +23,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   },
 })
 export class Banner {
-  /** The bold title; a `[slot=title]` node takes its place where it holds more than words (a group's timer). */
+  /** The bold title; a `[slot=title]` node takes its place where it holds more than words (a timer). */
   readonly title = input('');
   readonly detail = input('');
   readonly tone = input<'gold' | 'danger' | 'info' | 'warning'>('gold');

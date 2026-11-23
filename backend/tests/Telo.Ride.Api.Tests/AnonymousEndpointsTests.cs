@@ -1,6 +1,6 @@
 // Acceptance test
 // Traces to: L2-127 AC1
-// Description: every endpoint the API maps, its controllers, the ride hub, the health checks and the fallbacks, is
+// Description: every endpoint the API maps, its controllers, the health checks and the fallbacks, is
 // asked without a session. Only the listed anonymous endpoints answer; every other one is refused with 401, so an
 // endpoint added later needs a session unless someone marks it anonymous and adds it to this list.
 using System.Net;
@@ -21,8 +21,6 @@ public sealed class AnonymousEndpointsTests(HostedAppApi api) : IClassFixture<Ho
         "POST /api/auth/sign-out",
         "GET /api/classes",
         "GET /api/classes/{id}",
-        "GET /api/maps",
-        "GET /api/maps/{mapId}/queue",
         "GET /health/live",
         "GET /health/ready",
         "GET /{*path:nonfile}",

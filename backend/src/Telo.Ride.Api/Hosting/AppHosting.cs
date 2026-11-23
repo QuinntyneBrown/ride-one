@@ -6,7 +6,7 @@ namespace Telo.Ride.Api.Hosting;
 /// <summary>
 /// Serves the production build of the ride app from <c>wwwroot</c> (ADR 0026, L2-149 AC1): its files without
 /// a session, <c>index.html</c> for every other address that is not the backend's, and never a stale
-/// <c>index.html</c> or service worker (L2-135 AC3). Under <c>/api</c>, <c>/hubs</c> and <c>/health</c> an unknown
+/// <c>index.html</c> or service worker (L2-135 AC3). Under <c>/api</c> and <c>/health</c> an unknown
 /// address stays the backend's.
 /// </summary>
 internal static class AppHosting
@@ -15,7 +15,7 @@ internal static class AppHosting
 
     /// <summary>The files a browser must ask for again each time: the shell, and the service worker and its manifest.</summary>
     private static readonly HashSet<string> NeverStale = [Shell, "ngsw-worker.js", "ngsw.json"];
-    private static readonly string[] BackendPaths = ["api", "hubs", "health"];
+    private static readonly string[] BackendPaths = ["api", "health"];
 
     /// <summary>
     /// Marks the app's shell and its service worker as never cached; options a host or test adds (its file provider) stay.

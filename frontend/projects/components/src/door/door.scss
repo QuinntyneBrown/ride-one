@@ -25,7 +25,7 @@
   line-height: var(--line-height-sm);
   color: var(--color-muted);
 
-  // A door with no summary (Classes with no group session, L2-035) keeps no gap for one.
+  // A door with no summary (Classes, L2-035) keeps no gap for one.
   &:empty {
     display: none;
   }

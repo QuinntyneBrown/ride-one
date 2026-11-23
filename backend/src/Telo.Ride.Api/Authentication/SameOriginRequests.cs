@@ -5,7 +5,7 @@ namespace Telo.Ride.Api.Authentication;
 /// <summary>
 /// The same-origin proof of L2-127 AC2 (ADR 0033): every unsafe request (any method but GET, HEAD, OPTIONS and TRACE)
 /// and every WebSocket upgrade that the browser marks as coming from another origin is refused with 403 and code
-/// <c>cross_origin</c> before authentication, so a forged change never reaches a controller or the ride hub. The browser
+/// <c>cross_origin</c> before authentication, so a forged change never reaches a controller. The browser
 /// sets <c>Sec-Fetch-Site</c> and <c>Origin</c> itself and a page cannot change them, so the app sends nothing extra.
 /// </summary>
 internal static class SameOriginRequests
@@ -37,8 +37,7 @@ internal static class SameOriginRequests
         });
 
     /// <summary>
-    /// A WebSocket upgrade, read from its header: SignalR adds the WebSocket feature only inside its own endpoint, after
-    /// this check. An HTTP/2 WebSocket is a CONNECT, which is unsafe already.
+    /// A WebSocket upgrade, read from its header. An HTTP/2 WebSocket is a CONNECT, which is unsafe already.
     /// </summary>
     private static bool IsUpgrade(HttpRequest request) =>
         request.Headers.Upgrade.ToString().Contains("websocket", StringComparison.OrdinalIgnoreCase);

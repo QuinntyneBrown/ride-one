@@ -61,6 +61,7 @@ the same tools, effects, transitions and motion, in Telo Ride's own brand.
 | 14.1 | [Connect to the ride hub](14-1-connect-to-the-ride-hub/README.md) | 1:53 | A group class ride holding one connection to the ride hub with the session cookie; the clock offset from five ServerTime calls; reconnecting at once after a drop and measuring again; a solo ride and Home holding none |
 | 28.1 | [Decide the backend](28-1-decide-the-backend/README.md) | 1:43 | ADR 0037: what the backend does and what Telo Ride 1 leaves out; the requirements that already chose static files and a record on the device; no backend, the class ships with the app; which slice removes which part; Home unchanged from 390 to 1440 px |
 | 28.2 | [Remove races](28-2-remove-races/README.md) | 1:43 | Telo Ride 1 has no races: the four race addresses answer page not found; Home with its greeting and Classes door alone and a header without Race; the World and its courses kept for riding the class; `/race` from 390 to 1440 px; the checks green again |
+| 28.3 | [Remove group classes and live races](28-3-remove-group-classes-and-live-races/README.md) | 1:43 | Telo Ride 1 is always solo (ADR 0038): a class card with no group chip and Class Start with one button; an old group link, `?session=…`, riding the class solo with Pause, no board and no hub connection; the hub client and SignalR gone from the app, and the hub, sessions, bots and race results gone from the backend; Class Start from 390 to 1440 px; the checks' real numbers |
 
 ## What every video is
 

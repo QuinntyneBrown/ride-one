@@ -35,14 +35,6 @@ describe('RideClock', () => {
     expect(clock.elapsedMs()).toBe(607_000);
   });
 
-  it('starts from a moment already past, so a ride joined late reads the time since that moment (L2-122 AC3)', () => {
-    now = 120_000;
-
-    clock.start(0);
-
-    expect(clock.elapsedMs()).toBe(120_000);
-  });
-
   it('stands still while paused, and goes on from there after Resume (L2-027 AC3)', () => {
     clock.start();
     now += 7_000;

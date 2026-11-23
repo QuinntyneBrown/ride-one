@@ -35,11 +35,6 @@ export interface RaceRideFacts {
   readonly pack: PackStrengthId | null;
   readonly place: number;
   readonly fieldSize: number;
-  /**
-   * A riders-online race's session, whose result the backend takes the place, field, time and output from instead
-   * (L2-125 AC1); none otherwise.
-   */
-  readonly sessionId?: string;
 }
 
 /** A finished class. */

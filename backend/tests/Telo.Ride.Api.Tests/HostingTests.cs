@@ -4,7 +4,7 @@
 // app with the headers of L2-131 and is never cached stale, a file answers itself, the service worker
 // and its manifest are never cached stale either, so a deploy reaches the app cache on the next start,
 // the web app manifest and its icons answer with their types, so Chrome and Edge can install the app,
-// and an unknown address under /api, /hubs or /health stays the backend's, never the app.
+// and an unknown address under /api or /health stays the backend's, never the app.
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
@@ -78,7 +78,6 @@ public sealed class HostingTests(HostedAppApi api) : IClassFixture<HostedAppApi>
 
     [Theory]
     [InlineData("/api/progress")]
-    [InlineData("/hubs/unknown")]
     [InlineData("/health/unknown")]
     public async Task An_unknown_backend_address_is_refused_never_answered_with_the_app(string path)
     {

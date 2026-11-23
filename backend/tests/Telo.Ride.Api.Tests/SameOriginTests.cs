@@ -2,8 +2,7 @@
 // Traces to: L2-127 AC2
 // Description: a change the browser marks as coming from another origin is refused with 403 and code cross_origin
 // before it reaches the endpoint, and the rider's data stays as it was: Sec-Fetch-Site cross-site or same-site, or,
-// without Sec-Fetch-Site, an Origin that is not the API's own. The same holds for asking for a sign-in code and for
-// negotiating a connection to the ride hub. A change from the app's own origin, and a request from a client that is
+// without Sec-Fetch-Site, an Origin that is not the API's own. The same holds for asking for a sign-in code. A change from the app's own origin, and a request from a client that is
 // not a browser (neither header), carry on; a read is never refused for its origin.
 using System.Net;
 using System.Net.Http.Json;
@@ -111,34 +110,6 @@ public sealed class SameOriginTests(SignInApi api) : IClassFixture<SignInApi>
 
         await AssertCrossOrigin(response);
         Assert.Equal(sentBefore, api.Mailbox.Sent.Count);
-    }
-
-    [Fact]
-    public async Task Negotiating_with_the_ride_hub_from_another_site_is_refused()
-    {
-        using var browser = await SignedIn($"sam.{Guid.NewGuid():N}@example.com");
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/hubs/ride/negotiate?negotiateVersion=1");
-        Mark(request, "cross-site", "https://elsewhere.example");
-
-        using var response = await browser.SendAsync(request, Cancel);
-
-        await AssertCrossOrigin(response);
-    }
-
-    [Fact]
-    public async Task Opening_the_ride_hubs_WebSocket_from_another_site_is_refused()
-    {
-        var socket = api.Server.CreateWebSocketClient();
-        socket.ConfigureRequest = request =>
-        {
-            request.Headers["Sec-Fetch-Site"] = "cross-site";
-            request.Headers.Origin = "https://elsewhere.example";
-        };
-
-        var refused = await Assert.ThrowsAnyAsync<Exception>(() =>
-            socket.ConnectAsync(new Uri("wss://localhost/hubs/ride?id=forged"), Cancel));
-
-        Assert.Contains("403", refused.Message);
     }
 
     [Fact]

@@ -13,6 +13,8 @@ export class ClassLibraryPage {
   readonly cardTitles: Locator;
   readonly error: Locator;
   readonly retry: Locator;
+  /** A group session's chip on any card; Telo Ride 1 has none (ADR 0038). */
+  readonly groupChips: Locator;
 
   constructor(private readonly page: Page) {
     this.header = new AppHeader(page);
@@ -25,6 +27,7 @@ export class ClassLibraryPage {
     this.cardTitles = page.locator('.class-card__title');
     this.error = page.locator('.library-error .inline-message__text');
     this.retry = page.getByRole('button', { name: 'Try again' });
+    this.groupChips = page.locator('.class-card__group');
   }
 
   async open(): Promise<void> {
@@ -48,7 +51,6 @@ export class ClassLibraryPage {
 export class ClassCard {
   readonly cover: Locator;
   readonly time: Locator;
-  readonly group: Locator;
   readonly lock: Locator;
   readonly profileBars: Locator;
   readonly meta: Locator;
@@ -56,7 +58,6 @@ export class ClassCard {
   constructor(readonly root: Locator) {
     this.cover = root.locator('.class-card__cover img');
     this.time = root.locator('.class-card__time');
-    this.group = root.locator('.class-card__group');
     this.lock = root.locator('.class-card__lock-label');
     this.profileBars = root.locator('.class-profile rect');
     this.meta = root.locator('.class-card__meta');

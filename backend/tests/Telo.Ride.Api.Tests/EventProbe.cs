@@ -1,7 +1,7 @@
 namespace Telo.Ride.Api.Tests;
 
 /// <summary>
-/// Collects events as they arrive (a hub message, a finished span) and lets a test await one with
+/// Collects events as they arrive (a finished span) and lets a test await one with
 /// a timeout. On timeout it fails naming every event that did arrive. No test sleeps (AGENTS.md).
 /// </summary>
 public sealed class EventProbe<T>(Func<T, string> describe)

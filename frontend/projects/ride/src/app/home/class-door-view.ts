@@ -10,7 +10,7 @@ export interface ClassDoorView {
   readonly coverUrl: string;
 }
 
-/** The shelf the featured class comes from until group sessions name one (slice 14.2). */
+/** The shelf the featured class comes from. */
 const FEATURED_SHELF = '30-min';
 
 /**

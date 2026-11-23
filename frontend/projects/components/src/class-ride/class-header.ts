@@ -16,7 +16,7 @@ import { formatClock } from '../metric/format-clock';
 })
 export class ClassHeader {
   readonly title = input.required<string>();
-  /** "Solo", or "Group · 9 riders". */
+  /** "Solo". */
   readonly mode = input.required<string>();
   /** Whole seconds of the ride clock. */
   readonly elapsed = input.required<number>();

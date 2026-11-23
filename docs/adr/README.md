@@ -39,3 +39,4 @@
 | [0035](0035-every-map-a-course.md) | Every map in the catalogue is a course, built to its listed distance and climbing | Proposed |
 | [0036](0036-no-races-in-telo-ride-1.md) | Telo Ride 1 has no races; the World is kept for riding the class | Accepted |
 | [0037](0037-no-backend-the-class-ships-with-the-app.md) | Telo Ride 1 has no backend: the class ships with the app | Accepted |
+| [0038](0038-always-solo-no-ride-hub.md) | Telo Ride 1 is always solo: no ride hub | Accepted |
