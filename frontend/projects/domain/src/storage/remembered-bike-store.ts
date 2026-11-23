@@ -1,5 +1,6 @@
 import { DOCUMENT, Injectable, inject } from '@angular/core';
 import type { RememberedBike, RememberedBikeRecord } from '@telo/api';
+import { cutName } from '../bluetooth/bike-identity';
 
 /** Where the record lives in localStorage. */
 export const REMEMBERED_BIKE_KEY = 'telo-ride.bike';
@@ -26,7 +27,10 @@ export class RememberedBikeStore implements RememberedBike {
   save(bike: RememberedBikeRecord): void {
     const { id, name } = bike;
     try {
-      this.window?.localStorage.setItem(REMEMBERED_BIKE_KEY, JSON.stringify({ id, name }));
+      this.window?.localStorage.setItem(
+        REMEMBERED_BIKE_KEY,
+        JSON.stringify({ id, name: cutName(name) }),
+      );
     } catch {
       // Storage refused (private mode, quota): the rider picks the bike again next time.
     }
@@ -46,5 +50,5 @@ function parse(value: unknown): RememberedBikeRecord | null {
   if (typeof value !== 'object' || value === null) return null;
   const { id, name } = value as Record<string, unknown>;
   if (typeof id !== 'string' || !id || typeof name !== 'string') return null;
-  return { id, name };
+  return { id, name: cutName(name) };
 }

@@ -273,6 +273,24 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 35.2 Treat bike and stored data as untrusted (2026-11-23)
+
+**Applied from earlier**
+
+- **L41 see the spec fail first:** the two 64-character unit tests failed on the lengths (100 for 64) before the cut.
+
+**What slowed it down**
+
+- A search for "64" found nothing: the cut to 64 characters (L2-129 AC2) had not been carried over, though the markup
+  case had. `cutName` in `bike-identity.ts` now cuts every name the app shows (a device's name or id, an Echelon
+  model's) and the name the remembered-bike store saves and reads. The rest was already in place and tested: names as
+  text, a malformed record or bike read as absent, malformed frames ignored, and no per-packet console line.
+- Unit tests added for malformed remembered-bike records (not an object, no id, a number for the id, bad JSON).
+
+**New lessons**
+
+- For each AC of a carried-over slice, search for its distinguishing number or word before assuming it was carried.
+
 ### 35.1 Restrict third parties (2026-11-23)
 
 **What slowed it down**

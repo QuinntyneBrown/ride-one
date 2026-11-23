@@ -1,5 +1,5 @@
 // Acceptance test
-// Traces to: L2-129 AC2
+// Traces to: L2-129 AC2, AC1
 // Description: a bike whose Bluetooth name holds markup pairs, and its name shows as text, character for character, on
 // Connect Bike and in the header's bike status: no element is made from it and nothing in it runs.
 //
@@ -30,4 +30,22 @@ test('a bike name with markup shows as text and runs nothing (L2-129 AC2) @criti
   await expect(new ClassHeader(page).bike).toContainText(MARKUP);
   await expect(page.locator('img[src="x"], b:text-is("Kickr")')).toHaveCount(0);
   expect(await page.evaluate(() => (window as { __ran?: number }).__ran)).toBeUndefined();
+});
+
+test('a bike name over 64 characters is shown and kept cut to 64 (L2-129 AC2)', async ({
+  page,
+  bluetooth,
+}) => {
+  const long = 'K'.repeat(100);
+  await bluetooth.offer({ ...ftmsBike, name: long });
+  const connect = new ConnectBikePage(page);
+  await connect.open();
+
+  await connect.pair();
+  await bluetooth.notify(INDOOR_BIKE_DATA, INDOOR_BIKE_FRAME);
+
+  await expect(connect.pairButton).toHaveText('Paired');
+  await expect(connect.deviceName).toHaveText('K'.repeat(64));
+  const kept = await bluetooth.remembered();
+  expect(kept?.name).toHaveLength(64);
 });
