@@ -142,3 +142,107 @@ on a square 3.4 m long whatever the sun's height.
 - **Changed:** the shadow is drawn deeper than the light's arithmetic (its share raised to the power 3, from 1.8),
   and the sky fills in 40% by the far end, not 50%.
 - **Result (sheet 010):** the shadow is plain at 46 s and 150 s from the rider's eye, still soft and still cool.
+
+### 11. Only part of the sky's tint
+
+- **Found (sheet 010, 46 s):** where the shadow crossed the yellow centre line the paint turned green: the shade
+  kept 25% of red and 72% of blue.
+- **Changed:** the shade is drawn 45% of the way from its own grey to the light's arithmetic (`TINT`).
+- **Result (sheet 011):** the line under the shadow is a darker yellow; the shade is still cooler than the road.
+  Sheet 012 is the same two places at the course's second step, which has no bloom pass and blends on the canvas
+  itself: the shadow is the same depth and colour there.
+
+### 12. A tighter picture of the figure
+
+- **Found (measured, lowest step, in software):** a frame took 113 ms with the shadow and 93 ms without it. The
+  road's square was 2.5 m by 7.3 m and the figure filled little over half of the picture.
+- **Changed:** the picture is 2.2 m square (`HALF` 1.1), so the square on the road is 2.2 m by 6.4 m and each texel
+  is 12% smaller on the road.
+- **Result (sheet 012d, from above):** nothing of the bike or rider is cut off at 46 s, 150 s or 350 s, and the
+  three frames timed averaged 99 ms.
+
+### 13. The shadow's cost follows the course's five steps
+
+- **Found:** the shadow cost the same on the slowest tablet as on the fastest: 256 texels, seven readings of the
+  picture for every point of the road's square, and the rider drawn twice every frame.
+- **Changed:** `STEPS` in `sun-shadow.ts`. The two lowest steps use 128 texels, 3 and 5 readings, and one picture of
+  the figure for two frames; the third 192 texels and 7 readings; the two highest 256 and 7. With fewer readings each
+  reads a coarser level of the picture, so the blur stays whole. The renderer tells the shadow when the step moves.
+- **Result (sheet 013, lowest step):** the shadow is blurrier and still a bike and rider at 46 s and 150 s. Frames
+  averaged 98 ms against 93 ms with no shadow at all: the shadow's cost there fell from about 20 ms to about 5 ms.
+
+### 14. Deeper again, after looking at the whole ride
+
+- **Found (sheets 014a, 014c):** on the steepest climb (915 s), the steepest descent (694 s), the tightest bend
+  (372 s) and the sharpest crest (564 s) the shadow lay on the road and nothing was cut off, but with the sun
+  abeam at 1000 s and behind at 75 s it was hard to find at a glance.
+- **Changed:** `DEPTH` 4.5 (it was 3): the deepest shade leaves about 25%, 35% and 47% of red, green and blue.
+- **Result (sheet 014):** at 46 s, 75 s, 150 s and 1000 s the shadow is the first dark thing the eye finds on the
+  road by the rider, and still soft-edged.
+
+### 15. Less blur: the bike can be read again
+
+- **Found (sheet 015a, from above, 350 s):** after entry 6 the shadow from above was one broad smudge; the wheels'
+  hoops could barely be found. "Blurred out" had gone past "a figure on a bike".
+- **Changed:** the blur's reach is 2.5 cm at the wheels and grows 5 cm a metre (it was 3 cm and 7.5 cm).
+- **Result (sheets 015b, 015c):** from above both hoops, the frame and the rider's back are plain at 150 s and
+  350 s; from the rider's eye at 46 s and 150 s the edge is still soft everywhere.
+
+### 16. The rider's body is not the faintest part
+
+- **Found (sheet 015b):** the tyres' thin shadows by the bike were darker than the shadow of the rider's whole
+  trunk, 3 m away, which is the most solid thing there is. The fill of entry 7 took 40% off it on top of the blur.
+  (The raw figure and a single coarse reading of it were looked at to rule out a fault in the picture: the trunk
+  is solid in both.)
+- **Changed:** the sky fills in 20% by the far end (`FILLED`), not 40%.
+- **Result (sheet 016):** the trunk and head are as dark as the hoops at 150 s and 350 s.
+
+*Not counted:* the figure is now drawn with everything else in the scene hidden, so the map's chunks are not
+walked for it. Timed before and after at the second step, in software, the difference was inside the noise
+(about ±20 ms on a 170 ms frame), so it is kept as a tidy-up and claimed as no improvement.
+
+### 17. Each part is as soft as the light's journey from it
+
+- **Found (sheets 014c, 017a):** the blur grew with a point's distance from the bike's middle along the road. With
+  the sun along the bike (75 s, 300 s, 875 s) one wheel stands a metre down-sun of the middle, so that tyre's
+  shadow was blurred where it touches the tyre; and the top of a wheel was as sharp as its foot.
+- **Changed:** the figure's picture also keeps, in green, how high above the road each part stands. The road reads
+  that coarsely (mip level 3) and blurs by the height thrown along the road (`height / tan(altitude)`), so the blur
+  follows what throws the shadow, not where on the road it falls.
+- **Result (sheets 019, 019c):** a tyre's shadow is crisp at the tyre wherever the sun stands, each hoop softens
+  from its foot to its top, and the head stays the softest thing.
+
+### 18. The shadow lies on the road's own profile
+
+- **Found:** the shadow was one flat square tilted to the slope under the rider and held 4 cm above the road, so it
+  would clear a dip. At the course's sharpest dips and crests the gradient turns 1% in 4 m; over the square's 6.4 m
+  a flat sheet leaves the road by 3 cm, so it floated at a crest and all but touched in a dip.
+- **Changed:** the square is a strip of 8 rows, each row's two points set every frame on the centre line's height
+  that far up the road (the road is level from kerb to kerb), and it lies 2 cm above the road, not 4.
+- **Result (sheets 018, 019c):** at the sharpest crest (564 s), dip (685 s) and climb (915 s) nothing of the shadow
+  is cut by the road and none of it is seen to float.
+
+### 19. A wheel's shadow is a rim, with light between the spokes
+
+- **Found (sheet 016, from above):** each wheel threw an even grey plate with a dark edge. A real wheel in low sun
+  throws its tyre and rim; 24 thin spokes, turning, stop about a fifteenth of the light.
+- **Changed:** a wheel's side is drawn into the figure solid from where its rim begins (0.253 m from the axle) and
+  at its hub, and 8% solid between, measured from the nearer axle in the bike's own axes. `course-cyclist.ts` now
+  exports those measures (`WHEELS`) so the shadow and the wheel cannot drift apart.
+- **Result (sheet 019):** two clean hoops with the road showing through them at 150 s and 350 s.
+
+*A correction.* Entries 17 to 19 were first "checked" against pictures of the build before them: a type error in
+entry 17 had been failing the build, the server went on serving the last good one, and the helper's check for a
+failed build did not catch it. The helper now refuses to take pictures after a failed build, and sheets 019 and
+019c are the first true pictures of all three.
+
+### 20. The shadow is thrown by the rider's coarse body, inside the frame's budget
+
+- **Found (the budget spec, `L2-177` AC1):** once the figure was counted (entry 2), the heaviest frame of the course,
+  at 100 s on the highest step, was 122,727 triangles against a budget of 120,000. The figure was the rider's fine
+  body, 5,684 triangles, drawn a second time for a picture 256 texels across.
+- **Changed:** a rider made finely keeps the file's coarse body (1,530 triangles) on the same bones, on the
+  figure's layer only, and it throws the shadow; the fine body is marked as throwing none. On the two lowest
+  steps the body is already the coarse one and throws its own.
+- **Result (sheet 020, from above):** the shadow at 150 s and 350 s cannot be told from sheet 019's, a frame draws
+  4,154 fewer triangles, and the budget spec passes at all 25 places again.

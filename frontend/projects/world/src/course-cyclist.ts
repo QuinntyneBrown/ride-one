@@ -58,6 +58,16 @@ export interface RiderModel {
 const WHEEL = 0.34;
 const REAR = new Vector3(0, WHEEL, 0.5);
 const FRONT = new Vector3(0, WHEEL, -0.5);
+/**
+ * The wheels as their shadow needs them (sun-shadow.ts): the height of the axles, how far each is from the bike's
+ * middle, and where a wheel's side stops being spokes and becomes rim, in metres from its axle.
+ */
+export const WHEELS = {
+  axleHeight: WHEEL,
+  axle: 0.5,
+  rimFrom: (WHEEL - 0.024) * 0.8,
+  hub: 0.012,
+} as const;
 const BB = new Vector3(0, 0.28, 0.09);
 const SEAT = new Vector3(0, 0.8, 0.225);
 const HEAD_TOP = new Vector3(0, 0.84, -0.33);

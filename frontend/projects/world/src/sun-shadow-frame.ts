@@ -3,6 +3,11 @@
 // they carry a shadow. A sun near the horizon would throw the rider's shadow off the road and across the island, so
 // a sun lower than `LOWEST_SUN` is counted as standing that high. No Three.js here.
 
+/** The layer the rider's figure is drawn from for their shadow: what throws the shadow is on it, and nothing else. */
+export const FIGURE_LAYER = 1;
+/** Marks, in a part's `userData`, a part of the rider that throws no shadow: a coarser copy of it throws it instead. */
+export const NO_SHADOW = 'shadowNone';
+
 /** The lowest the sun is counted as standing for a shadow, in radians. */
 export const LOWEST_SUN = (20 * Math.PI) / 180;
 

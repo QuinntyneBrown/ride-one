@@ -725,7 +725,7 @@ export class ThreeCourseRenderer implements CourseRenderer {
       'YXZ',
     );
     if (this.casting.has(cyclist) && cyclist.group.visible) this.lampShadows?.add(metres, lane);
-    this.sunShadow?.at(at);
+    this.sunShadow?.at(at, metres, this.course!);
     return outOfTheSaddle(Math.tan(at.pitch) * 100);
   }
 
@@ -824,6 +824,7 @@ export class ThreeCourseRenderer implements CourseRenderer {
     const shadow = new SunShadow(
       this.course!.file.sun,
       courseLook(this.course!.file),
+      this.tier,
       this.drawn.shadow,
     );
     shadow.cast(cyclist.group);
@@ -891,5 +892,6 @@ export class ThreeCourseRenderer implements CourseRenderer {
   private step(by: number): void {
     this.tier += by;
     this.resize(...this.size);
+    this.sunShadow?.detail(this.tier);
   }
 }

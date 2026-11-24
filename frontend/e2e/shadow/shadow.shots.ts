@@ -12,6 +12,8 @@ import { test } from '../fixtures/test';
 const AT = (process.env['SHADOW_AT'] ?? '46,75,150,300,350,500,875,1000').split(',').map(Number);
 const OUT = process.env['SHADOW_OUT'] ?? 'test-results/shadow';
 const TIER = (process.env['SHADOW_TIER'] ?? 'high') as Tier;
+/** SHADOW_COST=1 times twenty frames at each place; otherwise none are timed. */
+const COST_FRAMES = process.env['SHADOW_COST'] ? 20 : 0;
 /** How many pictures stand side by side in the sheet. */
 const COLUMNS = Number(process.env['SHADOW_COLUMNS'] ?? 4);
 /** Metres above the rider the camera looks straight down from; 0 is the ride's own chase camera. */
@@ -30,12 +32,19 @@ test('the rider’s shadow round the course', async ({ page, bluetooth, course, 
   mkdirSync(OUT, { recursive: true });
 
   const shots: { second: number; data: string }[] = [];
+  const costs: number[] = [];
   let at = 0;
   for (const second of AT) {
     await page.clock.fastForward(Math.max(second - at, 0) * 1000);
     at = second;
     // The map's chunks near the new place are chosen within a few frames.
     for (let frame = 0; frame < 14; frame++) await page.clock.runFor(16);
+    // How long a frame takes to draw here, in software: a rough measure of what the shadow costs to fill.
+    const before = (await course.drawn())!.frames;
+    const started = Date.now();
+    for (let frame = 0; frame < COST_FRAMES; frame++) await page.clock.runFor(16);
+    const frames = (await course.drawn())!.frames - before;
+    costs.push(Math.round(((Date.now() - started) / Math.max(frames, 1)) * 10) / 10);
     const box = (await ride.courseCanvas.boundingBox())!;
     const [left, top, width, height] = CROP as [number, number, number, number];
     const shot = await page.screenshot({
@@ -50,7 +59,7 @@ test('the rider’s shadow round the course', async ({ page, bluetooth, course, 
     shots.push({ second, data: shot.toString('base64') });
   }
   const drawn = await course.drawn();
-  writeFileSync(join(OUT, 'drawn.json'), JSON.stringify(drawn, null, 2));
+  writeFileSync(join(OUT, 'drawn.json'), JSON.stringify({ ...drawn, msPerFrame: costs }, null, 2));
 
   // The sheet: every picture side by side, each with its second.
   const sheet = await browser.newPage({ viewport: { width: 1920, height: 400 } });
