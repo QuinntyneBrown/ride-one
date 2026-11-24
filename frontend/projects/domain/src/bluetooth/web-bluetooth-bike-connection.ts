@@ -6,6 +6,7 @@ import {
   type BikeConnection,
   BikeConnectionError,
   type BikeInfo,
+  type BikeKind,
   type BikeLinkTap,
   type BleState,
   type RememberedBikeRecord,
@@ -153,6 +154,11 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
       ? new EchelonLink(this.queue, this.onValue, this.ticker, (error) => this.onFailure(error))
       : new FtmsLink(this.queue, this.onValue, this.tap);
     this.tap?.event('link', echelon ? 'echelon' : 'ftms');
+    // The bike's kind is the link its services selected, not what its name suggested: an Echelon may advertise a
+    // name other than `ECH-<model>-<serial>` ("ECHEX-3-141844"), and its frames must still be read as an Echelon's.
+    const kind: BikeKind = echelon ? 'echelon' : 'ftms';
+    const bike = this.chosen();
+    if (bike && bike.kind !== kind) this.choose({ ...bike, kind });
     await link.open(service);
     this.link = link;
     await link.initialise();

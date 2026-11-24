@@ -14,7 +14,7 @@ const FRAME = [0xf0, 0xd1, 0x09, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x50,
 const INIT = ['F0 A1 00 91', 'F0 A3 00 93', 'F0 B0 01 01 A2'];
 
 /** An Echelon behind a fake `navigator.bluetooth`: it records writes and can drop, switch off and notify. */
-function fakeEchelon() {
+function fakeEchelon(name = 'ECH-EX5S-141844') {
   const writes: string[] = [];
   let on = true;
   const notify = Object.assign(new EventTarget(), {
@@ -42,7 +42,7 @@ function fakeEchelon() {
   };
   const device = Object.assign(new EventTarget(), {
     id: 'bike-1',
-    name: 'ECH-EX5S-141844',
+    name,
     gatt: server,
   });
   return {
@@ -178,4 +178,40 @@ describe('WebBluetoothBikeConnection', () => {
     expect(errors).toEqual([]);
     expect(connection.ble()).toBe('idle');
   });
+});
+
+// Traces to: L2-013 AC1; L2-020 AC1
+// Description: the bike's kind, which chooses the decoder its frames are read with, is the link its services
+// selected, whatever its name: an Echelon that advertises "ECHEX-3-141844" is still read as an Echelon.
+describe('WebBluetoothBikeConnection, the kind of a bike', () => {
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, 'bluetooth');
+    vi.useRealTimers();
+  });
+
+  it.each([['ECH-EX5S-141844'], ['ECHEX-3-141844'], ['My bike'], [undefined]])(
+    'is echelon for a bike named %j that offers the Echelon service',
+    async (name) => {
+      vi.useFakeTimers();
+      const bike = fakeEchelon(name);
+      Object.defineProperty(navigator, 'bluetooth', { value: bike.bluetooth, configurable: true });
+      TestBed.configureTestingModule({
+        providers: [
+          WebBluetoothBikeConnection,
+          { provide: TICKER, useValue: { seconds: new Subject<number>() } },
+        ],
+      });
+      const connection = TestBed.inject(WebBluetoothBikeConnection);
+      await connection.requestBike();
+      const connected = connection.connect();
+      await vi.advanceTimersByTimeAsync(700);
+      bike.frame();
+      await vi.advanceTimersByTimeAsync(0);
+      await connected;
+
+      expect(connection.bike()?.kind).toBe('echelon');
+
+      connection.ngOnDestroy();
+    },
+  );
 });
