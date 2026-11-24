@@ -91,6 +91,26 @@
       }
     },
     {
+      "id": "ibiza-flyover",
+      "kind": "page",
+      "title": "Ibiza Flyover",
+      "route": "/ride",
+      "requirements": [
+        "L2-175",
+        "L2-179"
+      ],
+      "states": [
+        "default",
+        "loading",
+        "landed",
+        "bike-lost"
+      ],
+      "not_applicable": {
+        "empty": "The flyover always has the course’s name and the bike; there is nothing to be empty of.",
+        "error": "Its one failure is the lost bike (bike-lost). A course that cannot be drawn shows no error here: Class Ride opens on the countdown instead (L2-179 AC8)."
+      }
+    },
+    {
       "id": "class-ride",
       "kind": "page",
       "title": "Class Ride",
@@ -111,12 +131,18 @@
         "L2-173",
         "L2-174",
         "L2-175",
-        "L2-178"
+        "L2-178",
+        "L2-180",
+        "L2-181",
+        "L2-182"
       ],
       "states": [
         "default",
+        "countdown",
         "paused",
         "ibiza",
+        "countdown-ibiza",
+        "go-ibiza",
         "ibiza-loading",
         "ibiza-unavailable",
         "ibiza-music-off",
@@ -128,6 +154,10 @@
         "video-unavailable-by-hand",
         "disconnected",
         "disconnected-ibiza",
+        "finish",
+        "finish-ibiza",
+        "rolling-on",
+        "rolling-on-ibiza",
         "recording"
       ],
       "not_applicable": {
