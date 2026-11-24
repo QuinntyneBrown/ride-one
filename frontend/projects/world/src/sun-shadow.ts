@@ -211,7 +211,9 @@ export class SunShadow {
     this.mesh.matrixAutoUpdate = false;
     this.mesh.matrix.identity();
     this.mesh.frustumCulled = false;
-    this.mesh.renderOrder = 1;
+    // Drawn before everything else that is see-through (the light beams, the halos, the confetti): the shadow
+    // darkens the road, and whatever light hangs in the air between the road and the eye is added over it after.
+    this.mesh.renderOrder = -1;
     this.detail(tier);
   }
 
