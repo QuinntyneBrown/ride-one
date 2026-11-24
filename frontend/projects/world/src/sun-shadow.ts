@@ -3,7 +3,7 @@
 // where the figure is, blurred more the further the shadow lies from what throws it. No shadow map: nothing is
 // compared in depth and nothing but the road under the rider reads the picture. sun-shadow-frame.ts says which way
 // the rays run.
-import { positionWorld, texture, uniform, userData, vec2, vec3 } from 'three/tsl';
+import { mix, positionWorld, smoothstep, texture, uniform, userData, vec2, vec3 } from 'three/tsl';
 import {
   Color,
   CustomBlending,
@@ -13,6 +13,7 @@ import {
   type Material,
   Mesh,
   MeshBasicNodeMaterial,
+  MultiplyBlending,
   type Node,
   type Object3D,
   OneFactor,
@@ -20,12 +21,13 @@ import {
   PlaneGeometry,
   RenderTarget,
   type Scene,
+  Vector2,
   Vector3,
   type WebGPURenderer,
 } from 'three/webgpu';
-import type { CoursePlace } from './course';
+import type { CourseLook, CoursePlace } from './course';
 import type { ShadowDrawn } from './course-probe';
-import { type ShadowSun, shadowReach, shadowSun } from './sun-shadow-frame';
+import { type ShadowSun, shadowReach, shadowShade, shadowSun } from './sun-shadow-frame';
 
 /** The layer the rider's figure is drawn from: what throws the shadow is on it, and nothing else. */
 export const FIGURE_LAYER = 1;
@@ -40,10 +42,42 @@ const TEXELS = 256;
 const HEAD = 1.65;
 /** How far above the road the shadow lies, in metres. */
 const LIFT = 0.04;
-/** How dark the shadow is at its darkest. */
-const DARKEST = 0.8;
+/** How much deeper the shadow is drawn than the light's own arithmetic makes it (sun-shadow-frame.ts). */
+const DEPTH = 3;
+/** How bright the sky's light on the ground is counted as being, against the sun's own strength. */
+const SKY = 1.5;
+/** How much of the shadow's dark the sky's light has filled in by its far end. */
+const FILLED = 0.4;
 /** The blur at the wheels, in metres, and how much wider it grows for each metre the shadow lies from them. */
-const SOFT = { near: 0.02, grows: 0.035 } as const;
+const SOFT = { near: 0.03, grows: 0.075 } as const;
+
+/** The dark under the bike that the sky cannot reach: how far it spreads along the bike and across it, in metres. */
+const UNDER = { long: 0.7, wide: 0.22, dark: 0.3 } as const;
+/** The same under each tyre, and how far each axle is from the bike's middle. */
+const TYRE = { long: 0.16, wide: 0.07, dark: 0.55 } as const;
+const AXLE = 0.5;
+
+/** A soft bump: 1 at 0, falling away over `width`. */
+function bell(distance: Node<'float'>, width: number): Node<'float'> {
+  return distance
+    .mul(distance)
+    .div(-width * width)
+    .exp();
+}
+
+/**
+ * Where the picture is read for one point of the road, in blur's reaches: across the shadow, and along it. The
+ * readings run across, each a little up or down, and those nearest the middle count for most.
+ */
+const TAPS: readonly (readonly [number, number])[] = [
+  [-1, 0.35],
+  [-0.667, -0.35],
+  [-0.333, 0.35],
+  [0, 0],
+  [0.333, -0.35],
+  [0.667, 0.35],
+  [1, -0.35],
+];
 
 export class SunShadow {
   /** The shadow on the road. */
@@ -59,12 +93,23 @@ export class SunShadow {
   private readonly middle = uniform(new Vector3());
   private readonly across = uniform(new Vector3());
   private readonly up = uniform(new Vector3());
+  /** Where the rider is on the ground, and the way the bike points along it. */
+  private readonly rider = uniform(new Vector2());
+  private readonly forward = uniform(new Vector2());
   private readonly report: ShadowDrawn;
   private figures = 0;
 
-  /** `sun` is where the course file says the light comes from; `report` is the test-only hook's record of it. */
-  constructor(sun: readonly [number, number, number], report: ShadowDrawn) {
+  /** `sun` is where the course file says the light comes from and `look` its colours; `report` is the test-only hook's record of it. */
+  constructor(sun: readonly [number, number, number], look: CourseLook, report: ShadowDrawn) {
     this.sun = shadowSun(sun);
+    const light = new Color(look.light.colour).multiplyScalar(look.light.intensity);
+    const sky = new Color(look.fill[0]).multiplyScalar(SKY);
+    const shade = shadowShade(
+      [light.r, light.g, light.b],
+      [sky.r, sky.g, sky.b],
+      this.sun.altitude,
+      DEPTH,
+    );
     this.report = report;
     this.eye.layers.set(FIGURE_LAYER);
     this.target = new RenderTarget(TEXELS, TEXELS, { depthBuffer: false });
@@ -84,8 +129,14 @@ export class SunShadow {
     // A square on the road: its second axis runs away from the sun. It is placed in the map's own axes each frame.
     this.geometry = new PlaneGeometry(1, 1);
     this.geometry.rotateX(-Math.PI / 2);
-    this.material = new MeshBasicNodeMaterial({ transparent: true, depthWrite: false });
-    this.material.color.setHex(0x07050b);
+    this.material = new MeshBasicNodeMaterial({
+      transparent: true,
+      depthWrite: false,
+      fog: false,
+      toneMapped: false,
+      blending: MultiplyBlending,
+      premultipliedAlpha: true,
+    });
     // Where a point of the road falls in the picture: along the picture's own axes from its middle.
     const from = positionWorld.sub(this.middle);
     const at = vec2(from.dot(this.across), from.dot(this.up));
@@ -95,29 +146,50 @@ export class SunShadow {
       .add(MIDDLE * Math.cos(altitude))
       .div(Math.sin(altitude))
       .max(0);
+    // The blur's reach on the road, in metres, the same along the shadow as across it. The picture is the road
+    // seen along the sun's rays, so a metre along the shadow is only `sin(altitude)` of a metre up the picture: the
+    // picture is read at the fineness of the short way, and several readings side by side make up the long way.
     const soft = along.mul(SOFT.grows).add(SOFT.near);
-    const level = soft
+    const softUp = soft.mul(Math.sin(altitude));
+    const level = softUp
       .mul(TEXELS / (2 * HALF))
       .max(1)
       .log2();
     // A picture the renderer drew is kept top row first, on both backends: up the figure is down the picture.
     const place = vec2(at.x.div(2 * HALF).add(0.5), at.y.div(-2 * HALF).add(0.5));
-    // Five readings a blur's width apart, each of a picture already as blurred as the blur is wide.
-    const step = soft.div(2 * HALF).mul(0.5);
-    let dark = texture(this.target.texture, place).level(level).r.mul(0.4);
-    for (const [x, y] of [
-      [1, 0.4],
-      [-0.4, 1],
-      [-1, -0.4],
-      [0.4, -1],
-    ] as const) {
-      dark = dark.add(
-        texture(this.target.texture, place.add(vec2(x, y).mul(step)))
-          .level(level)
-          .r.mul(0.15),
+    const reach = vec2(soft.div(2 * HALF), softUp.div(2 * HALF));
+    let dark: Node<'float'> | null = null;
+    const weights = TAPS.map(([x]) => Math.exp(-2 * x * x));
+    const whole = weights.reduce((sum, weight) => sum + weight, 0);
+    TAPS.forEach(([x, y], i) => {
+      const read = texture(this.target.texture, place.add(vec2(x, y).mul(reach)))
+        .level(level)
+        .r.mul(weights[i]! / whole);
+      dark = dark ? dark.add(read) : read;
+    });
+    // The sky's light fills a shadow in more the further it lies from what throws it: the head's is the faintest.
+    const filled = smoothstep(0, shadowReach(HEAD, altitude) * 1.15, along).mul(FILLED).oneMinus();
+    const thrown = dark!.mul(filled);
+    // Under the bike the road is dark whatever the sun does: the sky cannot see it past the rider, least of all
+    // where each tyre meets it. Measured along the bike and across it.
+    const under = positionWorld.xz.sub(this.rider);
+    const bikeAlong = under.dot(this.forward);
+    const bikeAcross = under.dot(vec2(this.forward.y.negate(), this.forward.x));
+    let hidden: Node<'float'> = bell(bikeAlong, UNDER.long)
+      .mul(bell(bikeAcross, UNDER.wide))
+      .mul(UNDER.dark);
+    for (const axle of [AXLE, -AXLE]) {
+      hidden = hidden.add(
+        bell(bikeAlong.sub(axle), TYRE.long).mul(bell(bikeAcross, TYRE.wide)).mul(TYRE.dark),
       );
     }
-    this.material.opacityNode = dark.mul(DARKEST);
+    // Two darks do not add up to more than black: each takes its share of the light the other leaves.
+    // The road's own colour is kept and darkened: the paint under a shadow is still paint. The sun's shadow leaves
+    // the sky's share of the light, in the sky's colour; what the sky cannot see is simply darker.
+    const [red, green, blue] = shade;
+    this.material.colorNode = mix(vec3(1, 1, 1), vec3(red, green, blue), thrown).mul(
+      hidden.min(1).oneMinus(),
+    );
     this.mesh = new Mesh(this.geometry, this.material);
     this.mesh.matrixAutoUpdate = false;
     this.mesh.frustumCulled = false;
@@ -164,6 +236,8 @@ export class SunShadow {
     const mid = (near + far) / 2;
     const forwardX = -Math.sin(place.heading);
     const forwardZ = -Math.cos(place.heading);
+    this.rider.value.set(place.x, place.z);
+    this.forward.value.set(forwardX, forwardZ);
     const rise = Math.tan(place.pitch);
     // The road climbs along the bike's own direction: how much of that the shadow's two axes each run along.
     const climbAlong = (sun.awayX * forwardX + sun.awayZ * forwardZ) * rise;

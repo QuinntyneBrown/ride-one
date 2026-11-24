@@ -90,3 +90,55 @@ on a square 3.4 m long whatever the sun's height.
   figure is the same way up on WebGPU and on WebGL 2, so one rule serves both.
 - **Result (sheet 004, 004b):** each wheel's shadow starts at that wheel's own tyre, the frame and legs follow, and
   the head is the far end, at all six places looked at.
+
+### 5. The blur is round on the road
+
+- **Found (sheet 004, from above):** the shadow was smeared along its length and still sharp across it. The figure's
+  picture is the road seen down the sun's rays, where a metre along the shadow is a third of a metre; a blur that is
+  round in the picture is three times as long as it is wide on the road.
+- **Changed:** the blur's reach is worked out in metres on the road. The picture is read at the fineness (mip level)
+  of the short way, and seven readings side by side, weighted most in the middle, make up the long way.
+- **Result (sheet 005, from above):** edges are equally soft all round. The hoops of both wheels, the frame's
+  triangle and the rider's back and head can each be told apart at 150 s and 350 s.
+
+### 6. Softer the further it lies
+
+- **Found (sheet 005):** with the blur round, the shadow was crisp to its far end: a cut-out, not the "blurred out"
+  shadow the issue asks for. A low sun through haze is a broad light.
+- **Changed:** the blur's reach is 3 cm at the wheels and grows 7.5 cm for each metre the shadow lies from them
+  (it was 2 cm and 3.5 cm).
+- **Result (sheet 006, the rider's eye):** sharp where the tyres stand, the head's shadow a soft patch about a third
+  of a metre across; at 46 s, 150 s and 350 s it reads as a low-sun shadow rather than a decal.
+
+### 7. Fainter towards the far end
+
+- **Found (sheet 006):** the head's shadow, 4.5 m away, was as dark as the tyre's. The sky's light gets under a
+  shadow from its sides, more the further it lies from what throws it.
+- **Changed:** the dark falls away smoothly from the wheels to just past the head's shadow, to half there.
+- **Result (sheet 007):** the eye is led from the bike outwards; the far end melts into the road at 46 s and 350 s.
+
+### 8. Dark under the bike and under each tyre
+
+- **Found (sheet 007; 300 s and 500 s of sheet 004b):** with the sun ahead the shadow falls towards the camera,
+  hidden by the bike, and the bike seemed to float. Under a real bike the road is dark whatever the sun does,
+  because the rider hides the sky from it, most of all where a tyre touches.
+- **Changed:** a soft dark along the bike (0.7 m by 0.22 m) and a small deeper one under each tyre, 0.5 m either
+  side of the bike's middle, combined with the sun's shadow so the two never add up to more than black.
+- **Result (sheet 008):** at 300 s, dead into the sun, the tyres sit on a dark patch and the bike is on the road.
+
+### 9. The shadow darkens the road's own colour, in the sky's tint
+
+- **Found (sheet 008):** the shadow was near-black paint laid over the road with normal blending, so the yellow
+  centre lines turned grey-black under it. A shadow takes light away; it adds no colour of its own.
+- **Changed:** the shadow multiplies what is behind it. How much it leaves is worked out from the course's own
+  light (`shadowShade`, pure, unit tested): the sky's share of the light on the ground, for each of red, green and
+  blue, so under Ibiza's orange sun the shadow keeps more blue than red. The dark under the bike multiplies too.
+- **Result (sheet 009):** the lines stay yellow through the shadow and the shade is cool against the warm road.
+  But the light's own arithmetic leaves 43% to 82% of the light: far too faint on dark asphalt.
+
+### 10. Deep enough to see on dark asphalt
+
+- **Found (sheet 009):** at 150 s the shadow could barely be made out.
+- **Changed:** the shadow is drawn deeper than the light's arithmetic (its share raised to the power 3, from 1.8),
+  and the sky fills in 40% by the far end, not 50%.
+- **Result (sheet 010):** the shadow is plain at 46 s and 150 s from the rider's eye, still soft and still cool.

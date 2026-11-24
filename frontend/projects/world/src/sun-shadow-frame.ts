@@ -46,3 +46,22 @@ export function shadowSun(
 export function shadowReach(height: number, altitude: number): number {
   return height / Math.tan(altitude);
 }
+
+/**
+ * What is left of the road's light in the rider's shadow, a share for each of red, green and blue. In the shadow the
+ * sun's light is gone and the sky's is left, so the shadow is as deep as the sun's share of the light on the ground
+ * and takes the sky's colour: under an orange sun it is cool. `sun` and `sky` are their colours, each multiplied by
+ * its strength; the sun's falls on the ground at `altitude`. `depth` deepens it: 1 is the light's own arithmetic.
+ */
+export function shadowShade(
+  sun: readonly [number, number, number],
+  sky: readonly [number, number, number],
+  altitude: number,
+  depth = 1,
+): [number, number, number] {
+  const onGround = Math.sin(altitude);
+  return [0, 1, 2].map((i) => {
+    const lit = sky[i]! + sun[i]! * onGround;
+    return lit > 0 ? (sky[i]! / lit) ** depth : 1;
+  }) as [number, number, number];
+}

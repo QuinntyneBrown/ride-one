@@ -1,4 +1,4 @@
-import { LOWEST_SUN, shadowReach, shadowSun } from './sun-shadow-frame';
+import { LOWEST_SUN, shadowReach, shadowShade, shadowSun } from './sun-shadow-frame';
 
 describe("where the rider's shadow in the sun lies (L2-174 AC12)", () => {
   it('lies straight away from the sun, whatever its height', () => {
@@ -41,5 +41,18 @@ describe("where the rider's shadow in the sun lies (L2-174 AC12)", () => {
     const into = shadowSun([1, 1, 0]);
     expect(shadowSun([0, 1, -1], into)).toBe(into);
     expect(into.awayZ).toBeCloseTo(1);
+  });
+
+  it('leaves the sky’s share of the light in the shadow, so an orange sun throws a cool one', () => {
+    const [red, green, blue] = shadowShade([2, 1, 0.5], [1, 1, 1], Math.PI / 6);
+    // Half the sun falls on the ground at 30°: red keeps 1 of 2, green 1 of 1.5, blue 1 of 1.25.
+    expect(red).toBeCloseTo(0.5);
+    expect(green).toBeCloseTo(1 / 1.5);
+    expect(blue).toBeCloseTo(0.8);
+  });
+
+  it('throws no shadow where there is no sun, and a deeper one when asked', () => {
+    expect(shadowShade([0, 0, 0], [1, 1, 1], 1)).toEqual([1, 1, 1]);
+    expect(shadowShade([1, 1, 1], [1, 1, 1], Math.PI / 2, 2)[0]).toBeCloseTo(0.25);
   });
 });

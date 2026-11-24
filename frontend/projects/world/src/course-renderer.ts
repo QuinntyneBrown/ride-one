@@ -821,7 +821,11 @@ export class ThreeCourseRenderer implements CourseRenderer {
       this.casting.add(cyclist);
       return;
     }
-    const shadow = new SunShadow(this.course!.file.sun, this.drawn.shadow);
+    const shadow = new SunShadow(
+      this.course!.file.sun,
+      courseLook(this.course!.file),
+      this.drawn.shadow,
+    );
     shadow.cast(cyclist.group);
     if (this.riderBatch) shadow.cast(this.riderBatch.group);
     this.sunShadow = shadow;
