@@ -20,6 +20,7 @@ import {
 } from '@telo/api';
 import {
   BikeTelemetry,
+  Countdown,
   PowerModel,
   ResistanceController,
   RideClock,
@@ -32,14 +33,16 @@ import {
   rideWith,
 } from '@telo/domain';
 import { classStepAnnouncement } from '../rides/step-announcement';
-import { lostBikeMessage, pauseAnnouncement, rideHold } from './ride-hold';
+import { lostBikeMessage, pauseAnnouncement, rideHeader, rideHold } from './ride-hold';
+import type { RidePhase } from './ride-phase';
 import { type StatView, cadenceStat, powerStat } from './stat-view';
 
 /**
  * The solo class ride's state (docs/detailed-designs/class-ride/ride-the-class), provided by the page so it goes when the
- * rider leaves. It reads the class from `THE_CLASS` and how the rider chose to ride it, and starts the ride at once,
- * whichever way: the clock, the ticker and the engine following the plan, which sends each segment's level (L2-027,
- * L2-175 AC1). In Ibiza no video player is loaded (L2-174 AC1), and the course's box loads until its first frame is
+ * rider leaves. It reads the class from `THE_CLASS` and how the rider chose to ride it. The engine follows the plan
+ * as soon as the store exists, which sends the first segment's level, so the bike is set before the countdown (L2-027,
+ * L2-175 AC1, L2-180 AC3); the ride then waits, and the page begins the countdown when Class Ride takes the screen.
+ * The clock and the ticker start as "Go!" shows, at the instant it was due (L2-180 AC2, AC5). In Ibiza no video player is loaded (L2-174 AC1), and the course's box loads until its first frame is
  * drawn. The header and the segment card read
  * the ticker's whole seconds (L2-134 AC2); Power and Cadence read the bike's telemetry as it arrives (AC1). The class
  * video plays from the ride clock plus the class's sync offset (L2-088 AC1) and, on each tick, seeks back when it has
@@ -75,9 +78,10 @@ export class ClassRideStore {
   private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
   private readonly music = inject(RIDE_MUSIC);
   private readonly rideRecord = inject(RIDE_RECORD);
+  private readonly countdownTimer = inject(Countdown);
   /** Whether a ride is in progress, so a new version of the app waits for its end (L2-150 AC2). */
   private readonly activity = inject(RIDE_ACTIVITY);
-  private readonly started = signal(false);
+  private readonly stage = signal<RidePhase>('waiting');
   /** The ride's output and share on target, for Class Done. */
   private recorder: RideRecorder | null = null;
   /** The watts of each effort, a sum for each work segment of the plan (L2-169). */
@@ -92,7 +96,13 @@ export class ClassRideStore {
    */
   readonly way = rideWith(inject(HOW_TO_RIDE).kept(), inject(COURSE_GRAPHICS).available());
   /** What the lost-bike alert says is paused: the video, or in Ibiza the ride (L2-092 AC1). */
-  readonly lostBody = lostBikeMessage(this.way);
+  readonly lostBody = computed(() => lostBikeMessage(this.way, this.stage()));
+  /** The stage the ride is in: waiting, the countdown, riding, finished or rolling out (ADR 0049). */
+  readonly phase = this.stage.asReadonly();
+  /** What the countdown shows, or `null` when it is not on the screen (L2-180 AC1). */
+  readonly countdown = this.countdownTimer.step;
+  /** Which of Pause and Leave the header shows in this phase (L2-180 AC6). */
+  readonly header = computed(() => rideHeader(this.stage()));
   private readonly courseShown = signal(false);
   /** Whether the course's first frame has been drawn; until then its box reads "Loading …" (L2-175 AC1). */
   readonly courseDrawn = this.courseShown.asReadonly();
@@ -115,8 +125,8 @@ export class ClassRideStore {
   readonly state = computed(() =>
     rideHold({ pausedByRider: this.pausedByRider(), bikeLost: this.bikeLost() }),
   );
-  /** Whether the ride runs: started, and held neither by the rider nor by a lost bike; the course moves while it does. */
-  readonly running = computed(() => this.started() && this.state().running);
+  /** Whether the ride runs: past "Go!", and held neither by the rider nor by a lost bike; the course moves while it does. */
+  readonly running = computed(() => this.stage() === 'riding' && this.state().running);
   /** The bike's speed, which turns the pedals of the course's rider; the clock places them (L2-174 AC2). */
   readonly speedKmh = this.telemetry.speedKmh;
   /**
@@ -129,7 +139,11 @@ export class ClassRideStore {
 
   /** Power against the segment's target power: "On target" within 10 %, otherwise the signed difference (L2-089 AC2). */
   readonly power = computed<StatView>(() =>
-    powerStat(this.telemetry.powerW(), this.plan()?.targetPower ?? null),
+    // Until the clock starts nothing is on or off target, so no line stands under Power (L2-180 AC3).
+    powerStat(
+      this.telemetry.powerW(),
+      this.stage() === 'riding' ? (this.plan()?.targetPower ?? null) : null,
+    ),
   );
 
   /** Cadence with the segment's aim (L2-089 AC3). */
@@ -186,7 +200,11 @@ export class ClassRideStore {
     this.music.toggle();
   }
 
-  /** Plays the class video in `host`, the frame the page renders once the class has arrived; called once. */
+  /**
+   * Plays the class video in `host`, the frame the page renders once the class has arrived; called once. Before "Go!"
+   * the video is parked at the sync offset and plays from it on "Go!" (L2-180 AC4); a player that arrives later plays
+   * from the offset plus the clock, as the ride does.
+   */
   playVideo(host: HTMLElement): void {
     const ride = this.loaded();
     if (!ride || this.videoHost) return;
@@ -195,12 +213,18 @@ export class ClassRideStore {
       (player) => {
         if (this.destroyed) return player.destroy();
         this.player.set(player);
-        void player.load(host, ride.video.videoId, {
-          startSeconds: ride.video.syncOffsetSeconds + this.clock.elapsedMs() / 1000,
-          controls: false,
-          autoplay: true,
-          title: ride.title,
-        });
+        const parked = this.stage() !== 'riding';
+        void player
+          .load(host, ride.video.videoId, {
+            startSeconds: ride.video.syncOffsetSeconds + this.clock.elapsedMs() / 1000,
+            controls: false,
+            autoplay: !parked,
+            title: ride.title,
+          })
+          // "Go!" came while the player was still loading: it plays on from the clock.
+          .then(() => {
+            if (parked && this.stage() === 'riding') this.carryOn(ride);
+          });
       },
       () => this.playerMissing.set(true),
     );
@@ -218,7 +242,7 @@ export class ClassRideStore {
 
   /** Holds the clock, the plan and the video where they are, and says so once (L2-091 AC1, AC3, L2-088 AC3). */
   pause(): void {
-    if (this.pausedByRider() || this.bikeLost()) return;
+    if (this.stage() !== 'riding' || this.pausedByRider() || this.bikeLost()) return;
     this.pausedByRider.set(true);
     this.announcer.announce(pauseAnnouncement(true));
     if (!this.pausedByBike()) this.hold();
@@ -249,17 +273,35 @@ export class ClassRideStore {
     void this.resistance.nudge(-1);
   }
 
-  /** The ride starts at once, always solo (ADR 0038). */
+  /**
+   * Class Ride has taken the screen: the countdown begins, "3" with the bike already set (L2-180 AC1, AC3). Called
+   * once; the ride's clock does not start until "Go!".
+   */
+  beginCountdown(): void {
+    if (this.stage() !== 'waiting') return;
+    this.stage.set('countdown');
+    this.countdownTimer.start();
+  }
+
+  /** "Go!": the ride's clock starts at the instant it was due, and the video, the course and the music follow it. */
+  private go(at: number): void {
+    const ride = this.loaded();
+    if (!ride || this.destroyed) return;
+    this.stage.set('riding');
+    this.recorder = new RideRecorder();
+    this.efforts = new EffortTally(ride.plan.segments);
+    this.activity.begin();
+    this.clock.start(at);
+    this.ticker.start();
+    this.player()?.play();
+  }
+
+  /** The ride is always solo (ADR 0038). The engine follows the plan now; the clock waits for "Go!". */
   private start(dto: ClassDefinition): void {
     this.loaded.set(dto);
-    this.started.set(true);
-    this.recorder = new RideRecorder();
-    this.efforts = new EffortTally(dto.plan.segments);
     this.wakeLock.hold();
-    this.activity.begin();
-    this.clock.start();
-    this.ticker.start();
     this.engine.follow(dto.plan);
+    this.countdownTimer.go.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((at) => this.go(at));
     this.ticker.ticks.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((second) => {
       this.record(Math.min(second, dto.lengthSeconds));
       if (second >= dto.lengthSeconds) return this.finish(dto);
@@ -285,6 +327,10 @@ export class ClassRideStore {
     if (lost === this.pausedByBike()) return;
     this.pausedByBike.set(lost);
     if (!lost) this.engine.resend();
+    // No ride has started: a lost bike stops the countdown, and it starts again from "3" when the bike is back (L2-180 AC7).
+    if (this.stage() === 'countdown')
+      return lost ? this.countdownTimer.stop() : this.countdownTimer.start();
+    if (this.stage() !== 'riding') return;
     if (this.pausedByRider()) return;
     if (lost) this.hold();
     else this.carryOn(ride);

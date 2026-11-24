@@ -5,6 +5,8 @@
   <div class="class-course__scene">
     <ng-content select="[slot=scene]" />
   </div>
+  <!-- What lies over the course: the countdown (L2-180 AC1); the Music button stays above it. -->
+  <ng-content select="[slot=overlay]" />
   @if (loading() && !unavailable()) {
     <p class="class-course__loading" role="status">Loading {{ name() }}</p>
   }

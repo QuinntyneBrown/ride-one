@@ -82,6 +82,9 @@
     10 11 13 / 0.8
   ); /* HUD glass over the world: ink at 80%, both themes (bone text passes 6.6:1 worst case) */
   --color-on-photo: var(--palette-bone); /* text on photos and video, both themes */
+  --color-scrim-photo: rgb(
+    10 11 13 / 0.6
+  ); /* behind large words on the video or the course, both themes: the countdown, the loading line */
 
   /* Rider jerseys: content data from shared/game.ts (a racer's dot and avatar ring) */
   --jersey-you: var(--palette-signal);
@@ -130,7 +133,9 @@
   --line-height-4xl: 2.5rem; /* 36px */
   --font-size-5xl: 3rem; /* 48px numerals, line height 1 */
   --font-size-6xl: 3.75rem; /* 60px */
-  --font-size-7xl: 4.5rem; /* 72px: reserved step; no component uses it yet */
+  --font-size-7xl: 4.5rem; /* 72px: the countdown's numeral on a phone */
+  --font-size-score: 7rem; /* 112px: the countdown's numeral from 640px, and the output on Class Done */
+  --font-size-score-lg: 10rem; /* 160px: the countdown's numeral from 1024px, and the output on Class Done from 640px */
   --font-size-8xl: 6rem; /* 96px: the position on Results, live watts */
   --font-size-9xl: 8rem; /* 128px: the Results position and live watts from 640px */
 

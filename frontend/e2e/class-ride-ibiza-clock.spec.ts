@@ -19,7 +19,11 @@
 // again, then the rider is where the clock puts them.
 // Given the same telemetry, when the class is ridden in Ibiza and then with the class video, then Class Done shows the
 // same time, output and on-target share.
-import { courseDrawnOnPausedClock, startRideInIbizaOnPausedClock } from './fixtures/class-ride';
+import {
+  COUNTDOWN_MS,
+  courseDrawnOnPausedClock,
+  startRideInIbizaOnPausedClock,
+} from './fixtures/class-ride';
 import { CourseFiles } from './fixtures/course-files';
 import type { CourseProbe } from './fixtures/course-probe';
 import {
@@ -223,6 +227,7 @@ test.describe('Placed by the clock in Ibiza', () => {
         return targetResistanceWrites(bluetooth.writes().slice(writes));
       })
       .toContain(targetResistanceWrite(WARM_UP.level));
+    await page.clock.runFor(COUNTDOWN_MS);
     await page.clock.runFor(100);
     await expect(new ClassRidePage(page).video).toHaveCount(1);
     await rideFortySecondsOnTarget(page, bluetooth);

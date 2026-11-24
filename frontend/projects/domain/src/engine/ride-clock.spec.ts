@@ -35,6 +35,14 @@ describe('RideClock', () => {
     expect(clock.elapsedMs()).toBe(607_000);
   });
 
+  it('can start from an instant already past, as "Go!" of a countdown a late timer reached (L2-180 AC5)', () => {
+    clock.start(now - 2_000);
+
+    expect(clock.elapsedMs()).toBe(2_000);
+    now += 500;
+    expect(clock.elapsedMs()).toBe(2_500);
+  });
+
   it('stands still while paused, and goes on from there after Resume (L2-027 AC3)', () => {
     clock.start();
     now += 7_000;

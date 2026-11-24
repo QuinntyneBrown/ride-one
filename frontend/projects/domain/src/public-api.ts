@@ -21,6 +21,7 @@ export { ResistanceController, resistanceControl } from './engine/resistance-con
 export type { ResistanceControl } from './engine/resistance-controller';
 export { type PlanState, planStateAt } from './engine/plan-state';
 export { RideClock } from './engine/ride-clock';
+export { COUNT_MS, Countdown, GO_MS, countdownStep } from './engine/countdown';
 export { RideTicker } from './engine/ride-ticker';
 export { EffortTally } from './engine/effort-tally';
 export { RideRecorder } from './engine/ride-recorder';

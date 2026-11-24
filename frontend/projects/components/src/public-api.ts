@@ -20,6 +20,7 @@ export { ClassSegment } from './class-ride/class-segment';
 export { ClassStat, type ClassStatTone } from './class-ride/class-stat';
 export { ClassVideo } from './class-ride/class-video';
 export { ClassCourse } from './class-ride/class-course';
+export { ClassCountdown } from './class-ride/class-countdown';
 export { InlineMessage, type InlineMessageTone } from './inline-message/inline-message';
 export { ClassDone } from './class-done/class-done';
 export { Toast, type ToastTone } from './toast/toast';

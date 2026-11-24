@@ -16,7 +16,7 @@
 // Given such a bike is lost and comes back, when it reconnects, then nothing is written to it.
 // Given either notice or both, when Class Ride shows in a landscape window 768 px wide or more, then nothing scrolls.
 // Given a ride where the video plays and the bike takes its target, when it runs, then neither notice shows.
-import { startClassRide, startClassRideOnFtms } from './fixtures/class-ride';
+import { COUNTDOWN_MS, startClassRide, startClassRideOnFtms } from './fixtures/class-ride';
 import { targetResistanceWrite, targetResistanceWrites } from './fixtures/echelon';
 import type { FakeBluetooth } from './fixtures/fake-bluetooth';
 import {
@@ -58,8 +58,16 @@ async function rendered(page: Page, locator: Locator): Promise<void> {
 /** The ride's player is made and playing. */
 async function videoPlaying(page: Page, youtube: YouTubeFixture): Promise<void> {
   await expect.poll(async () => (await youtube.players()).length).toBe(1);
-  await page.clock.runFor(100);
-  expect((await youtube.players())[0].playing).toBe(true);
+  // The video plays on "Go!", the end of the countdown (L2-180 AC4), counted out on the paused clock if it is not yet.
+  await expect
+    .poll(
+      async () => {
+        await page.clock.runFor(100);
+        return (await youtube.players())[0].playing;
+      },
+      { intervals: [10], timeout: 15_000 },
+    )
+    .toBe(true);
 }
 
 /** The ride's first target has asked the bike for control: Request Control is the one write so far. */
@@ -414,6 +422,7 @@ test.describe('The video and the bike together, and neither', () => {
       }
 
       // The ride goes on with neither.
+      await page.clock.runFor(COUNTDOWN_MS);
       await page.clock.fastForward('02:31');
       await page.clock.runFor(100);
       await expect(ride.clock).toHaveText('2:31 / 20:00');

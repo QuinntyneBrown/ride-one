@@ -1,6 +1,8 @@
 <div class="class-video">
   <img class="photo photo--yt" [src]="cover()" [alt]="'Video: ' + title()" />
   <div class="class-video__player"></div>
+  <!-- What lies over the picture: the countdown (L2-180 AC1). -->
+  <ng-content select="[slot=overlay]" />
   @if (paused()) {
     <div class="class-video__paused" aria-hidden="true">
       <p class="class-video__paused-label">Paused</p>

@@ -2,7 +2,8 @@ import { Injectable, inject, signal } from '@angular/core';
 import { MONOTONIC_TIME } from '@telo/api';
 
 /**
- * The ride clock: the monotonic time since `start()`, less the time paused (L2-133 AC1). It never counts timer ticks,
+ * The ride clock: the monotonic time since `start()`, less the time paused (L2-133 AC1). `start(at)` counts from an
+ * instant already past: the countdown's "Go!", which a throttled timer reached late (L2-180 AC5). It never counts timer ticks,
  * so a throttled hidden tab cannot make it fall behind (docs/detailed-designs/performance/keep-the-ride-clock-true).
  * Provided by each ride screen.
  */
@@ -16,8 +17,8 @@ export class RideClock {
 
   readonly running = this.isRunning.asReadonly();
 
-  start(): void {
-    this.startedAt = this.time.now();
+  start(at?: number): void {
+    this.startedAt = at ?? this.time.now();
     this.pausedAt = null;
     this.pausedTotalMs = 0;
     this.isRunning.set(true);

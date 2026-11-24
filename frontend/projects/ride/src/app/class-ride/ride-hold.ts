@@ -1,3 +1,5 @@
+import type { RidePhase } from './ride-phase';
+
 /** Why a class ride stands still: the rider paused it, the bike stopped answering, both, or neither. */
 export interface RideHoldReasons {
   /** The rider pressed Pause and has not pressed Resume (L2-091). */
@@ -37,8 +39,32 @@ export function rideHold({ pausedByRider, bikeLost }: RideHoldReasons): RideHold
   };
 }
 
-/** What the lost-bike alert says the ride is doing meanwhile: the video with the class video, the ride in Ibiza (L2-092 AC1). */
-export function lostBikeMessage(ridingIn: 'video' | 'ibiza'): string {
+/** Which of the header's buttons show in a phase of the ride (L2-180 AC6, L2-181 AC5). */
+export interface RideHeader {
+  /** Pause or Resume: only while the ride runs, so not during the countdown or the ending. */
+  readonly pause: boolean;
+  /** Leave: not once the ride is finished, when its result is already kept. */
+  readonly leave: boolean;
+}
+
+/**
+ * The header's buttons by phase: no ride, so no Pause, during the countdown; Pause and Leave while it runs; neither
+ * once it is finished. Full screen is always there and is not this function's.
+ */
+export function rideHeader(phase: RidePhase): RideHeader {
+  return {
+    pause: phase === 'riding',
+    leave: phase !== 'finished' && phase !== 'rolling-out',
+  };
+}
+
+/**
+ * What the lost-bike alert says the ride is doing meanwhile: the video with the class video, the ride in Ibiza
+ * (L2-092 AC1), or, in the countdown, that the class has not started (L2-180 AC7).
+ */
+export function lostBikeMessage(ridingIn: 'video' | 'ibiza', phase: RidePhase = 'riding'): string {
+  if (phase === 'countdown')
+    return 'The class has not started. Pedal to wake the bike, then reconnect.';
   return ridingIn === 'ibiza'
     ? 'The ride is paused. Pedal to wake the bike, then reconnect.'
     : 'The video is paused. Pedal to wake the bike, then reconnect.';
