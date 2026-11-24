@@ -21,53 +21,51 @@ import { NotFoundPage } from './pages/not-found.page';
 import { TheClassPage } from './pages/the-class.page';
 
 test.describe('Diagnostic recording', () => {
-  test(
-    'off by default: no mark, and none of the recording’s code is fetched (L2-178 AC1)',
-    { tag: '@critical' },
-    async ({ page, bluetooth }) => {
-      await bluetooth.remember(echelonBike);
-      const scripts = new ScriptLog(page);
-      const home = new TheClassPage(page);
-      await home.open();
-      await connectBike(bluetooth);
-      await expect(home.start).toHaveText(/^\s*(Start class|Ride it again)\s*$/);
-      await page.waitForLoadState('networkidle');
+  test('off by default: no mark, and none of the recording’s code is fetched (L2-178 AC1)', async ({
+    page,
+    bluetooth,
+  }) => {
+    await bluetooth.remember(echelonBike);
+    const scripts = new ScriptLog(page);
+    const home = new TheClassPage(page);
+    await home.open();
+    await connectBike(bluetooth);
+    await expect(home.start).toHaveText(/^\s*(Start class|Ride it again)\s*$/);
+    await page.waitForLoadState('networkidle');
 
-      expect(await scripts.hasRecordingCode()).toBe(false);
-      await expect(new DiagnosticsPage(page).mark).toHaveCount(0);
-      const messages: string[] = [];
-      page.on('console', (message) => messages.push(message.text()));
-      await connectBike(bluetooth);
-      expect(messages, 'no per-packet console line (L2-115 AC2)').toEqual([]);
-    },
-  );
+    expect(await scripts.hasRecordingCode()).toBe(false);
+    await expect(new DiagnosticsPage(page).mark).toHaveCount(0);
+    const messages: string[] = [];
+    page.on('console', (message) => messages.push(message.text()));
+    await connectBike(bluetooth);
+    expect(messages, 'no per-packet console line (L2-115 AC2)').toEqual([]);
+  });
 
-  test(
-    '?diagnose fetches the recording’s code and shows the mark on every screen (L2-178 AC2)',
-    { tag: '@critical' },
-    async ({ page, bluetooth }) => {
-      const scripts = new ScriptLog(page);
-      const diagnostics = new DiagnosticsPage(page);
+  test('?diagnose fetches the recording’s code and shows the mark on every screen (L2-178 AC2)', async ({
+    page,
+    bluetooth,
+  }) => {
+    const scripts = new ScriptLog(page);
+    const diagnostics = new DiagnosticsPage(page);
 
-      // A new rider is sent on to Connect Bike, and the recording stays on.
-      await diagnostics.open('/');
-      await expect(new ConnectBikePage(page).title).toHaveText('Connect your bike');
-      await expect(diagnostics.mark).toBeVisible();
-      await expect(diagnostics.mark).toHaveText('Recording');
-      expect(await scripts.hasRecordingCode()).toBe(true);
+    // A new rider is sent on to Connect Bike, and the recording stays on.
+    await diagnostics.open('/');
+    await expect(new ConnectBikePage(page).title).toHaveText('Connect your bike');
+    await expect(diagnostics.mark).toBeVisible();
+    await expect(diagnostics.mark).toHaveText('Recording');
+    expect(await scripts.hasRecordingCode()).toBe(true);
 
-      // The Class, for a rider with a remembered bike.
-      await bluetooth.remember(echelonBike);
-      await diagnostics.open('/');
-      await expect(new TheClassPage(page).main).toBeAttached();
-      await expect(diagnostics.mark).toBeVisible();
+    // The Class, for a rider with a remembered bike.
+    await bluetooth.remember(echelonBike);
+    await diagnostics.open('/');
+    await expect(new TheClassPage(page).main).toBeAttached();
+    await expect(diagnostics.mark).toBeVisible();
 
-      // Page not found shows it too: the mark belongs to no one screen.
-      await diagnostics.open('/no-such-address');
-      await expect(new NotFoundPage(page).heading).toBeVisible();
-      await expect(diagnostics.mark).toBeVisible();
-    },
-  );
+    // Page not found shows it too: the mark belongs to no one screen.
+    await diagnostics.open('/no-such-address');
+    await expect(new NotFoundPage(page).heading).toBeVisible();
+    await expect(diagnostics.mark).toBeVisible();
+  });
 
   test('the mark opens a modal dialog that says what the files hold (L2-178 AC11, AC16)', async ({
     page,

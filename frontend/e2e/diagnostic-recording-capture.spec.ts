@@ -51,39 +51,35 @@ test.describe('Diagnostic recording: notes, screen captures and the limit', () =
     ]);
   });
 
-  test(
-    'Capture screen keeps one still of the tab, saves it with the recording and ends the sharing (L2-178 AC13, AC15, AC20)',
-    { tag: '@critical' },
-    async ({ page }) => {
-      const sharing = await ScreenCaptureFixture.install(page);
-      const diagnostics = new DiagnosticsPage(page);
-      await diagnostics.open('/connect');
-      await diagnostics.mark.click();
+  test('Capture screen keeps one still of the tab, saves it with the recording and ends the sharing (L2-178 AC13, AC15, AC20)', async ({
+    page,
+  }) => {
+    const sharing = await ScreenCaptureFixture.install(page);
+    const diagnostics = new DiagnosticsPage(page);
+    await diagnostics.open('/connect');
+    await diagnostics.mark.click();
 
-      await diagnostics.capture.click();
+    await diagnostics.capture.click();
 
-      await expect(diagnostics.status).toHaveText('Screen capture 1 kept');
-      await expect(diagnostics.mark).toHaveText('Recording');
-      // The current tab was asked for, with no sound, and the sharing ended once the picture was taken.
-      expect(await sharing.asked()).toEqual([
-        { video: true, audio: false, preferCurrentTab: true },
-      ]);
-      expect(await sharing.tracks()).toEqual(['ended']);
+    await expect(diagnostics.status).toHaveText('Screen capture 1 kept');
+    await expect(diagnostics.mark).toHaveText('Recording');
+    // The current tab was asked for, with no sound, and the sharing ended once the picture was taken.
+    expect(await sharing.asked()).toEqual([{ video: true, audio: false, preferCurrentTab: true }]);
+    expect(await sharing.tracks()).toEqual(['ended']);
 
-      const files = await diagnostics.saveFiles(2);
-      expect(files.map((file) => file.name)).toEqual([
-        expect.stringMatching(/^telo-ride-1-recording-\d{8}T\d{6}Z\.log$/),
-        expect.stringMatching(/^telo-ride-1-capture-\d{8}T\d{6}Z-1\.png$/),
-      ]);
-      expect([...files[1].bytes.subarray(0, 8)]).toEqual(PNG);
-      expect(entriesOf(files[0].bytes.toString('utf8'))).toContain(
-        `CAP  1 ${files[1].name} ${SHARED_SCREEN.width}x${SHARED_SCREEN.height}`,
-      );
-      await expect(diagnostics.status).toHaveText(
-        'Saved 2 files: the recording and 1 screen capture.',
-      );
-    },
-  );
+    const files = await diagnostics.saveFiles(2);
+    expect(files.map((file) => file.name)).toEqual([
+      expect.stringMatching(/^telo-ride-1-recording-\d{8}T\d{6}Z\.log$/),
+      expect.stringMatching(/^telo-ride-1-capture-\d{8}T\d{6}Z-1\.png$/),
+    ]);
+    expect([...files[1].bytes.subarray(0, 8)]).toEqual(PNG);
+    expect(entriesOf(files[0].bytes.toString('utf8'))).toContain(
+      `CAP  1 ${files[1].name} ${SHARED_SCREEN.width}x${SHARED_SCREEN.height}`,
+    );
+    await expect(diagnostics.status).toHaveText(
+      'Saved 2 files: the recording and 1 screen capture.',
+    );
+  });
 
   test('a refused screen capture keeps nothing, says so, and the ride carries on (L2-178 AC14)', async ({
     page,
