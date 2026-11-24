@@ -10,6 +10,11 @@ export interface FakeBike {
   values?: Record<string, number[]>;
   /** The browser's identifier for the device; every bike is `fake-bike` unless the spec tells two apart. */
   id?: string;
+  /**
+   * What each characteristic can do, as its `properties` say (`read`, `write`, `notify`, `indicate`); one the bike
+   * does not list has none. Only a diagnostic recording reads them (L2-178 AC6).
+   */
+  properties?: Record<string, string[]>;
 }
 
 /** Telo Ride 1's record of the remembered bike, as it lies in the browser's storage. */
@@ -286,6 +291,7 @@ function installInPage(): void {
     services: Record<string, string[]>;
     values?: Record<string, number[]>;
     id?: string;
+    properties?: Record<string, string[]>;
   }
   const report = (window as unknown as { __fakeBluetoothReport(r: unknown): Promise<void> })
     .__fakeBluetoothReport;
@@ -329,8 +335,16 @@ function installInPage(): void {
       if ((window as unknown as { __fakeWritesFail?: boolean }).__fakeWritesFail)
         throw new DOMException('GATT operation failed for unknown reason.', 'NetworkError');
     };
+    const can = (property: string): boolean => bike.properties?.[uuid]?.includes(property) ?? false;
     const c = Object.assign(new EventTarget(), {
       uuid,
+      properties: {
+        read: can('read'),
+        write: can('write'),
+        writeWithoutResponse: can('writeWithoutResponse'),
+        notify: can('notify'),
+        indicate: can('indicate'),
+      },
       value: null as DataView | null,
       startNotifications: async () => {
         await report({ kind: 'subscribe', characteristic: uuid });
@@ -365,6 +379,8 @@ function installInPage(): void {
             if (bike.services[uuid].includes(c)) return characteristic(bike, c);
             throw new DOMException(`No characteristic ${c}`, 'NotFoundError');
           },
+          // Every characteristic of the service, which only a diagnostic recording asks for (L2-178 AC6).
+          getCharacteristics: async () => bike.services[uuid].map((c) => characteristic(bike, c)),
         },
         'service',
       );

@@ -1,5 +1,11 @@
 import { Injectable, type OnDestroy, inject, signal } from '@angular/core';
-import { type BikeConnection, type BikeInfo, type BleState, TICKER } from '@telo/api';
+import {
+  BIKE_LINK_TAP,
+  type BikeConnection,
+  type BikeInfo,
+  type BleState,
+  TICKER,
+} from '@telo/api';
 import { Subject, type Subscription } from 'rxjs';
 import { EchelonProtocol } from '../protocol/echelon-protocol';
 import { SimulatedRiderProfile } from './simulated-rider-profile';
@@ -21,6 +27,8 @@ export const SIMULATED_BIKE: BikeInfo = {
 @Injectable()
 export class SimulatedBikeConnection implements BikeConnection, OnDestroy {
   private readonly ticker = inject(TICKER);
+  /** The tap on the link, bound only while a diagnostic recording is on: the simulated bike is recorded as a real one (L2-178 AC18). */
+  private readonly tap = inject(BIKE_LINK_TAP, { optional: true });
   private readonly sent = new Subject<Uint8Array>();
   private ticking: Subscription | null = null;
   private elapsed = 0;
@@ -41,6 +49,14 @@ export class SimulatedBikeConnection implements BikeConnection, OnDestroy {
 
   async connect(): Promise<void> {
     this.chosen.set(SIMULATED_BIKE);
+    if (this.link() !== 'connected') {
+      this.tap?.event(
+        'bike',
+        `name=${JSON.stringify(SIMULATED_BIKE.name)} identifier=${JSON.stringify(SIMULATED_BIKE.identifier)} kind=${SIMULATED_BIKE.kind}`,
+      );
+      this.tap?.event('link', 'simulated');
+      this.tap?.event('ble', 'connected');
+    }
     this.ticking ??= this.ticker.seconds.subscribe(() => this.tick());
     this.link.set('connected');
   }
@@ -57,7 +73,10 @@ export class SimulatedBikeConnection implements BikeConnection, OnDestroy {
   }
 
   async setResistance(level: number): Promise<number> {
-    const parsed = EchelonProtocol.parseSetResistance(EchelonProtocol.setResistance(level));
+    const command = EchelonProtocol.setResistance(level);
+    // The simulator acknowledges at once, so the write settles as it is asked for.
+    this.tap?.writing(EchelonProtocol.write, command, level)();
+    const parsed = EchelonProtocol.parseSetResistance(command);
     if (parsed !== null) this.level = parsed;
     return 0; // the simulator acknowledges at once
   }
@@ -70,6 +89,7 @@ export class SimulatedBikeConnection implements BikeConnection, OnDestroy {
   disconnect(): void {
     this.ticking?.unsubscribe();
     this.ticking = null;
+    if (this.link() !== 'idle') this.tap?.event('ble', 'idle');
     this.link.set('idle');
   }
 
@@ -82,13 +102,19 @@ export class SimulatedBikeConnection implements BikeConnection, OnDestroy {
     const cadence = SimulatedRiderProfile.cadenceAt(this.elapsed);
     this.elapsed += 1;
     this.revolutions += cadence / 60;
-    this.sent.next(
+    this.send(
       EchelonProtocol.workout({
         elapsedSeconds: this.elapsed,
         revolutions: Math.floor(this.revolutions),
         cadence,
       }),
     );
-    this.sent.next(EchelonProtocol.resistance(this.level));
+    this.send(EchelonProtocol.resistance(this.level));
+  }
+
+  /** One frame, as a real bike's notification arrives: the tap hears it before anything decodes it. */
+  private send(frame: Uint8Array): void {
+    this.tap?.received(EchelonProtocol.notify, frame, 'notification', SIMULATED_BIKE.kind);
+    this.sent.next(frame);
   }
 }

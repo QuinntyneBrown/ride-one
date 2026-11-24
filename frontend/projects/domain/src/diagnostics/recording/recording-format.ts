@@ -19,7 +19,15 @@ const QUOTE_LIMIT = 400;
  */
 export function quote(text: string): string {
   const cut = text.length > QUOTE_LIMIT ? `${text.slice(0, QUOTE_LIMIT)}...[cut]` : text;
-  return JSON.stringify(cut).replace(
+  return ascii(JSON.stringify(cut));
+}
+
+/**
+ * Text with every character outside printable ASCII written as a `\\uXXXX` escape, so a line of the recording is
+ * ASCII and never breaks, whatever a device's name holds.
+ */
+export function ascii(text: string): string {
+  return text.replace(
     /[^\x20-\x7e]/g,
     (character) => `\\u${character.charCodeAt(0).toString(16).padStart(4, '0')}`,
   );
@@ -63,8 +71,8 @@ export function recordingHeader(facts: RecordingFacts): string[] {
     `# format: ${RECORDING_FORMAT}`,
     `# started: ${facts.startedAt.toISOString()}`,
     `# saved: ${facts.savedAt.toISOString()}`,
-    `# address: ${ascii(facts.address)}`,
-    `# browser: ${ascii(facts.browser)}`,
+    `# address: ${plain(facts.address)}`,
+    `# browser: ${plain(facts.browser)}`,
     `# limits: ${entries} entries, ${bytes} bytes, ${captures} screen captures`,
     `# dropped: ${facts.dropped} entries`,
     '# line: <milliseconds since started> <kind> <detail>',
@@ -74,6 +82,6 @@ export function recordingHeader(facts: RecordingFacts): string[] {
 }
 
 /** A header value with anything outside printable ASCII replaced, so the file stays ASCII. */
-function ascii(text: string): string {
+function plain(text: string): string {
   return text.replace(/[^\x20-\x7e]/g, '?');
 }

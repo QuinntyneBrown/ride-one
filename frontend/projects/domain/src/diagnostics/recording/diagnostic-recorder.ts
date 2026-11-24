@@ -18,6 +18,7 @@ import { readAnswer, readFrame } from './frame-reading';
 import { RECORDING_LIMITS, RecordingBuffer } from './recording-buffer';
 import {
   type EntryKind,
+  ascii,
   captureFileName,
   entryLine,
   quote,
@@ -83,7 +84,7 @@ export class DiagnosticRecorder implements BikeLinkTap, DiagnosticRecording {
   }
 
   event(name: string, detail?: string): void {
-    this.add('EVT', detail === undefined ? name : `${name} ${detail}`);
+    this.add('EVT', detail === undefined ? name : `${name} ${ascii(detail)}`);
   }
 
   /** A line the app logged, already redacted (L2-178 AC7). */

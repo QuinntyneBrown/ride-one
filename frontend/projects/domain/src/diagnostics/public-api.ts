@@ -3,4 +3,5 @@
 // imports dynamically when it is opened with `?diagnose`: a rider's app never fetches it (L2-178 AC1).
 export { DiagnosticRecorder } from './recording/diagnostic-recorder';
 export { RECORDING_LIMITS } from './recording/recording-buffer';
+export { RecordingAppLogger } from './recording/recording-app-logger';
 export { BrowserFileSaver } from '../browser/browser-file-saver';

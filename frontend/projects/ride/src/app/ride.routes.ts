@@ -28,8 +28,6 @@ const routes = (diagnostics: (Provider | EnvironmentProviders)[]): Routes => [
   {
     path: '',
     providers: [
-      // First, so the recording is there before the bike connection is made (L2-178 AC2).
-      ...diagnostics,
       provideBikeConnection(),
       // The record of finished rides, kept on the device (L2-168), which also says whether the rider has finished one:
       // the app opens by it (L2-167).
@@ -45,6 +43,9 @@ const routes = (diagnostics: (Provider | EnvironmentProviders)[]): Routes => [
       { provide: FULLSCREEN, useClass: BrowserFullscreen },
       // What a screen reader hears: a ride's steps and the result (L2-141 AC2).
       { provide: ANNOUNCER, useClass: LiveRegionAnnouncer },
+      // Last, so the recording's logger stands in for the console's; its environment initializer creates the
+      // recording with this injector, before any screen asks for the bike connection (L2-178 AC2).
+      ...diagnostics,
     ],
     children: [
       // Connect Bike, where a new rider starts (docs/mocks/pages/connect-bike/).

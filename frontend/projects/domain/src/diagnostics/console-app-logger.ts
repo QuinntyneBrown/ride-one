@@ -16,6 +16,11 @@ export function redact(text: string): string {
     .replace(TOKEN_PARAM, '$1=[token]');
 }
 
+/** The one line an error is logged as: "[area] Name: message", redacted (L2-115 AC3). */
+export function logLine(area: string, error: unknown): string {
+  return redact(`[${area}] ${describeError(error)}`);
+}
+
 /**
  * The app's logger (L2-115): the browser console and nothing else. An error reads "[area] Name: message" in plain
  * text, redacted.
@@ -23,6 +28,6 @@ export function redact(text: string): string {
 @Injectable()
 export class ConsoleAppLogger implements AppLogger {
   error(area: string, error: unknown): void {
-    console.error(redact(`[${area}] ${describeError(error)}`));
+    console.error(logLine(area, error));
   }
 }

@@ -13,6 +13,11 @@ export const ftmsBike: FakeBike = {
   name: 'KICKR BIKE 1A2B',
   services: { [FTMS_SERVICE]: [INDOOR_BIKE_DATA, CONTROL_POINT, RESISTANCE_RANGE] },
   values: { [RESISTANCE_RANGE]: [0x0a, 0x00, 0xe8, 0x03, 0x0a, 0x00] },
+  properties: {
+    [INDOOR_BIKE_DATA]: ['notify'],
+    [CONTROL_POINT]: ['write', 'indicate'],
+    [RESISTANCE_RANGE]: ['read'],
+  },
 };
 
 /** An FTMS bike with no control point and no range: it reports, and nothing can be asked of it (L2-014 AC3). */

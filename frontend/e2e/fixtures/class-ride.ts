@@ -78,11 +78,12 @@ export async function startClassRideOnFtms(
   page: Page,
   bluetooth: FakeBluetooth,
   bike: FakeBike = ftmsBike,
+  options: { diagnose?: boolean } = {},
 ): Promise<ClassRidePage> {
   await page.clock.install({ time: RIDE_START });
   await bluetooth.remember(bike);
   const home = new TheClassPage(page);
-  await home.open();
+  await home.open(options);
   await expect.poll(() => bluetooth.log()).toContain(`subscribe ${INDOOR_BIKE_DATA}`);
   await expect(async () => {
     await bluetooth.notify(INDOOR_BIKE_DATA, INDOOR_BIKE_FRAME);
