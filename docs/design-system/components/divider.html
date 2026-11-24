@@ -3,27 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Divider — Telo Ride design system</title>
-<meta name="description" content="Hairlines that separate without boxing: section rules under headings, row rules in lists, vertical rules between header groups, and a labelled divider.">
+<title>Divider — Telo Ride 1 design system</title>
+<meta name="description" content="A hairline between two things.">
 <link rel="stylesheet" href="../tokens/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
 <link rel="stylesheet" href="../assets/ds.css">
-<style>
-/* Page-only: ds.css underlines every link; components in examples set their own decoration. */
-:where(.ds-example__canvas, .ds-stage, .ds-themes, .ds-matrix, .ds-anatomy__figure, .ds-do, .ds-dont) a { text-decoration: none; color: inherit; }
-.ds-matrix td { min-width: 7rem; }
-.ds-matrix td > :is(a, button, span):not(.visually-hidden) { display: inline-flex; vertical-align: middle; }
-.ds-keys td:first-child { white-space: nowrap; }
-.ds-matrix td { white-space: nowrap; }
-.ds-matrix td > :is(.tier-tabs, .tabs) { display: inline-flex; }
-.ds-stage .demo-relative { position: relative; }
-</style>
 </head>
 <body id="top">
 <a class="ds-skip" href="#main">Skip to content</a>
 <div class="ds-shell">
   <nav class="ds-nav" aria-label="Design system">
-    <div class="ds-nav__brand"><a href="../index.html">Telo Ride DS</a><button class="ds-theme-toggle" type="button" aria-pressed="true">☀ Light</button></div>
+    <div class="ds-nav__brand"><a href="../index.html">Telo Ride 1 DS</a><button class="ds-theme-toggle" type="button" aria-pressed="true">☀ Light</button></div>
     <details open><summary>Foundations</summary><ul>
       <li><a href="../foundations/color.html">Color</a></li>
       <li><a href="../foundations/typography.html">Typography</a></li>
@@ -38,239 +28,184 @@
       <li><a href="../foundations/accessibility.html">Accessibility</a></li>
       <li><a href="../foundations/content.html">Content</a></li>
     </ul></details>
-    <details open><summary>Actions</summary><ul>
-      <li><a href="../components/button.html">Button</a></li>
-      <li><a href="../components/button-group.html">Button group</a></li>
-      <li><a href="../components/link.html">Link</a></li>
-      <li><a href="../components/menu.html">Menu</a></li>
-    </ul></details>
-    <details open><summary>Inputs</summary><ul>
-      <li><a href="../components/form-field.html">Form field</a></li>
-      <li><a href="../components/text-field.html">Text field</a></li>
-      <li><a href="../components/textarea.html">Textarea</a></li>
-      <li><a href="../components/select.html">Select</a></li>
-      <li><a href="../components/checkbox.html">Checkbox</a></li>
-      <li><a href="../components/radio-group.html">Radio group</a></li>
-      <li><a href="../components/switch.html">Switch</a></li>
-      <li><a href="../components/slider.html">Slider</a></li>
-      <li><a href="../components/number-stepper.html">Number stepper</a></li>
-      <li><a href="../components/form-layout.html">Form layout</a></li>
-    </ul></details>
-    <details open><summary>Navigation</summary><ul>
+    <details open><summary>Components</summary><ul>
+      <li><a href="../components/alert.html">Alert</a></li>
       <li><a href="../components/app-header.html">App header</a></li>
-      <li><a href="../components/sidebar-nav.html">Sidebar navigation</a></li>
-      <li><a href="../components/tabs.html">Tabs</a></li>
-      <li><a href="../components/breadcrumb.html">Breadcrumb</a></li>
-      <li><a href="../components/pagination.html">Pagination</a></li>
-      <li><a href="../components/skip-link.html">Skip link</a></li>
-    </ul></details>
-    <details open><summary>Containers and overlays</summary><ul>
-      <li><a href="../components/container.html">Container and grid</a></li>
-      <li><a href="../components/card.html">Card</a></li>
-      <li><a href="../components/dialog.html">Dialog</a></li>
-      <li><a href="../components/popover.html">Popover</a></li>
-      <li><a href="../components/tooltip.html">Tooltip</a></li>
-      <li><a href="../components/divider.html">Divider</a></li>
-    </ul></details>
-    <details open><summary>Data display</summary><ul>
-      <li><a href="../components/table.html">Table</a></li>
-      <li><a href="../components/list.html">List</a></li>
-      <li><a href="../components/description-list.html">Description list</a></li>
       <li><a href="../components/avatar.html">Avatar</a></li>
       <li><a href="../components/badge.html">Badge</a></li>
+      <li><a href="../components/ride-readout.html">Bike panel</a></li>
+      <li><a href="../components/breadcrumb.html">Breadcrumb</a></li>
+      <li><a href="../components/button.html">Button</a></li>
+      <li><a href="../components/card.html">Card</a></li>
+      <li><a href="../components/checkbox.html">Checkbox</a></li>
       <li><a href="../components/chip.html">Chip</a></li>
-      <li><a href="../components/stat.html">Stat</a></li>
-      <li><a href="../components/code-block.html">Code block</a></li>
-    </ul></details>
-    <details open><summary>Feedback</summary><ul>
-      <li><a href="../components/toast.html">Toast</a></li>
-      <li><a href="../components/alert.html">Alert and banner</a></li>
-      <li><a href="../components/inline-message.html">Inline message</a></li>
-      <li><a href="../components/progress-bar.html">Progress bar</a></li>
-      <li><a href="../components/spinner.html">Spinner</a></li>
-      <li><a href="../components/skeleton.html">Skeleton</a></li>
+      <li><a href="../components/class-done.html">Class Done</a></li>
+      <li><a href="../components/video.html">Class video</a></li>
+      <li><a href="../components/container.html">Container</a></li>
+      <li><a href="../components/countdown.html">Countdown</a></li>
+      <li><a href="../components/course.html">Course</a></li>
+      <li><a href="../components/description-list.html">Description list</a></li>
+      <li><a href="../components/device-list.html">Device list</a></li>
+      <li><a href="../components/diagnostic-panel.html">Diagnostic panel</a></li>
+      <li><a href="../components/dialog.html">Dialog</a></li>
+      <li><a href="../components/divider.html">Divider</a></li>
       <li><a href="../components/empty-state.html">Empty state</a></li>
       <li><a href="../components/error-page.html">Error page</a></li>
-    </ul></details>
-    <details open><summary>Brand and progress</summary><ul>
-      <li><a href="../components/lockup.html">Logo lockup</a></li>
-      <li><a href="../components/level-badge.html">Level badge</a></li>
-      <li><a href="../components/stars.html">Stars</a></li>
-      <li><a href="../components/photo-tag.html">Photo tag</a></li>
-      <li><a href="../components/section-head.html">Section head</a></li>
-    </ul></details>
-    <details open><summary>Ride</summary><ul>
-      <li><a href="../components/map-card.html">Map card</a></li>
-      <li><a href="../components/class-card.html">Class card</a></li>
-      <li><a href="../components/next-ride.html">Next ride</a></li>
-      <li><a href="../components/leaderboard.html">Leaderboard</a></li>
-      <li><a href="../components/device-list.html">Device list</a></li>
-      <li><a href="../components/video.html">Video</a></li>
+      <li><a href="../components/finish-banner.html">Finish banner</a></li>
+      <li><a href="../components/form-field.html">Form field</a></li>
+      <li><a href="../components/form-layout.html">Form layout</a></li>
+      <li><a href="../components/ibiza-flyover.html">Ibiza Flyover</a></li>
+      <li><a href="../components/inline-message.html">Inline message</a></li>
+      <li><a href="../components/link.html">Link</a></li>
+      <li><a href="../components/list.html">List</a></li>
+      <li><a href="../components/lockup.html">Lockup</a></li>
+      <li><a href="../components/menu.html">Menu</a></li>
+      <li><a href="../components/pagination.html">Pagination</a></li>
       <li><a href="../components/plan-chart.html">Plan chart</a></li>
-      <li><a href="../components/route-profile.html">Route profile</a></li>
-      <li><a href="../components/ride-readout.html">Ride readout</a></li>
-      <li><a href="../components/hud-panel.html">HUD panel</a></li>
-      <li><a href="../components/countdown.html">Countdown</a></li>
-      <li><a href="../components/ride-trace.html">Ride trace</a></li>
+      <li><a href="../components/progress-bar.html">Progress bar</a></li>
+      <li><a href="../components/radio-group.html">Radio group</a></li>
+      <li><a href="../components/recording-mark.html">Recording mark</a></li>
+      <li><a href="../components/number-stepper.html">Resistance stepper</a></li>
+      <li><a href="../components/roll-out.html">Roll-out</a></li>
+      <li><a href="../components/select.html">Select</a></li>
+      <li><a href="../components/sidebar-nav.html">Sidebar navigation</a></li>
+      <li><a href="../components/skeleton.html">Skeleton</a></li>
+      <li><a href="../components/skip-link.html">Skip link</a></li>
+      <li><a href="../components/spinner.html">Spinner</a></li>
+      <li><a href="../components/stat.html">Stat</a></li>
+      <li><a href="../components/switch.html">Switch</a></li>
+      <li><a href="../components/table.html">Table</a></li>
+      <li><a href="../components/tabs.html">Tabs</a></li>
+      <li><a href="../components/text-field.html">Text field</a></li>
+      <li><a href="../components/textarea.html">Textarea</a></li>
+      <li><a href="../components/the-class.html">The Class</a></li>
+      <li><a href="../components/toast.html">Toast</a></li>
+      <li><a href="../components/tooltip.html">Tooltip</a></li>
     </ul></details>
     <details open><summary>Patterns</summary><ul>
       <li><a href="../patterns/forms.html">Forms</a></li>
       <li><a href="../patterns/feedback-and-loading.html">Feedback and loading</a></li>
       <li><a href="../patterns/empty-and-error-states.html">Empty and error states</a></li>
-      <li><a href="../patterns/navigation.html">Navigation and page structure</a></li>
+      <li><a href="../patterns/navigation.html">Navigation</a></li>
       <li><a href="../patterns/dialogs-and-overlays.html">Dialogs and overlays</a></li>
       <li><a href="../patterns/data-tables-and-lists.html">Data tables and lists</a></li>
       <li><a href="../patterns/notifications.html">Notifications</a></li>
       <li><a href="../patterns/content-and-tone.html">Content and tone</a></li>
-      <li><a href="../patterns/live-ride.html">Live ride</a></li>
+      <li><a href="../patterns/live-ride.html">The shape of a ride</a></li>
     </ul></details>
   </nav>
   <main id="main" class="ds-main">
     <header class="ds-header">
-      <p class="ds-kicker">Component · Containers and overlays</p>
+      <p class="ds-kicker">Component · Containers</p>
       <h1>Divider</h1>
-      <p class="ds-lead">Telo Ride separates with one-pixel hairlines, not boxes. A divider marks where one group ends: under a section title, between rows, between header groups, or around a short label.</p>
-      <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span><span class="ds-pill">Status: stable</span><span class="ds-pill">Since v1.0</span></div>
+      <p class="ds-lead">A hairline between two things.</p>
+      <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span><span class="ds-pill">Status: stable</span><span class="ds-pill">Core set · no Telo Ride 1 screen uses it yet</span></div>
       <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#anatomy">Anatomy</a></li><li><a href="#variants">Variants</a></li><li><a href="#sizes">Sizes</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive</a></li><li><a href="#theming">Theming</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don't</a></li><li><a href="#tokens">Tokens</a></li><li><a href="#code">Code</a></li><li><a href="#sources">Sources</a></li></ul>
     </header>
-    <section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
-      <p>The design draws almost no outlines: panels and wells separate by fill, and hairlines in <code>--color-line</code> separate inside them. Use a divider when two runs of content sit on the same surface and need a boundary; use spacing alone when the gap already reads (most of the time); use a <a href="card.html">panel or well</a> when the group needs to stand apart.</p>
-      <ul>
-        <li><b>Section rule</b>: under a section head ("Race · All maps →"), under a shelf title, above a dialog footer. Full <code>--color-line</code>.</li>
-        <li><b>Row rule</b> (<code>--subtle</code>): between rows of standings, the maps table, recent rides, the start grid. 60% of <code>--color-line</code>, so a list of ten does not turn into a cage.</li>
-        <li><b>Vertical</b>: between groups in a header (Library | bike status; brand | bike name). 20px tall, hidden under 640px.</li>
-        <li><b>Labelled</b>: an addition for splitting a list under a word, such as "or" between two ways to connect.</li>
-      </ul>
-    </section>
+<section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
+<p>A divider parts content that spacing alone does not part clearly.</p>
+<p><b>Where Telo Ride 1 stands:</b> screens draw their hairlines as borders of their own blocks (under the header, over the stats, over Class Done’s facts) in <code>--color-line</code>; none uses <code>.divider</code>.</p>
+</section>
 
-    <section class="ds-section" id="anatomy"><h2><a href="#anatomy">Anatomy</a></h2>
-      <div class="ds-anatomy">
-        <figure class="ds-anatomy__figure" style="place-items: stretch;">
-          <div class="section-head"><p class="section-head__title">Race</p><a class="more-link" href="../../mocks/pages/map-select/default.html">All maps <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a></div>
-          <p class="text-muted" style="margin-top: var(--space-3); font-size: var(--font-size-sm);">4 of 7 maps open · 5 of 21 stars</p>
-          <span class="ds-callout" style="left: 50%; top: 44%;" aria-hidden="true">1</span>
-          <span class="ds-callout" style="left: 8%; top: 44%;" aria-hidden="true">2</span>
-        </figure>
-        <ol class="ds-anatomy__list">
-          <li><div><b>Rule</b><small>1px (<code>--border-width-hairline</code>) in <code>--color-line</code>, drawn as a top or bottom border; no margin of its own when it belongs to a head.</small></div></li>
-          <li><div><b>Space</b><small>12px under the head's text (<code>--space-3</code>), 12–16px before the next content; a standalone <code>.divider</code> takes 24px above and below.</small></div></li>
-        </ol>
-      </div>
-    </section>
+<section class="ds-section" id="anatomy"><h2><a href="#anatomy">Anatomy</a></h2>
+<div class="ds-anatomy">
+<figure class="ds-anatomy__figure"><div class="ds-anatomy__target ds-anatomy__target--wide"><div class="ds-w-md"><p>Time 20:00</p><hr class="divider divider--tight"><p>Average 293 W</p></div></div></figure>
+<ol class="ds-anatomy__list">
+<li><div><b>Line</b><small>A 1px rule in <code>--color-line</code> with 24px above and below (8px when tight).</small></div></li>
+</ol>
+</div>
+</section>
 
-    <section class="ds-section" id="variants"><h2><a href="#variants">Variants</a></h2>
-      <div class="ds-example">
-        <div class="ds-example__canvas ds-example__canvas--stack">
-          <div><div class="section-head"><p class="section-head__title">Classes</p><a class="more-link" href="../../mocks/pages/class-library/default.html">All classes <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a></div><p class="text-muted" style="margin-top: var(--space-3); font-size: var(--font-size-sm);">Next group class starts in <span class="strong">9 min</span></p></div>
-          <div>
-            <p style="font-size: var(--font-size-sm);">lena.k · 27:48</p><hr class="divider divider--subtle divider--tight">
-            <p style="font-size: var(--font-size-sm);">MarcoVelo · 28:02</p><hr class="divider divider--subtle divider--tight">
-            <p style="font-size: var(--font-size-sm);">You · 28:15</p>
-          </div>
-          <div class="cluster" style="font-size: var(--font-size-sm);"><span class="ride-header__link ride-header__link--strong"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>Library</span><span class="divider divider--vertical" role="separator" aria-orientation="vertical"></span><span>Echelon EX-5s <span class="text-muted">Connected</span></span></div>
-          <div class="divider divider--label" role="separator" aria-label="or">or</div>
-        </div>
-        <div class="ds-example__caption"><span>Section rule (Home's door head) · row rules (standings) · vertical rule (ride header) · labelled.</span></div>
-        <details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class="section-head"&gt;&lt;h2 class="section-head__title"&gt;Classes&lt;/h2&gt;&lt;a class="more-link" href="/classes"&gt;All classes …&lt;/a&gt;&lt;/div&gt;
-&lt;hr class="divider divider--subtle divider--tight"&gt;
-&lt;span class="divider divider--vertical" role="separator" aria-orientation="vertical"&gt;&lt;/span&gt;
-&lt;div class="divider divider--label" role="separator" aria-label="or"&gt;or&lt;/div&gt;</code></pre></details>
-      </div>
-    </section>
+<section class="ds-section" id="variants"><h2><a href="#variants">Variants</a></h2>
+<div class="ds-example">
+  <div class="ds-example__canvas ds-example__canvas--stack"><div class="ds-w-md"><p>Time 20:00</p><hr class="divider divider--tight"><p>Average 293 W</p></div></div>
+  <div class="ds-example__caption"><span><code>.divider--tight</code>.</span></div>
+  <details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class="ds-w-md"&gt;&lt;p&gt;Time 20:00&lt;/p&gt;&lt;hr class="divider divider--tight"&gt;&lt;p&gt;Average 293 W&lt;/p&gt;&lt;/div&gt;</code></pre></details>
+</div>
+<div class="ds-example">
+  <div class="ds-example__canvas ds-example__canvas--stack"><div class="ds-w-md"><p>Time 20:00</p><hr class="divider divider--subtle"><p>Average 293 W</p></div></div>
+  <div class="ds-example__caption"><span><code>.divider--subtle</code>: between rows of a list.</span></div>
+  <details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class="ds-w-md"&gt;&lt;p&gt;Time 20:00&lt;/p&gt;&lt;hr class="divider divider--subtle"&gt;&lt;p&gt;Average 293 W&lt;/p&gt;&lt;/div&gt;</code></pre></details>
+</div>
+</section>
 
-    <section class="ds-section" id="sizes"><h2><a href="#sizes">Sizes</a></h2>
-      <p>Thickness is always 1px. Spacing comes in three steps on the block: <code>.divider</code> 24px (between sections), <code>--tight</code> 12px (between rows), <code>--flush</code> 0 (the rule is part of something padded, like a dialog footer). The vertical rule is 20px tall (<code>--space-5</code>), matching a 14px text line with its leading.</p>
-    </section>
+<section class="ds-section" id="sizes" data-na="One size."><h2><a href="#sizes">Sizes</a></h2>
+<p class="ds-na">One size.</p>
+</section>
 
-    <section class="ds-section" id="states" data-na="Dividers are not interactive and have no states. They look the same in hover, focus and disabled contexts; a row's hover fill sits between its rules."><h2><a href="#states">States</a></h2><p class="ds-na">Dividers are not interactive and have no states. They look the same in hover, focus and disabled contexts; a row's hover fill sits between its rules.</p></section>
+<section class="ds-section" id="states" data-na="A divider has no states."><h2><a href="#states">States</a></h2>
+<p class="ds-na">A divider has no states.</p>
+</section>
 
-    <section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive behaviour</a></h2>
-      <ul>
-        <li>Horizontal rules span their container at every width.</li>
-        <li>The vertical rule hides under 640px (<code>display: none</code>), where header groups wrap onto separate rows and a stray 20px line would float.</li>
-        <li>A labelled divider's label never wraps; keep it to one word.</li>
-      </ul>
-    </section>
+<section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive behaviour</a></h2>
+<p>It takes the width of its container and has no breakpoints of its own.</p>
+</section>
 
-    <section class="ds-section" id="theming"><h2><a href="#theming">Theming</a></h2>
-      <p>Reads <code>--divider-color</code> (default <code>--color-line</code>; <code>--subtle</code> mixes it to 60%). In dark the line is <code data-theme="dark" data-token="--color-line"></code> on ink and panel; in light <code data-theme="light" data-token="--color-line"></code> on paper. Under <code>prefers-contrast: more</code> the system raises <code>--color-border-default</code>; point <code>--divider-color</code> at it if a product needs dividers to strengthen too.</p>
-      <div class="ds-themes">
-        <div data-theme="light"><div class="section-head"><p class="section-head__title">Race</p><a class="more-link" href="../../mocks/pages/map-select/default.html">All maps <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a></div><hr class="divider divider--subtle"><div class="divider divider--label" role="separator" aria-label="or">or</div></div>
-        <div data-theme="dark"><div class="section-head"><p class="section-head__title">Race</p><a class="more-link" href="../../mocks/pages/map-select/default.html">All maps <svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a></div><hr class="divider divider--subtle"><div class="divider divider--label" role="separator" aria-label="or">or</div></div>
-      </div>
-    </section>
+<section class="ds-section" id="theming"><h2><a href="#theming">Theming</a></h2>
+<p>It reads semantic tokens only, so it follows the theme with no rule of its own.</p><div class="ds-themes"><div data-theme="light"><div class="ds-w-md"><p>Time 20:00</p><hr class="divider divider--tight"><p>Average 293 W</p></div></div><div data-theme="dark"><div class="ds-w-md"><p>Time 20:00</p><hr class="divider divider--tight"><p>Average 293 W</p></div></div></div>
+</section>
 
-    <section class="ds-section" id="accessibility"><h2><a href="#accessibility">Accessibility</a></h2>
-      <h3>Role and pattern</h3>
-      <p>A rule that only decorates is a CSS border on the element it belongs to (a section head, a list row) and is invisible to assistive tech. A rule that marks a real thematic break is an <code>&lt;hr&gt;</code>, or <code>role="separator"</code> (with <code>aria-orientation="vertical"</code> for vertical ones). There is no APG widget; a static separator is not focusable (<a href="https://www.w3.org/TR/wai-aria-1.2/#separator">WAI-ARIA separator</a>).</p>
-      <h3>Keyboard</h3>
-      <div class="ds-table-wrap"><table class="ds-table ds-keys"><thead><tr><th scope="col">Key</th><th scope="col">Action</th></tr></thead><tbody>
-        <tr><td>None</td><td>Dividers are skipped by <kbd>Tab</kbd>.</td></tr>
-      </tbody></table></div>
-      <h3>Focus</h3>
-      <p>Not focusable.</p>
-      <h3>Labelling</h3>
-      <p>A labelled divider's word is its name (<code>aria-label="or"</code> on the separator); the decorative lines either side are pseudo-elements.</p>
-      <h3>Contrast</h3>
-      <p>Hairlines are decorative and exempt from 1.4.11; meaning never rests on one alone (the section title or the row's own text carries it). The labelled divider's word is tertiary text and passes 4.5:1.</p>
-      <div class="ds-example__canvas ds-example__canvas--stack" style="padding: 0; gap: var(--space-2);">
-        <div class="ds-pair"><span>Divider label on a panel</span><span class="ds-pair__ratio" data-contrast="--color-faint|--color-panel" data-min="4.5"></span></div>
-        <div class="ds-pair"><span>Hairline on a panel (decorative)</span><span class="ds-pair__ratio" data-contrast="--color-line|--color-panel" data-min="1"></span></div>
-      </div>
-      <h3>Motion</h3>
-      <p>None.</p>
-      <h3>Touch</h3>
-      <p>Not a target. In a list, the row (not the rule) is the target, and rows keep at least 40px height between rules.</p>
-    </section>
+<section class="ds-section" id="accessibility"><h2><a href="#accessibility">Accessibility</a></h2>
+<h3>Role and pattern</h3>
+<p>An <code>&lt;hr&gt;</code>, or <code>role="separator"</code> on another element. A purely decorative line is a border, not an element.</p>
+<h3>Keyboard</h3>
+<p>None.</p>
+<h3>Focus</h3>
+<p>It takes no focus.</p>
+<h3>Labelling</h3>
+<p>It needs no name.</p>
+<h3>Contrast</h3>
+<div class="ds-pairs"><div class="ds-pairs-col" data-theme="light"><span class="ds-pairs-col__title">light theme</span><div class="ds-pair"><span>Line on the page (decorative)</span><span class="ds-pair__ratio" data-contrast="--color-line|--color-ink" data-min="1"></span></div></div><div class="ds-pairs-col" data-theme="dark"><span class="ds-pairs-col__title">dark theme</span><div class="ds-pair"><span>Line on the page (decorative)</span><span class="ds-pair__ratio" data-contrast="--color-line|--color-ink" data-min="1"></span></div></div></div>
+<h3>Motion</h3>
+<p>None.</p>
+<h3>Touch</h3>
+<p>Nothing is pressed.</p>
+</section>
 
-    <section class="ds-section" id="content"><h2><a href="#content">Content</a></h2>
-      <p>A labelled divider takes one lowercase word: "or". Anything longer is a heading.</p>
-    </section>
+<section class="ds-section" id="content"><h2><a href="#content">Content</a></h2>
+<p>A divider carries no words, except the labelled variant, whose label is one or two words.</p>
+</section>
 
-    <section class="ds-section" id="do-dont"><h2><a href="#do-dont">Do and don't</a></h2>
-      <div class="ds-dodont">
-        <figure class="ds-do"><div class="ds-example__canvas ds-example__canvas--stack" style="gap: 0;"><p style="font-size: var(--font-size-sm);">Prairie Paceline · 31:42</p><hr class="divider divider--subtle divider--tight"><p style="font-size: var(--font-size-sm);">Old Town Criterium · 27:10</p><hr class="divider divider--subtle divider--tight"><p style="font-size: var(--font-size-sm);">Cliffside Coast · 58:03</p></div><figcaption>Subtle rules between rows, as Profile's maps table does.</figcaption></figure>
-        <figure class="ds-dont"><div class="ds-example__canvas ds-example__canvas--stack" style="gap: var(--space-2);"><p class="well" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm); border: var(--border-width-hairline) solid var(--color-line-strong);">Prairie Paceline · 31:42</p><p class="well" style="padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm); border: var(--border-width-hairline) solid var(--color-line-strong);">Old Town Criterium · 27:10</p></div><figcaption>Box every row in an outlined well; the list turns into a stack of buttons nobody can press.</figcaption></figure>
-        <figure class="ds-do"><div class="ds-example__canvas"><div class="section-head" style="flex: 1;"><p class="section-head__title">Recent rides</p></div></div><figcaption>Let the section head carry its own rule.</figcaption></figure>
-        <figure class="ds-dont"><div class="ds-example__canvas ds-example__canvas--stack" style="gap: 0;"><hr class="divider divider--flush"><p class="section-head__title" style="padding-block: var(--space-2);">Recent rides</p><hr class="divider divider--flush"></div><figcaption>Rule above and below a heading: it floats between two lines and belongs to neither.</figcaption></figure>
-      </div>
-    </section>
+<section class="ds-section" id="do-dont"><h2><a href="#do-dont">Do and don't</a></h2>
+<div class="ds-dodont">
+<figure class="ds-do"><div class="ds-example__canvas ds-example__canvas--stack"><div class="ds-w-md"><p>Time 20:00</p><hr class="divider divider--tight"><p>Average 293 W</p></div></div><figcaption>Part two groups.</figcaption></figure>
+<figure class="ds-dont"><div class="ds-example__canvas ds-example__canvas--stack"><p class="ds-note">A rule between every line.</p></div><figcaption>Rule every row: spacing does that.</figcaption></figure>
+</div>
+<div class="ds-dodont">
+<figure class="ds-do"><div class="ds-example__canvas ds-example__canvas--stack"><p class="ds-note">A border on the block that owns the edge.</p></div><figcaption>Prefer the block’s own border.</figcaption></figure>
+<figure class="ds-dont"><div class="ds-example__canvas ds-example__canvas--stack"><p class="ds-note">An &lt;hr&gt; read out between two halves of one sentence.</p></div><figcaption>Add separators that mean nothing.</figcaption></figure>
+</div>
+</section>
 
-    <section class="ds-section" id="tokens"><h2><a href="#tokens">Tokens</a></h2>
-      <div class="ds-table-wrap"><table class="ds-table">
-        <thead><tr><th scope="col">Part</th><th scope="col">Token</th><th scope="col">Light</th><th scope="col">Dark</th></tr></thead>
-        <tbody>
-          <tr><td>Rule (<code>--divider-color</code>)</td><td><code>--color-line</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-line" data-swatch></i><span data-token="--color-line"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-line" data-swatch></i><span data-token="--color-line"></span></span></td></tr>
-          <tr><td>Label</td><td><code>--color-faint</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-faint" data-swatch></i><span data-token="--color-faint"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-faint" data-swatch></i><span data-token="--color-faint"></span></span></td></tr>
-          <tr><td>Thickness</td><td><code>--border-width-hairline</code></td><td colspan="2"><span data-token="--border-width-hairline"></span></td></tr>
-          <tr><td>Space around: default / tight</td><td><code>--space-6</code> <code>--space-3</code></td><td colspan="2"><span data-token="--space-6"></span> / <span data-token="--space-3"></span></td></tr>
-          <tr><td>Vertical rule height</td><td><code>--space-5</code></td><td colspan="2"><span data-token="--space-5"></span></td></tr>
-        </tbody>
-      </table></div>
-    </section>
+<section class="ds-section" id="tokens"><h2><a href="#tokens">Tokens</a></h2>
+<div class="ds-table-wrap"><table class="ds-table">
+<thead><tr><th scope="col">Used by</th><th scope="col">Token</th><th scope="col">Light</th><th scope="col">Dark</th></tr></thead>
+<tbody>
+<tr><td>the block, --subtle</td><td><code>--color-line</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-line" data-swatch></i><span data-token="--color-line"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-line" data-swatch></i><span data-token="--color-line"></span></span></td></tr>
+<tr><td>the block</td><td><code>--border-width-hairline</code></td><td><span data-theme="light"><span data-token="--border-width-hairline"></span></span></td><td><span data-theme="dark"><span data-token="--border-width-hairline"></span></span></td></tr>
+<tr><td>the block</td><td><code>--divider-color</code></td><td><code>var(--color-line)</code></td><td>set on the block</td></tr>
+<tr><td>the block</td><td><code>--divider-space</code></td><td><code>var(--space-6)</code></td><td>set on the block</td></tr>
+<tr><td>--tight</td><td><code>--space-3</code></td><td><span data-theme="light"><span data-token="--space-3"></span></span></td><td><span data-theme="dark"><span data-token="--space-3"></span></span></td></tr>
+<tr><td>the block</td><td><code>--space-6</code></td><td><span data-theme="light"><span data-token="--space-6"></span></span></td><td><span data-theme="dark"><span data-token="--space-6"></span></span></td></tr>
+</tbody>
+</table></div>
+</section>
 
-    <section class="ds-section" id="code"><h2><a href="#code">Code</a></h2>
-      <div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody>
-        <tr><td><code>&lt;hr class="divider"&gt;</code></td><td>Horizontal rule, 24px around.</td></tr>
-        <tr><td><code>.divider--subtle</code></td><td>Row rule at 60% line.</td></tr>
-        <tr><td><code>.divider--tight</code> <code>.divider--flush</code></td><td>12px / 0 around.</td></tr>
-        <tr><td><code>.divider--vertical</code> + <code>role="separator" aria-orientation="vertical"</code></td><td>20px vertical rule from 640px.</td></tr>
-        <tr><td><code>.divider--label</code> + <code>role="separator" aria-label</code></td><td>Word between two rules.</td></tr>
-        <tr><td><code>.section-head</code>, <code>.ride-header__divider</code>, <code>.training-header__divider</code></td><td>The product's built-in rules (kit and area classes).</td></tr>
-      </tbody></table></div>
-    </section>
+<section class="ds-section" id="code"><h2><a href="#code">Code</a></h2>
+<pre><code>&lt;div class="ds-w-md"&gt;&lt;p&gt;Time 20:00&lt;/p&gt;&lt;hr class="divider divider--tight"&gt;&lt;p&gt;Average 293 W&lt;/p&gt;&lt;/div&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table">
+<thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead>
+<tbody>
+<tr><td><code>.divider</code></td><td>The rule.</td></tr>
+<tr><td><code>--tight</code>, <code>--flush</code>, <code>--subtle</code>, <code>--vertical</code>, <code>--label</code></td><td>Spacing, strength, direction and a label.</td></tr>
+</tbody>
+</table></div>
+</section>
 
-    <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
-      <ul>
-        <li><a href="../../mocks/pages/home/default.html">pages/home/default</a> (section heads), <a href="../../mocks/pages/class-library/default.html">pages/class-library/default</a> (shelf heads), <a href="../../mocks/pages/profile/default.html">pages/profile/default</a> (maps table and recent rides rows), <a href="../../mocks/pages/results/default.html">pages/results/default</a> (standings rows), <a href="../../mocks/pages/race-lobby/default.html">pages/race-lobby/default</a> (start grid rows), <a href="../../mocks/pages/custom-ride/default.html">pages/custom-ride/default</a> and <a href="../../mocks/pages/custom-setup/default.html">pages/custom-setup/default</a> (vertical rules), <a href="../../mocks/dialogs/feedback/default.html">dialogs/feedback/default</a> and <a href="../../mocks/dialogs/diagnostics/default.html">dialogs/diagnostics/default</a> (footer and log rules)</li>
-      </ul>
-      <div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Mock</th><th scope="col">Issue</th><th scope="col">Resolution</th></tr></thead><tbody>
-        <tr><td>results, profile, race-lobby</td><td>Row rules are hand-mixed <code>color-mix(line 60%)</code> in four area rules.</td><td>Named once as <code>.divider--subtle</code>; area rules unchanged.</td></tr>
-        <tr><td>custom-ride, custom-setup</td><td><code>.ride-header__divider</code> and <code>.training-header__divider</code> are the same 1 × 20px rule twice (one with a raw <code>1px</code> width).</td><td><code>.divider--vertical</code> with <code>role="separator"</code>; the mocks mark theirs <code>aria-hidden</code>, which is also fine for a purely decorative rule.</td></tr>
-        <tr><td>All</td><td>No mock uses <code>&lt;hr&gt;</code>; every rule is a border.</td><td>Kept: borders for decoration, <code>&lt;hr&gt;</code> only for a real thematic break.</td></tr>
-      </tbody></table></div>
-    </section>
-    <footer class="ds-footer"><span>Telo Ride design system · extracted from <a href="../../mocks/index.html">docs/mocks</a></span><a href="#top">Back to top</a></footer>
+<section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
+<p>No Telo Ride 1 mock uses this component. It belongs to the system’s core set, the components every product comes to need; its styles were first extracted from the Telo Ride mocks on 21 November 2026 and its specimens here were redrawn in Telo Ride 1’s words on 24 November 2026. Before a screen uses it, draw that screen’s states in <a href="../../mocks/index.html">docs/mocks</a> and bring this page in line.</p>
+<p>Drift fixed during extraction: none.</p>
+</section>
+    <footer class="ds-footer"><span>Telo Ride 1 design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 24 November 2026</span><a href="#top">Back to top</a></footer>
   </main>
 </div>
 <script src="../assets/ds.js"></script>

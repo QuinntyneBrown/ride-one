@@ -182,3 +182,35 @@ pre code { background: none; padding: 0; }
 .ds-stage__page { padding: var(--space-6); color: var(--color-fg-muted); }
 /* Photo canvas: shows components meant to sit on photos and video */
 .ds-example__canvas--photo { background: var(--color-video) center / cover no-repeat; background-image: var(--photo); min-height: 12rem; }
+
+/* ---------- Page helpers shared by the Telo Ride 1 pages (tokens only) ---------- */
+/* A mock embedded whole: a screen or a block that takes the window */
+.ds-frame { display: block; width: 100%; border: 0; background: var(--color-bg-canvas); }
+/* Contrast pairs in both themes, side by side */
+.ds-pairs { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); margin-block: var(--space-4); }
+.ds-pairs-col { display: flex; flex-direction: column; gap: var(--space-2); background: var(--color-bg-canvas); border: 1px solid var(--color-border-default); border-radius: var(--radius-lg); padding: var(--space-4); }
+.ds-pairs-col__title { font: var(--text-overline); letter-spacing: var(--letter-spacing-wide); text-transform: uppercase; color: var(--color-fg-subtle); }
+/* Product components inside examples keep their own link styles */
+:where(.ds-example__canvas, .ds-anatomy__figure, .ds-matrix td, .ds-themes, .ds-stage) a { color: inherit; text-decoration: none; }
+:where(.ds-example__canvas, .ds-anatomy__figure, .ds-matrix td, .ds-themes, .ds-stage) a:hover { color: inherit; }
+@media (max-width: 40rem) { .ds-example__canvas { padding: var(--space-4) var(--space-3); } .ds-anatomy__figure { padding: var(--space-6) var(--space-3); } }
+.ds-anatomy__target { position: relative; display: inline-block; max-width: 100%; }
+.ds-anatomy__target--wide { display: block; width: 100%; min-width: 0; }
+.ds-anatomy__figure { min-width: 0; }
+.ds-w-sm { width: 100%; max-width: 14rem; }
+.ds-w-md { width: 100%; max-width: 24rem; }
+.ds-w-lg { width: 100%; max-width: 40rem; }
+.ds-note { font: var(--text-caption); color: var(--color-fg-muted); }
+.ds-row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.ds-dark-surface { background: var(--color-ink); color: var(--color-fg); border-radius: var(--radius-lg); padding: var(--space-4); }
+/* Outside the app nothing is fixed to the window and no box takes its height from it: the video's and the course's
+   box keep 16:9, and the screen blocks stand in the page's flow */
+.ds-main .class-video, .ds-main .class-course { aspect-ratio: 16 / 9; flex: none; min-height: 0; }
+.ds-main .class-lost { position: relative; inset: auto; padding-block: var(--space-8); border-radius: var(--radius-xl); }
+.ds-main .the-class__footer { position: static; }
+.ds-main .skip-link { position: static; }
+.ds-fill { width: 100%; min-width: 0; }
+/* Specimens wider than a phone scroll inside their frame, never the page */
+.ds-anatomy__figure, .ds-example__canvas, .ds-themes > [data-theme] { max-width: 100%; overflow-x: auto; }
+.ds-scale__bar { max-width: 100%; }
+.ds-section p code, .ds-section li code, .ds-table td code { overflow-wrap: anywhere; }
