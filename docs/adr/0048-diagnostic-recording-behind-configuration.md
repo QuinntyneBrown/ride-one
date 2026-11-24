@@ -51,10 +51,11 @@ saves.
 ### The tap: one optional contract, called where bytes cross
 
 - **Chosen: `BikeLinkTap` in `api`, bound to `BIKE_LINK_TAP` only when the recording is on.**
-  Everything that moves bytes holds `inject(BIKE_LINK_TAP, { optional: true })`, which is `null`
+  The two connections hold `inject(BIKE_LINK_TAP, { optional: true })` and hand it to the write
+  queue and the FTMS link they build; it is `null`
   for a rider, and calls it behind `?.`:
   - `GattWriteQueue` for every write of both links (initialisation, keepalive, resistance
-    commands, FTMS control point commands): `writing()` when the write is asked for, and the
+    commands, FTMS control point commands): `writing()` when the write's turn comes, after its wait in the queue, and the
     function it returns when the write settles, with the error if it failed.
   - `WebBluetoothBikeConnection.onValue` for every notification either link's data
     characteristic sends, before `frames` emits it; `FtmsLink` for control point indications and
@@ -105,7 +106,7 @@ the bike corrupted and a frame the app misreads look the same without it.
 ### The console: not at all
 
 The recording writes nothing to the console. L2-115 AC2 holds with the recording on as with it
-off, and `no-console` gains no exception. A logged error still goes to the console through
+off, and no file of the recording calls `console`. A logged error still goes to the console through
 `ConsoleAppLogger`; `RecordingAppLogger` wraps it and adds the same redacted line to the
 recording.
 
