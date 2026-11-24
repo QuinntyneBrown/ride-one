@@ -57,6 +57,7 @@ import { bendLean } from './rider-lean';
 import { outOfTheSaddle } from './rider-stance';
 import { SunGlow } from './sun-glow';
 import { SunShadow } from './sun-shadow';
+import { SUN_LIGHT } from './sun-shadow-frame';
 import { vertexFinish } from './rider-finish';
 import { RiderShadows } from './rider-shadows';
 import { wallMaterial } from './wall-material';
@@ -749,7 +750,11 @@ export class ThreeCourseRenderer implements CourseRenderer {
     this.sky?.position.copy(this.camera.position);
     const [x, , z] = course.file.sun;
     this.sun.target.position.set(ahead.x, ahead.y, ahead.z);
-    this.sun.position.set(ahead.x + x * 70, ahead.y + 34, ahead.z + z * 70);
+    this.sun.position.set(
+      ahead.x + x * SUN_LIGHT.out,
+      ahead.y + SUN_LIGHT.up,
+      ahead.z + z * SUN_LIGHT.out,
+    );
     this.sun.target.updateMatrixWorld();
   }
 

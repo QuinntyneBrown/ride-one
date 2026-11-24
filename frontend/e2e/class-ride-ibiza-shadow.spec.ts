@@ -7,7 +7,7 @@
 //
 // Given a ride in Ibiza, when frames are drawn where the sun is on the rider's left, on their right, ahead of them
 // and behind them, then at each the shadow lies straight away from the sun, the shadow of the rider's head lies
-// between 4.4 m and 4.6 m from their wheels (the course's sun is lower than 20°), the rider's figure has been drawn
+// between 3.3 m and 3.5 m from their wheels (the course's sun is lower than the light that shades the rider), the rider's figure has been drawn
 // again for it since the place before, and no shadow map is made.
 import { courseDrawnOnPausedClock, startRideInIbizaOnPausedClock } from './fixtures/class-ride';
 import { expect, test } from './fixtures/test';
@@ -32,8 +32,8 @@ test('the rider’s shadow is their own figure, laid straight away from the sun,
     await page.clock.runFor(64);
     const drawn = (await course.drawn())!;
     expect(Math.abs(drawn.shadow.off), `off the sun's line at ${second} s`).toBeLessThan(0.5);
-    expect(drawn.shadow.reach, `reach at ${second} s`).toBeGreaterThan(4.4);
-    expect(drawn.shadow.reach, `reach at ${second} s`).toBeLessThan(4.6);
+    expect(drawn.shadow.reach, `reach at ${second} s`).toBeGreaterThan(3.3);
+    expect(drawn.shadow.reach, `reach at ${second} s`).toBeLessThan(3.5);
     expect(drawn.shadow.figures, `figures drawn by ${second} s`).toBeGreaterThan(figures);
     figures = drawn.shadow.figures;
     expect(drawn.shadowMap, `shadow map at ${second} s`).toBe(false);

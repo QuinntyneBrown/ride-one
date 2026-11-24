@@ -1,15 +1,25 @@
 // Where the rider's shadow in the sun lies (L2-174 AC12). The shadow is the rider's own figure as the sun sees it,
 // laid on the road along the sun's rays (sun-shadow.ts draws it); this says which way those rays run and how far
-// they carry a shadow. A sun near the horizon would throw the rider's shadow off the road and across the island, so
-// a sun lower than `LOWEST_SUN` is counted as standing that high. No Three.js here.
+// they carry a shadow. A sun near the horizon would throw the rider's shadow off the road and across the island, and
+// the renderer's own light stands higher than that to shade the rider at all, so a sun lower than `LOWEST_SUN` is
+// counted as standing that high. No Three.js here.
 
 /** The layer the rider's figure is drawn from for their shadow: what throws the shadow is on it, and nothing else. */
 export const FIGURE_LAYER = 1;
 /** Marks, in a part's `userData`, a part of the rider that throws no shadow: a coarser copy of it throws it instead. */
 export const NO_SHADOW = 'shadowNone';
 
-/** The lowest the sun is counted as standing for a shadow, in radians. */
-export const LOWEST_SUN = (20 * Math.PI) / 180;
+/**
+ * Where the course's renderer stands the light that shades the rider: this many metres out along the sun's bearing
+ * and this many up, whatever height the course's file gives the sun (Ibiza's is 6°, which would light nothing from
+ * above).
+ */
+export const SUN_LIGHT = { out: 70, up: 34 } as const;
+/**
+ * The lowest the sun is counted as standing for a shadow, in radians: as high as the light that shades the rider
+ * (25.9°), so the shadow is thrown by the light the eye sees on them.
+ */
+export const LOWEST_SUN = Math.atan2(SUN_LIGHT.up, SUN_LIGHT.out);
 
 /** The sun as a shadow is thrown from it. */
 export interface ShadowSun {

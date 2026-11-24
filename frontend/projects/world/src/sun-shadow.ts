@@ -66,8 +66,11 @@ const TALLEST = 2;
 const ABOUT = 3;
 /** The height of the rider's head on the bike, in metres: its shadow is the shadow's far end. */
 const HEAD = 1.65;
-/** How far above the road the shadow lies, in metres. */
-const LIFT = 0.02;
+/**
+ * How far above the road the shadow lies, in metres: over everything painted on it (the centre lines are built 2 cm
+ * above the asphalt, the effort chevrons, the grid and the finish's chequers 3 cm) and under the kerbs (5 cm).
+ */
+const LIFT = 0.036;
 /** How many rows the strip on the road is laid in, each on the road's own height. */
 const ROWS = 8;
 /** How much deeper the shadow is drawn than the light's own arithmetic makes it (sun-shadow-frame.ts). */

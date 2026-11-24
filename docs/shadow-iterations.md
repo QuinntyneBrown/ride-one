@@ -246,3 +246,31 @@ failed build did not catch it. The helper now refuses to take pictures after a f
   steps the body is already the coarse one and throws its own.
 - **Result (sheet 020, from above):** the shadow at 150 s and 350 s cannot be told from sheet 019's, a frame draws
   4,154 fewer triangles, and the budget spec passes at all 25 places again.
+
+*Not counted, tried and taken out:* narrowing the dark under the bike (no difference could be seen: the tyres'
+contact is at the very foot of the rider's-eye view and hidden under the rider from above), and averaging four
+samples a texel in the figure's picture at the two highest steps (sheet 021 could not be told from sheet 020,
+because the road's blur is wider than a texel; it would have cost fill for nothing).
+
+### 21. Thrown from as high as the light that shades the rider
+
+- **Found (200 s, full size):** with the sun ahead and to the right the front wheel's shadow was a thin arc 2 m
+  long sweeping across the road by the camera, and the rider's body fell out of the foot of the picture: the
+  "weird sometimes" of the issue, from the other side. A sun counted as 20° high stretches everything 2.9 times
+  along the road. The light that actually shades the rider is not at 20° either: the renderer stands it 70 m out
+  and 34 m up, at 25.9°, because Ibiza's 6° sun would light nothing from above.
+- **Changed:** `LOWEST_SUN` is that light's height, from one pair of numbers (`SUN_LIGHT`) the renderer's light and
+  the shadow now both read. The stretch is 2.1 times and the head's shadow lies 3.4 m from the wheels, not 4.5 m.
+- **Result (sheet 021):** at 150 s the whole of the shadow is in the picture and is plainly two wheels, a frame, a
+  bent back and a head; at 200 s the arc is a wheel. The shadow and the light on the rider now agree.
+
+### 22. The shadow falls on the road's paint, not under it
+
+- **Found (250 s, from above, full size):** the shadow stopped at the edge of a pink effort chevron and carried on
+  the other side, as if the chevron were a hole in it. The chevrons, the start grid and the finish's chequers are
+  built 3 cm above the asphalt and the centre lines 2 cm; entry 18 had lowered the shadow to 2 cm, under the first
+  three and level with the lines.
+- **Changed:** the shadow lies 3.6 cm above the road: over all of its paint, under the kerbs (5 cm). Laid on the
+  road's own profile (entry 18) it can sit there without cutting into a dip.
+- **Result (sheet 022):** at 250 s the chevrons are shaded where the shadow crosses them, and at 1 s the grid's
+  white lines are.

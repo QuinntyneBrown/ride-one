@@ -9,9 +9,10 @@ describe("where the rider's shadow in the sun lies (L2-174 AC12)", () => {
     expect(Math.hypot(sun.awayX, sun.awayZ)).toBeCloseTo(1);
   });
 
-  it('counts a sun lower than 20° as standing at 20°', () => {
+  it('counts a sun lower than the light that shades the rider as standing as high as it (25.9°)', () => {
     const sun = shadowSun([0.3988, 0.11, -0.9104]);
     expect(sun.altitude).toBeCloseTo(LOWEST_SUN);
+    expect((LOWEST_SUN * 180) / Math.PI).toBeCloseTo(25.9, 1);
     expect(sun.y).toBeCloseTo(Math.sin(LOWEST_SUN));
     expect(Math.hypot(sun.x, sun.y, sun.z)).toBeCloseTo(1);
     // Its bearing is still the file's.
@@ -31,9 +32,8 @@ describe("where the rider's shadow in the sun lies (L2-174 AC12)", () => {
     expect(Math.hypot(sun.awayX, sun.awayZ)).toBeCloseTo(1);
   });
 
-  it('carries the shadow of the rider’s head no more than 4.6 m at the lowest sun', () => {
-    expect(shadowReach(1.65, LOWEST_SUN)).toBeGreaterThan(4.4);
-    expect(shadowReach(1.65, LOWEST_SUN)).toBeLessThan(4.6);
+  it('carries the shadow of the rider’s head 3.4 m at the lowest sun', () => {
+    expect(shadowReach(1.65, LOWEST_SUN)).toBeCloseTo(3.4, 1);
     expect(shadowReach(1.65, Math.PI / 4)).toBeCloseTo(1.65);
   });
 
