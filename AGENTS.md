@@ -6,7 +6,7 @@
 > every interval while the rider pedals. Connect the bike, take the class,
 > see your number, and come back to beat it.
 
-**Direction.** Telo Ride 1 is Telo Ride with everything but one class taken away. It has four
+**Direction.** Telo Ride 1 is Telo Ride with everything but one class taken away. It has five
 screens and no menus:
 
 1. **Connect Bike**: pair the bike once; it is remembered. A new rider starts here.
@@ -15,12 +15,19 @@ screens and no menus:
    the choice to ride with the class video or in Ibiza (**Ibiza Sunset Strip**, the only course,
    built in Blender from the class's plan), and one start button ("Connect your bike" when no
    bike is connected). A returning rider also sees their ride count, best output and last output.
-3. **Class Ride**: the video in sync, or the course drawn as the rider rides, while the class's
-   plan sets target resistance; the rider just pedals. In Ibiza one track plays in the
-   background: *Beautiful Boom Bap* (Music_Unlimited, Pixabay), the marketing film's music,
-   self-hosted. Always solo, so the rider can pause, leave or finish.
-4. **Class Done**: the ride's output in kJ (in gold for a new best), time, average watts, how much
+3. **Ibiza Flyover**: before a ride in Ibiza only, the course seen from above, start to finish,
+   while it loads; the camera lands on the grid. The rider can skip it or cancel.
+4. **Class Ride**: a countdown ("3, 2, 1, Go!"), then the video in sync, or the course drawn as
+   the rider rides, while the class's plan sets target resistance; the rider just pedals. In
+   Ibiza one track plays in the background: *Beautiful Boom Bap* (Music_Unlimited, Pixabay), the
+   marketing film's music, self-hosted. Always solo, so the rider can pause, leave or finish.
+   At 20:00 a finish banner shows the output, the target resistance eases off, and the video or
+   the course carries on for a few seconds (the roll-out) before Class Done opens on its own.
+5. **Class Done**: the ride's output in kJ (in gold for a new best), time, average watts, how much
    of the ride was on target, and the class's efforts. **Done** returns to The Class.
+
+A ride borrows a race's shape and nothing else: the flyover, the countdown and the finish banner
+are for one rider alone, with no other riders, positions, laps or places.
 
 Telo Ride 1 has no class library, races, maps or worlds beyond Ibiza Sunset Strip, music beyond
 that one track, group classes or live races, XP, rider
@@ -38,8 +45,8 @@ Do not invent a mission in its place.
 ## Design
 
 The design is the **Telo Ride 1** prototype in Magic Patterns (the *Echelon Bike Telemetry
-Dashboard* OS): the frames Connect Bike, The Class, Class Ride and Class Done, and the canvas
-*The Class · Form Factors*. Its own design threads hold the decisions behind it.
+Dashboard* OS): the frames Connect Bike, The Class, Ibiza Flyover, Class Ride and Class Done, and
+the canvas *The Class · Form Factors*. Its own design threads hold the decisions behind it.
 
 - **Wordmark:** **TELO RIDE 1**, the Telo Ride lockup with "RIDE 1" in signal orange, on every
   screen. It is "1", never "One" or "I".
@@ -54,22 +61,26 @@ Before a screen is built, its states are transcribed from the prototype into `do
 stays the source of truth for the code. The prototype's numbers (6 rides, a 342 kJ best, an
 output estimated from ride time) are placeholders, not rules.
 
-The prototype was drawn for an earlier class, 30 Minute HIIT Cardio, and has no Ibiza and no
-music. The class, riding in Ibiza and the music are decided in `docs/specs/`; where the
-prototype disagrees, the specs stand and the mock is brought in line before the screen is built.
+The prototype was drawn for an earlier class, 30 Minute HIIT Cardio, and later for one called
+20 Minute HIIT on a 3.2 km loop; it has no music. The class, riding in Ibiza and the music are
+decided in `docs/specs/`; where the prototype disagrees, the specs stand and the mock is brought
+in line before the screen is built. The prototype's newest Class Ride (the video or the course
+edge to edge under the readouts, efforts called "drops") is not adopted: only the flyover, the
+countdown, the finish banner, easing off and the roll-out are, drawn in Class Ride as it is
+built (`docs/specs/L2.md`, open questions 39 and 40).
 
 ## Carried over from Telo Ride
 
 This repository began as a copy of Telo Ride. Telo Ride's other features are removed from its
 code and tests: races, the class library and the other seven courses, sign-in, progression, group
 classes and live races, feedback, the custom workout, the `marketing` application and the backend
-(ADRs 0036 to 0043). What the code still holds beyond the four screens is World loading and the
+(ADRs 0036 to 0043). What the code still holds beyond the five screens is World loading and the
 `world` library's other worlds with their music, until the slices that build riding in Ibiza
 decide them (ADR 0042). The ADRs before 0036 still describe Telo Ride; `docs/specs/`,
 `docs/journeys.md`, `docs/detailed-journeys.md`, `docs/mocks/` and `docs/detailed-designs/` are
 rewritten for Telo Ride 1.
 
-- Keep and build on what the four screens need: the Bluetooth link, the protocol, the engine, the
+- Keep and build on what the five screens need: the Bluetooth link, the protocol, the engine, the
   simulated bike, the video library, the solo class ride and its result, and, for riding in
   Ibiza, the Ibiza Sunset Strip course, its Blender build and the course renderer in `world`.
 - Do not extend a feature Telo Ride 1 leaves out. Removing one is a change of its own, with its
@@ -98,8 +109,10 @@ rewritten for Telo Ride 1.
 
 Use the words the specs use in code, docs and UI; no synonyms. The bike's reported level is
 "resistance", the requested one "target resistance"; the Bluetooth link state is `ble`. The
-screens are Connect Bike, The Class, Class Ride and Class Done; a ride's result is its "output"
-in kJ, and the class's hard intervals are its "efforts".
+screens are Connect Bike, The Class, Ibiza Flyover, Class Ride and Class Done; a ride's result
+is its "output" in kJ, and the class's hard intervals are its "efforts". The course seen from
+above is the "flyover", the three seconds before the clock starts the "countdown", the banner
+at 20:00 the "finish banner", and the seconds after it the "roll-out".
 
 ## Prefer best practice
 

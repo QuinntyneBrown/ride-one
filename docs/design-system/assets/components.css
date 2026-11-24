@@ -3562,3 +3562,87 @@ a.map-table__map:hover, a.map-table__map[data-state="hover"] { color: var(--colo
 .diagnostic-panel__status--warn { color: var(--color-warn-fg); }
 .diagnostic-panel__privacy { border-top-width: var(--border-width-hairline); border-color: var(--color-line); padding-top: var(--space-4); font-size: var(--font-size-xs); line-height: var(--line-height-relaxed); color: var(--color-muted); }
 .diagnostic-panel__footer { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
+
+/* ============================================================================================
+   Area: Telo Ride 1, the shape of a ride (L2-179 to L2-182): Ibiza Flyover, the countdown, the
+   finish banner and the roll-out. From the Magic Patterns frames "Ibiza Flyover" and "Class Ride"
+   as the thread "Ride 1 Class Flow" left them. The countdown, the banner and the roll-out lie in
+   the video's or the course's box (.class-video, .class-course), not over the whole screen: Class
+   Ride keeps its layout (L2.md, open question 39).
+   ============================================================================================ */
+
+/* ---------- Ibiza Flyover (L2-179): a bar, the course from above, a band. No word lies on the course. ---------- */
+.ibiza-flyover { position: relative; overflow: hidden; }
+.ibiza-flyover__bar { display: flex; flex-shrink: 0; align-items: center; gap: var(--space-3); min-height: var(--space-14); padding-inline: var(--space-4); }
+@media (min-width: 40rem) { .ibiza-flyover__bar { min-height: var(--space-16); padding-inline: var(--space-6); } }
+@media (min-width: 64rem) { .ibiza-flyover__bar { padding-inline: var(--space-8); } }
+.ibiza-flyover__bar .lockup .wordmark { font-size: var(--font-size-2xl); }
+.btn.ibiza-flyover__skip { margin-left: auto; --btn-height: var(--target-comfortable); white-space: nowrap; }
+.icon-btn.ibiza-flyover__cancel { width: var(--target-comfortable); height: var(--target-comfortable); }
+.ibiza-flyover__cancel:only-of-type, .ibiza-flyover__cancel--alone { margin-left: auto; }
+.ibiza-flyover__scene { position: relative; flex: 1; min-height: 0; overflow: hidden; background: var(--color-raised); }
+.ibiza-flyover__scene > .photo { position: absolute; inset: 0; }
+.ibiza-flyover__scene .mock-note { top: var(--space-3); right: var(--space-3); }
+.ibiza-flyover__loading { position: absolute; inset: 0; display: grid; place-items: center; padding: var(--space-4); background: color-mix(in srgb, var(--color-ink) 45%, transparent); font-size: var(--font-size-md); line-height: var(--line-height-md); font-weight: var(--font-weight-medium); text-align: center; }
+.ibiza-flyover__band { display: flex; flex-shrink: 0; flex-direction: column; justify-content: center; gap: var(--space-4); min-height: var(--space-40); padding: var(--space-4); padding-bottom: max(var(--space-4), env(safe-area-inset-bottom)); }
+@media (min-width: 40rem) { .ibiza-flyover__band { flex-direction: row; align-items: center; justify-content: space-between; min-height: var(--space-36); padding-inline: var(--space-6); } }
+@media (min-width: 64rem) { .ibiza-flyover__band { padding-inline: var(--space-8); } }
+.ibiza-flyover__where { min-width: 0; }
+.ibiza-flyover__title { font: var(--text-display); font-size: var(--font-size-4xl); text-transform: uppercase; }
+@media (min-width: 40rem) { .ibiza-flyover__title { font-size: var(--font-size-5xl); } }
+@media (min-width: 64rem) { .ibiza-flyover__title { font-size: var(--font-size-6xl); } }
+.ibiza-flyover__caption { margin-top: var(--space-2); color: var(--color-muted); }
+.ibiza-flyover__place { font-weight: var(--font-weight-semibold); color: var(--color-fg); }
+.ibiza-flyover__status { flex-shrink: 0; font-size: var(--font-size-sm); line-height: var(--line-height-sm); font-weight: var(--font-weight-medium); color: var(--color-muted); }
+.ibiza-flyover__status--ready { color: var(--color-volt-fg); }
+.ibiza-flyover__lost { display: flex; flex-shrink: 0; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.ibiza-flyover__lost-line { display: flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-heart-fg); }
+.btn.ibiza-flyover__retry { --btn-height: var(--target-ride); }
+
+/* ---------- Countdown (L2-180): three lights, the numeral, one line, over the video's or the course's box ----------
+   A light is lit as each second passes ("3" none, "2" one, "1" two); on "Go!" all three take the accent. The numeral
+   and "Go!" say it in text, so no light carries meaning by colour alone. Each numeral is a fresh node. */
+.class-countdown { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; pointer-events: none; background: var(--color-scrim); }
+.class-countdown__body { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); }
+.class-countdown__lights { display: flex; gap: var(--space-2); border-radius: var(--radius-xl); background: var(--color-scrim-strong); padding: var(--space-2); }
+.class-countdown__light { display: block; width: var(--space-6); height: var(--space-6); border-radius: var(--radius-full); background: color-mix(in srgb, var(--color-on-photo) 18%, transparent); transition: background-color var(--duration-fast) var(--ease-out); }
+@media (min-width: 40rem) { .class-countdown__lights { gap: var(--space-3); padding: var(--space-3); } .class-countdown__light { width: var(--space-9); height: var(--space-9); } }
+.class-countdown__light--on { background: var(--color-heart); }
+.class-countdown--go .class-countdown__light { background: var(--color-volt); }
+.class-countdown__num { font: var(--text-display); font-size: var(--font-size-7xl); text-transform: uppercase; color: var(--color-on-photo); text-shadow: 0 var(--space-1) 0 var(--palette-ink); animation: ride-countdown-step var(--duration-base) var(--ease-enter) both; }
+@media (min-width: 40rem) { .class-countdown__num { font-size: var(--font-size-score); } }
+@media (min-width: 64rem) { .class-countdown__num { font-size: var(--font-size-score-lg); } }
+.class-countdown--go .class-countdown__num { color: var(--color-volt); }
+.class-countdown__line { border-radius: var(--radius-lg); background: var(--color-scrim-strong); padding: var(--space-1-5) var(--space-3); font-size: var(--font-size-sm); line-height: var(--line-height-sm); font-weight: var(--font-weight-medium); text-align: center; color: var(--color-on-photo); }
+@media (prefers-reduced-motion: reduce) { .class-countdown__num { animation-name: ride-countdown-fade; } }
+
+/* ---------- Finish banner (L2-181): a band across the box, a chequered edge above and below ----------
+   The band is the inverse surface in both themes. The output's accent is the deep signal on the light band of the
+   dark theme and the signal on the dark band of the light theme: 3:1 at the least for its numerals (L2-181 AC9). */
+@keyframes finish-banner-in { from { translate: -100% 0; } to { translate: 0 0; } }
+@keyframes finish-banner-fade { from { opacity: 0; } to { opacity: 1; } }
+.finish-banner { --finish-banner-accent: var(--palette-signal-deep); position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; pointer-events: none; }
+[data-theme="light"] .finish-banner { --finish-banner-accent: var(--palette-signal); }
+.finish-banner__band { flex-shrink: 0; width: 120%; rotate: -3deg; background: var(--color-bg-inverse); color: var(--color-ink); animation: finish-banner-in var(--duration-base) var(--ease-enter) both; }
+.finish-banner__chequer { height: var(--space-5); background: conic-gradient(var(--color-ink) 25%, transparent 0 50%, var(--color-ink) 0 75%, transparent 0) 0 0 / var(--space-5) var(--space-5); }
+.finish-banner__body { display: flex; flex-direction: column; align-items: center; padding: var(--space-2) var(--space-6); }
+@media (min-width: 40rem) { .finish-banner__body { padding-block: var(--space-4); } }
+.finish-banner__title { font: var(--text-display); text-transform: uppercase; }
+@media (min-width: 40rem) { .finish-banner__title { font-size: var(--font-size-score); } }
+@media (min-width: 64rem) { .finish-banner__title { font-size: var(--font-size-score-lg); } }
+.finish-banner__result { display: flex; align-items: baseline; gap: var(--space-2); white-space: nowrap; font-family: var(--font-family-display); font-weight: var(--font-weight-bold); letter-spacing: var(--letter-spacing-display); font-feature-settings: 'tnum' 1; font-size: var(--font-size-xl); line-height: var(--line-height-none); }
+@media (min-width: 40rem) { .finish-banner__result { font-size: var(--font-size-2xl); } }
+.finish-banner__output { font-size: var(--font-size-4xl); color: var(--finish-banner-accent); }
+@media (min-width: 40rem) { .finish-banner__output { font-size: var(--font-size-6xl); } }
+.finish-banner__time { color: color-mix(in srgb, currentColor 65%, transparent); }
+@media (prefers-reduced-motion: reduce) { .finish-banner__band { animation-name: finish-banner-fade; } }
+
+/* ---------- Roll-out (L2-182): a card at the foot of the box while the bike eases off ---------- */
+@keyframes class-rollout-in { from { opacity: 0; translate: 0 var(--space-3); } to { opacity: 1; translate: 0 0; } }
+.class-rollout { position: absolute; inset-inline: var(--space-3); bottom: var(--space-3); z-index: 1; margin-inline: auto; max-width: var(--layout-text-2xl); border-radius: var(--radius-2xl); background: var(--color-scrim-strong); padding: var(--space-3) var(--space-4); color: var(--color-on-photo); animation: class-rollout-in var(--duration-base) var(--ease-enter) both; }
+@media (min-width: 40rem) { .class-rollout { padding: var(--space-4) var(--space-5); } }
+.class-rollout__title { font-weight: var(--font-weight-semibold); }
+.class-rollout__body { margin-top: var(--space-0-5); font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: color-mix(in srgb, var(--color-on-photo) 72%, transparent); }
+.class-rollout__bar { margin-top: var(--space-3); height: var(--space-1); overflow: hidden; border-radius: var(--radius-full); background: color-mix(in srgb, var(--color-on-photo) 18%, transparent); }
+.class-rollout__fill { display: block; height: 100%; width: var(--value); background: var(--color-on-photo); }
+@media (prefers-reduced-motion: reduce) { .class-rollout { animation: none; } }
