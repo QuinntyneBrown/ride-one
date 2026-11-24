@@ -3,14 +3,19 @@
 // where the figure is, blurred more the further the shadow lies from what throws it. No shadow map: nothing is
 // compared in depth and nothing but the road under the rider reads the picture. sun-shadow-frame.ts says which way
 // the rays run.
-import { positionWorld, texture, uniform, vec2 } from 'three/tsl';
+import { positionWorld, texture, uniform, userData, vec2, vec3 } from 'three/tsl';
 import {
   Color,
+  CustomBlending,
   LinearFilter,
   LinearMipmapLinearFilter,
+  MaxEquation,
+  type Material,
   Mesh,
   MeshBasicNodeMaterial,
+  type Node,
   type Object3D,
+  OneFactor,
   OrthographicCamera,
   PlaneGeometry,
   RenderTarget,
@@ -24,6 +29,9 @@ import { type ShadowSun, shadowReach, shadowSun } from './sun-shadow-frame';
 
 /** The layer the rider's figure is drawn from: what throws the shadow is on it, and nothing else. */
 export const FIGURE_LAYER = 1;
+/** Where each part keeps how solid it is, from 0 to 1, and how solid a wheel's spokes and rim are together. */
+const SOLID = 'shadowSolid';
+const SPOKED = 0.4;
 /** The picture of the figure: half its width and height in metres, the height of its middle, and its texels. */
 const HALF = 1.25;
 const MIDDLE = 0.8;
@@ -65,6 +73,13 @@ export class SunShadow {
     this.target.texture.magFilter = LinearFilter;
     this.figure.depthTest = false;
     this.figure.depthWrite = false;
+    // Each part is drawn as dark as it is solid, and where parts overlap the darker one stands.
+    const solid = userData(SOLID, 'float') as unknown as Node<'float'>;
+    this.figure.colorNode = vec3(solid, solid, solid);
+    this.figure.blending = CustomBlending;
+    this.figure.blendEquation = MaxEquation;
+    this.figure.blendSrc = OneFactor;
+    this.figure.blendDst = OneFactor;
 
     // A square on the road: its second axis runs away from the sun. It is placed in the map's own axes each frame.
     this.geometry = new PlaneGeometry(1, 1);
@@ -85,7 +100,8 @@ export class SunShadow {
       .mul(TEXELS / (2 * HALF))
       .max(1)
       .log2();
-    const place = at.div(2 * HALF).add(0.5);
+    // A picture the renderer drew is kept top row first, on both backends: up the figure is down the picture.
+    const place = vec2(at.x.div(2 * HALF).add(0.5), at.y.div(-2 * HALF).add(0.5));
     // Five readings a blur's width apart, each of a picture already as blurred as the blur is wide.
     const step = soft.div(2 * HALF).mul(0.5);
     let dark = texture(this.target.texture, place).level(level).r.mul(0.4);
@@ -113,7 +129,12 @@ export class SunShadow {
   /** Marks what throws the shadow: every part of `rider` that is drawn. */
   cast(rider: Object3D): void {
     rider.traverse((part) => {
-      if (part.layers.mask !== 0) part.layers.enable(FIGURE_LAYER);
+      if (part.layers.mask === 0) return;
+      part.layers.enable(FIGURE_LAYER);
+      // A part drawn with holes in it (the wheels' spokes) lets most of the light through.
+      const material = (part as Mesh).material as Material | Material[] | undefined;
+      const holed = !!material && !Array.isArray(material) && material.alphaTest > 0;
+      part.userData[SOLID] = holed ? SPOKED : 1;
     });
   }
 

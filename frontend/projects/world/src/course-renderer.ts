@@ -248,6 +248,8 @@ export class ThreeCourseRenderer implements CourseRenderer {
   private pinned = false;
   /** Set by the test-only hook: the metres up the road the bench starts its ride from. */
   private benchFrom = 0;
+  /** Set by the test-only hook: the camera looks straight down on the rider from this many metres (0: it chases). */
+  private above = 0;
   /** The street lamps' light on what stands near the road, where the course has lamps; and the riders' materials lit by it. */
   private lampGlow: LampGlow | null = null;
   /** The daylight on the riders of a course without lamps (sun-glow.ts). */
@@ -275,6 +277,8 @@ export class ThreeCourseRenderer implements CourseRenderer {
         this.pinned = true;
         const from = (globalThis as Record<string, unknown>)[PROBE_KEY] as { from?: unknown };
         if (typeof from.from === 'number') this.benchFrom = from.from;
+        const { above } = from as { above?: unknown };
+        if (typeof above === 'number' && above > 0) this.above = above;
         this.tier = PINNED[asked.tier] ?? START;
         renderer.info.autoReset = false;
       }
@@ -344,7 +348,6 @@ export class ThreeCourseRenderer implements CourseRenderer {
     you.pose(frame.reducedMotion ? 0 : frame.crank, standing);
     this.lampShadows?.end();
     this.riderBatch?.follow();
-    this.sunShadow?.draw(renderer, this.scene);
     this.aim(metres);
     // Chosen every few frames, and at once when the camera has jumped (a ride resumed elsewhere on the road).
     const leapt = this.camera.position.distanceToSquared(this.chosenAt) > 60 * 60;
@@ -736,6 +739,13 @@ export class ThreeCourseRenderer implements CourseRenderer {
     this.groundEye?.at(metres - behind, 0, up);
     const ahead = course.place(metres + LOOK_AHEAD, 0, this.there);
     this.camera.lookAt(ahead.x, ahead.y + LOOK_UP, ahead.z);
+    if (this.above > 0) {
+      // The shadow, looked at from above (e2e/shadow/shadow.shots.ts): up the picture is up the road.
+      const at = course.place(metres, 0, this.here);
+      this.camera.position.set(at.x, at.y + this.above, at.z);
+      this.camera.up.set(-Math.sin(at.heading), 0, -Math.cos(at.heading));
+      this.camera.lookAt(at.x, at.y, at.z);
+    }
     this.sky?.position.copy(this.camera.position);
     const [x, , z] = course.file.sun;
     this.sun.target.position.set(ahead.x, ahead.y, ahead.z);
@@ -837,6 +847,8 @@ export class ThreeCourseRenderer implements CourseRenderer {
     const renderer = this.renderer;
     if (!renderer) return;
     if (this.pinned) renderer.info.reset();
+    // The rider's figure for their shadow is part of the frame, and of what the frame is counted to cost.
+    this.sunShadow?.draw(renderer, this.scene);
     if (this.pipeline && TIERS[this.tier]!.bloom) this.pipeline.render();
     else renderer.render(this.scene, this.camera);
     if (this.pinned) this.report(renderer);

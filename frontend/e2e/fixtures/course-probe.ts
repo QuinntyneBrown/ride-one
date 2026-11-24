@@ -43,11 +43,20 @@ export interface CourseDrawn {
 export class CourseProbe {
   constructor(private readonly page: Page) {}
 
-  /** Call before the page loads: the course is drawn at `tier` and never leaves it. */
-  async pin(tier: Tier = 'low'): Promise<void> {
-    await this.page.addInitScript((pinned) => {
-      (window as unknown as Record<string, unknown>)['__wzWorldRide'] = { tier: pinned };
-    }, tier);
+  /**
+   * Call before the page loads: the course is drawn at `tier` and never leaves it. With `above`, the camera looks
+   * straight down on the rider from that many metres.
+   */
+  async pin(tier: Tier = 'low', above = 0): Promise<void> {
+    await this.page.addInitScript(
+      ([pinned, height]) => {
+        (window as unknown as Record<string, unknown>)['__wzWorldRide'] = {
+          tier: pinned,
+          above: height,
+        };
+      },
+      [tier, above] as const,
+    );
   }
 
   /** The renderer's report of its latest frame, or null before the ride's first frame is drawn. */

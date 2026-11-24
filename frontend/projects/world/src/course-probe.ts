@@ -2,6 +2,8 @@
 // before the app boots (e2e/fixtures/course-probe.ts): the course is then drawn at that step from the first frame, its
 // frame budget never moves it, and the renderer writes what it draws to `__wzWorldRide.course`. No rider can set it:
 // it is not an option, not in the README, and nothing in the app sets it.
+// `from` starts the ride that many metres up the road, and `above` looks straight down on the rider from that many
+// metres, for the pictures a person looks at the rider's shadow in (e2e/shadow/shadow.shots.ts).
 
 import type { ChaseCamera } from './chase-camera';
 

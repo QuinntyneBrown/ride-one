@@ -12,15 +12,19 @@ import { test } from '../fixtures/test';
 const AT = (process.env['SHADOW_AT'] ?? '46,75,150,300,350,500,875,1000').split(',').map(Number);
 const OUT = process.env['SHADOW_OUT'] ?? 'test-results/shadow';
 const TIER = (process.env['SHADOW_TIER'] ?? 'high') as Tier;
+/** How many pictures stand side by side in the sheet. */
+const COLUMNS = Number(process.env['SHADOW_COLUMNS'] ?? 4);
+/** Metres above the rider the camera looks straight down from; 0 is the ride's own chase camera. */
+const ABOVE = Number(process.env['SHADOW_ABOVE'] ?? 0);
 /** The share of the box kept in the sheet, round the rider: left, top, width, height. */
-const CROP = (process.env['SHADOW_CROP'] ?? '0.2,0.3,0.6,0.7').split(',').map(Number);
+const CROP = (process.env['SHADOW_CROP'] ?? '0.1,0.25,0.8,0.75').split(',').map(Number);
 
 // Two device pixels a CSS pixel, so a picture keeps what the course's higher steps draw.
 test.use({ deviceScaleFactor: 2 });
 
 test('the rider’s shadow round the course', async ({ page, bluetooth, course, browser }) => {
   await page.setViewportSize({ width: 1194, height: 834 });
-  await course.pin(TIER);
+  await course.pin(TIER, ABOVE);
   const ride = await startRideInIbizaOnPausedClock(page, bluetooth);
   await courseDrawnOnPausedClock(page, ride, 30);
   mkdirSync(OUT, { recursive: true });
@@ -51,7 +55,7 @@ test('the rider’s shadow round the course', async ({ page, bluetooth, course, 
   // The sheet: every picture side by side, each with its second.
   const sheet = await browser.newPage({ viewport: { width: 1920, height: 400 } });
   await sheet.setContent(
-    `<body style="margin:0;background:#111"><main style="display:grid;grid-template-columns:repeat(${Math.min(shots.length, 4)},1fr);gap:4px;font:16px sans-serif;color:#fff">${shots
+    `<body style="margin:0;background:#111"><main style="display:grid;grid-template-columns:repeat(${Math.min(shots.length, COLUMNS)},1fr);gap:4px;font:16px sans-serif;color:#fff">${shots
       .map(
         ({ second, data }) =>
           `<figure style="margin:0;position:relative"><img style="width:100%;display:block" src="data:image/png;base64,${data}"><figcaption style="position:absolute;left:6px;top:4px;text-shadow:0 0 3px #000">${second} s</figcaption></figure>`,

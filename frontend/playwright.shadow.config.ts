@@ -17,7 +17,15 @@ export default defineConfig({
   workers: 1,
   timeout: 10 * 60_000,
   reporter: 'list',
-  use: { ...base.use, baseURL: `http://localhost:${port}`, trace: 'off' },
+  use: {
+    ...base.use,
+    baseURL: `http://localhost:${port}`,
+    trace: 'off',
+    // SHADOW_WEBGPU=1 asks headless Chromium for WebGPU, so the pictures are of that backend, not of WebGL 2.
+    launchOptions: process.env['SHADOW_WEBGPU']
+      ? { args: ['--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-angle=swiftshader'] }
+      : {},
+  },
   projects: [{ name: 'shadow' }],
   webServer: undefined,
 });

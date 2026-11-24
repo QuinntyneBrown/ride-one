@@ -14,14 +14,18 @@ cover the whole ride:
 
 | Second | Sun, from dead ahead of the bike | The shadow falls |
 |---|---|---|
-| 46 | 70° to the left (the issue's own picture) | to the right, a little behind |
-| 75 | 157° to the left | ahead and to the right |
-| 150 | 98° to the right | to the left |
+| 46 | 138° to the left: behind, left (the issue's own picture) | ahead and to the right |
+| 75 | 157° to the left: behind | ahead, a little right |
+| 150 | 98° to the right: abeam | to the left |
 | 300 | 1°: dead ahead | straight back, towards the camera |
-| 350 | 102° to the left | to the right |
-| 500 | 40° to the left | back and to the right |
-| 875 | 174°: behind | straight ahead, up the road |
-| 1000 | 78° to the left | to the right |
+| 350 | 102° to the left: abeam | to the right |
+| 500 | 40° to the left: ahead | back and to the right |
+| 875 | 174°: dead behind | straight ahead, up the road |
+| 1000 | 78° to the left: abeam | to the right |
+
+Two views are used. *The rider's eye* is the ride's own chase camera. *From above* looks straight down on the rider
+from 5.5 m (the test-only hook's `above`), where the shadow's shape is not foreshortened; up the picture is up the
+road. `SHADOW_WEBGPU=1` takes the pictures with WebGPU instead of WebGL 2.
 
 Unless an entry says otherwise the pictures are of the course's fourth step of five (1.5 device pixels a CSS pixel,
 with bloom), drawn in software by headless Chromium with WebGL 2. "Sheet NNN" is the sheet of that iteration.
@@ -56,3 +60,33 @@ on a square 3.4 m long whatever the sun's height.
   the bike and rider from where the sun is: wheels, frame, bent back and head at 46 s and 350 s; a narrow figure
   running up the road at 875 s. 47 draw calls and 67,801 triangles at the fourth step (the budget is 140 and
   120,000). The acceptance spec `class-ride-ibiza-shadow.spec.ts` failed before the change and passes after.
+
+### 2. The shadow's own cost is counted in the frame
+
+- **Found (sheet 001):** the report said 47 draw calls, one fewer than before the change, though the rider is now
+  drawn twice. The renderer cleared its counts after the figure was drawn, so the figure was never counted and the
+  budget of `L2-177` AC1 was being checked against a number that left it out.
+- **Changed:** the figure is drawn inside `render()`, after the counts are cleared.
+- **Result (sheet 003):** the figure costs 6 draw calls and 10,722 triangles a frame, now in the report: 46 calls
+  and 53,393 triangles where the same frame read 40 and 42,671. The budget spec still passes at the heaviest step.
+
+### 3. The wheels are spoked, not missing and not solid
+
+- **Found (sheet 002b, from above):** the wheels' sides (rim, decals and spokes, one disc with holes cut by
+  `alphaTest`) were either left out, which left two thin tyres, or drawn solid, which made two black plates.
+- **Changed:** each part is drawn into the figure as dark as it is solid (`userData`, read by the figure's one
+  material): 1 for the rider and the bike, 0.4 for a part drawn with holes. Parts are blended by the greater of the
+  two, so a tyre over a disc stays solid.
+- **Result (sheet 004b):** at 150 s and 350 s each wheel throws a dark hoop with a lighter middle, as a spoked wheel
+  does in low sun.
+
+### 4. The figure was upside down
+
+- **Found (sheet 003, from above, and a picture of the raw figure laid on the road):** the head and hands lay next to
+  the bike and the wheels 4 m away. A picture the renderer draws is kept top row first, and the road was reading it
+  bottom row first. Entry 1's "starts under the tyres" was wrong: what started there was the rider's head. The
+  chase camera's foreshortening hid it; the look from above was added to the harness because of this.
+- **Changed:** the road reads the picture the other way up. Checked on both backends (`SHADOW_WEBGPU=1`): the raw
+  figure is the same way up on WebGPU and on WebGL 2, so one rule serves both.
+- **Result (sheet 004, 004b):** each wheel's shadow starts at that wheel's own tyre, the frame and legs follow, and
+  the head is the far end, at all six places looked at.
