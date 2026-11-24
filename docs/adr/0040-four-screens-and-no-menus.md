@@ -1,6 +1,6 @@
 # 0040. Telo Ride 1 has four screens and no menus
 
-- **Status:** Accepted
+- **Status:** Accepted, amended by [0048](0048-diagnostic-recording-behind-configuration.md) (a recording of the Bluetooth link comes back, behind configuration)
 - **Date:** 2026-11-23
 - **Narrows:** [0028](0028-class-catalogue-shipped-with-the-backend.md) (the app reads one class from the catalogue), [0030](0030-world-library-carried-from-main.md) (the world is drawn at one fixed set of options)
 
@@ -47,7 +47,9 @@ screen had used since ADR 0039. Every one of them is on the list of what Telo Ri
   the connection history, the sent-command log, the build's version and commit (`TELO_VERSION`,
   `TELO_COMMIT`, with their `define` in `angular.json` and the deploy workflow's step that set
   them) and the device check are removed. A Bluetooth failure is still logged to the console
-  (L2-115); no per-packet line is written.
+  (L2-115); no per-packet line is written. [ADR 0048](0048-diagnostic-recording-behind-configuration.md)
+  brings back a recording of the link and a tap for it, off unless the app is opened with
+  `?diagnose`; the dialog, the history, the version and the device check stay removed.
 - **No heart rate.** The strap, its decoder, source and stats and the remembered strap are removed.
   The chooser asks for the Echelon service and FTMS and no other service (L2-012 AC1); the FTMS
   decoder skips the heart rate field by its size (L2-021).
@@ -61,7 +63,7 @@ screen had used since ADR 0039. Every one of them is on the list of what Telo Ri
 - There is no dialog left in the app. `@angular/cdk` stays a dependency; the first slice that opens
   a dialog uses it, and slice 28.8 removes it if none has.
 - A fault with a bike in the field can no longer be read from a packet log; the console's Bluetooth
-  errors are what is left.
+  errors are what is left. (ADR 0048 answers this with the diagnostic recording, L2-178.)
 - The lockup still reads TELO Ride; the TELO RIDE 1 wordmark is slice 28.7. Results still shows the
   ride's time first; Class Done replaces it in 32.2.
 - `AGENTS.md` is out of date in these lines: *Carried over from Telo Ride* still lists the class
