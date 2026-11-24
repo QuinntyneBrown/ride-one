@@ -29,3 +29,22 @@ export async function appCached(page: Page): Promise<void> {
     )
     .toBe('cached');
 }
+
+/**
+ * The scripts the service worker holds, in any of its caches, whose code contains `text`: what the device keeps of a
+ * part of the app, whether or not the page ever asked for it.
+ */
+export function cachedScriptsHolding(page: Page, text: string): Promise<string[]> {
+  return page.evaluate(async (text) => {
+    const holding: string[] = [];
+    for (const name of await caches.keys()) {
+      const cache = await caches.open(name);
+      for (const request of await cache.keys()) {
+        if (!new URL(request.url).pathname.endsWith('.js')) continue;
+        const body = await (await cache.match(request))?.text();
+        if (body?.includes(text)) holding.push(new URL(request.url).pathname);
+      }
+    }
+    return holding;
+  }, text);
+}
