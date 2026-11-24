@@ -129,7 +129,10 @@ is none (ADR 0041).
   brings, which the lazy parent route in `ride.routes.ts` binds so their code stays out of the
   initial bundle. ESLint enforces it. A new library takes its place in this direction, and the
   same change adds it to this rule and to the ESLint boundaries; it never depends on `ride`,
-  and `api` still depends on nothing.
+  and `api` still depends on nothing. The diagnostic recording's code has entry points of its
+  own, `@telo/domain/diagnostics` and `@telo/components/diagnostics`, which only `ride` imports,
+  and only from the chunk it loads with `?diagnose`; the libraries' main entry points export
+  none of it, so no chunk a rider loads holds it (ADR 0048).
 - Protocol rules (framing, checksums, command bytes) live in `domain`'s `protocol/` only;
   business rules (workout stepping, target vs. actual resistance, sessions) in `engine/`.
   Nothing outside `bluetooth/` touches `navigator.bluetooth`. Every feature runs end to end

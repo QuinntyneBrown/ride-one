@@ -19,8 +19,11 @@ By taking part you agree to follow the [code of conduct](CODE_OF_CONDUCT.md).
 ## Ways to contribute
 
 - **Report a bug.** Open an issue with the steps, what you expected and what happened. Include
-  the bike model, your operating system and, if you can, the lines of `raw_packets.log` around
-  the problem.
+  the bike model, your operating system and, for anything about the bike, a diagnostic
+  recording: open the app with `?diagnose`, reproduce the problem, note what the bike's own
+  display reads, and attach the saved `telo-ride-1-recording-….log` (and a screen capture if you
+  made one). [Diagnostic recording](docs/protocol/diagnostic-recording.md) has the steps and
+  says what the file holds; read it before you share it.
 - **Suggest a feature.** Open an issue saying who it is for and how it helps a rider.
 - **Improve the documentation.** Requirements, designs and mocks are all in `docs/` and welcome
   corrections.

@@ -89,16 +89,16 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.3 | Screen readers, contrast and motion | One `h1` a screen, state changes announced once, contrast in both themes, reduced motion. | 2 | 36. Use by touch, keyboard and screen reader | L2-141, L2-142 AC1, AC3 | 100% |
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 100% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 100% |
-| 38.1 | Switch the recording on and save it | Off for every rider with none of its code fetched; `?diagnose` shows the recording mark, whose dialog saves the recording as a text file. | 2 | 38. Diagnose a bike that misbehaves | L2-178 AC1, AC2, AC10, AC11, AC15–17; L2-115 | 0% |
-| 38.2 | Record what the bike sends | Each notification's bytes with what the app's decoder made of them, a dropped frame included, and the readouts Class Ride showed. | 2 | 38. Diagnose a bike that misbehaves | L2-178 AC3, AC4, AC8 | 0% |
-| 38.3 | Record what the app writes | Every command and keepalive with its outcome, a failed write included, and the target resistance beside a resistance command. | 1 | 38. Diagnose a bike that misbehaves | L2-178 AC5 | 0% |
-| 38.4 | Record the link, on every bike | The chooser, the services and characteristics, each `ble` state, drops, reconnects and logged errors; an FTMS bike and the simulated bike recorded as the Echelon is. | 2 | 38. Diagnose a bike that misbehaves | L2-178 AC6, AC7, AC18 | 0% |
-| 38.5 | Note the bike's display, within a limit | A note of what the bike's own display reads, stamped into the recording; the oldest entries go at 20,000 entries or 3,000,000 bytes, and the recording says so. | 1 | 38. Diagnose a bike that misbehaves | L2-178 AC9, AC12 | 0% |
-| 38.6 | Capture the screen | One still of the tab kept with the recording and saved with it; a refusal, or a browser that cannot, leaves the ride alone. | 2 | 38. Diagnose a bike that misbehaves | L2-178 AC13, AC14 | 0% |
-| 38.7 | Leave nothing behind | Streams, timers, listeners and object URLs released; the long ride and the heap checked with the recording on; one critical path in CI. | 1 | 38. Diagnose a bike that misbehaves | L2-178 AC19, AC20 | 0% |
+| 38.1 | Switch the recording on and save it | Off for every rider with none of its code fetched; `?diagnose` shows the recording mark, whose dialog saves the recording as a text file. | 2 | 38. Diagnose a bike that misbehaves | L2-178 AC1, AC2, AC10, AC11, AC15–17; L2-115 | 100% |
+| 38.2 | Record what the bike sends | Each notification's bytes with what the app's decoder made of them, a dropped frame included, and the readouts Class Ride showed. | 2 | 38. Diagnose a bike that misbehaves | L2-178 AC3, AC4, AC8 | 100% |
+| 38.3 | Record what the app writes | Every command and keepalive with its outcome, a failed write included, and the target resistance beside a resistance command. | 1 | 38. Diagnose a bike that misbehaves | L2-178 AC5 | 100% |
+| 38.4 | Record the link, on every bike | The chooser, the services and characteristics, each `ble` state, drops, reconnects and logged errors; an FTMS bike and the simulated bike recorded as the Echelon is. | 2 | 38. Diagnose a bike that misbehaves | L2-178 AC6, AC7, AC18 | 100% |
+| 38.5 | Note the bike's display, within a limit | A note of what the bike's own display reads, stamped into the recording; the oldest entries go at 20,000 entries or 3,000,000 bytes, and the recording says so. | 1 | 38. Diagnose a bike that misbehaves | L2-178 AC9, AC12 | 100% |
+| 38.6 | Capture the screen | One still of the tab kept with the recording and saved with it; a refusal, or a browser that cannot, leaves the ride alone. | 2 | 38. Diagnose a bike that misbehaves | L2-178 AC13, AC14 | 100% |
+| 38.7 | Leave nothing behind | Streams, timers, listeners and object URLs released; the long ride and the heap checked with the recording on; one critical path in CI. | 1 | 38. Diagnose a bike that misbehaves | L2-178 AC19, AC20 | 100% |
 
-**Total:** 66 slices, 130 days. **Complete:** 59 slices, 119 days (92%), 11 of them carried over.
-**To build:** 7 slices, 11 days. Journey 38 added seven slices and 11 days for L2-178 (ADR 0048). Slice 30.2 added journey 37, nine slices and 20 days: no slice of
+**Total:** 66 slices, 130 days. **Complete:** 66 slices, 130 days (100%), 11 of them carried over.
+**To build:** 0 slices, 0 days. Journey 38 added seven slices and 11 days for L2-178 (ADR 0048). Slice 30.2 added journey 37, nine slices and 20 days: no slice of
 the plan built riding in Ibiza (L2-174 to L2-177).
 
 ## What a slice waits for
@@ -124,6 +124,7 @@ the plan built riding in Ibiza (L2-174 to L2-177).
 - **Journey 38** follows everything it records: the link (2.4, 29.1), the decoders (3.1), the
   commands (4.1) and Class Ride (31.1). 38.1 comes first, because every later slice is proved by
   the file it saves; 38.2 to 38.6 follow it in any order; 38.7 is last. Its mocks were drawn
-  before 38.1 (`diagnostic-recording/*` and each screen's `recording`).
+  before 38.1 (`dialogs/diagnostic-recording/*` and each screen's `recording`). All seven were
+  built in one change.
 - **Journey 37** follows journey 31: 37.1 builds on Class Ride as designed (31.1) and on the
   choice 30.2 built; 37.2 to 37.8 follow 37.1; 37.9 waits for the record (32.1).

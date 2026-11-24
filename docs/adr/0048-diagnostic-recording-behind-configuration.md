@@ -84,6 +84,10 @@ frame was dropped are worked out in the recording's code (`frame-reading.ts`), s
 rider loads do not grow; a unit test holds the two together, frame by frame. The readouts Class
 Ride shows are recorded from `ClassRideStore`, as the strings the screen draws.
 
+The recording also says whether an Echelon frame's checksum holds. The app does not check an
+incoming checksum (`docs/protocol/echelon-ble-frames.md`), and that is not changed; but a frame
+the bike corrupted and a frame the app misreads look the same without it.
+
 ### The store: a ring in memory, 20,000 entries or 3,000,000 bytes
 
 - **Chosen: `RecordingBuffer`, a ring of formatted lines.** Each entry is formatted to its line of
@@ -169,10 +173,31 @@ mark and the dialog's panel. `ride` gains `diagnostics/`, which holds the switch
 and the host. No library is added: every part is reached only through
 `import('./diagnostics/provide-diagnostics')`, which `ride.routes.ts` makes when the switch is on.
 
+- **Entry points of its own.** Exported from `@telo/domain` and `@telo/components`, the
+  recorder and the panel were bundled into a chunk every rider loads: the bundler places a file
+  by every entry that can reach it, and the libraries' main entry points reach all they export.
+  The acceptance test for "off" caught it. The recording's code is therefore exported only from
+  `@telo/domain/diagnostics` and `@telo/components/diagnostics` (`tsconfig.json` paths), which
+  only `ride`'s dynamically imported chunk imports; ESLint keeps every library from importing
+  them. The code stays in the libraries the rules put it in.
+- **The routes wait for the switch.** `rideRoutes` is a promise of the routes: opened with
+  `?diagnose` it resolves once the recording's chunk is in and its providers are in the first
+  route's injector, so the tap is bound before anything asks for the bike connection. Without
+  `?diagnose` it is already resolved. `app.routes.ts`, in the initial bundle, is not changed.
+- **The service worker does not keep it for riders.** The worker prefetches every script of the
+  build, which would have downloaded the recording's chunk to every installed rider's device.
+  The production build now names its lazy chunks (`namedChunks`), and `ngsw-config.json` leaves
+  `provide-diagnostics-*.js` out of the prefetched group and lists it in a lazy group of its
+  own: the worker fetches and keeps it only when a page opened with `?diagnose` asks for it.
+
 ## Consequences
 
-- A rider's app is the same bytes at first load, less a handful for the switch in the first lazy
-  route, and fetches none of the recording's code. With `?diagnose`, one more chunk is fetched.
+- A rider's app fetches none of the recording's code, and its service worker keeps none. The
+  initial chunk is 243.06 kB raw, from 243.05 kB (the first route is now awaited), and 79.25 kB
+  gzipped with its stylesheet, as before; no budget in `angular.json` changed. With `?diagnose`,
+  one more chunk is fetched: 21.68 kB raw, 6.81 kB transferred.
+- The production build's lazy chunks carry their names (`class-ride-page-….js`), where they were
+  `chunk-….js`. Nothing reads the names but the service worker's configuration.
 - The link's code has a seam it did not have: `GattWriteQueue.enqueue` takes what is written
   beside the function that writes it, and `WebBluetoothBikeConnection` reports each `ble` state
   through one method. A new write or a new link event must call the tap, or the recording will

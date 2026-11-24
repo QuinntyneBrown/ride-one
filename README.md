@@ -63,7 +63,8 @@ Four screens, in order:
 
 Everything Telo Ride has beyond the one class: the class library, races, every map and world but
 Ibiza Sunset Strip, group classes and live races, XP, rider levels, stars and unlocks, sign-in, and the custom
-workout. There are no menus.
+workout. There are no menus. One thing is not part of the rider's app at all: a diagnostic
+recording for a bike that misbehaves, on only when the app is opened with `?diagnose`.
 
 ## Design
 
@@ -153,6 +154,17 @@ without the chooser, pedals and reports back every target resistance. A producti
 With a real bike, open `http://localhost:4200`, press **Connect bike** and pick the bike in the
 browser's list. Telo Ride 1 remembers it next time.
 
+### When a bike misbehaves
+
+If a bike will not connect, report pedalling or take a target resistance, open the app with
+`?diagnose` on the end of its address (`http://localhost:4200/?diagnose`, or the deployed app's
+address; `?simulate&diagnose` records the simulated bike). A **Recording** button appears on every
+screen. It records every byte the bike sends and the app writes, what the app decoded from each,
+and what the screen showed. Press it to note what the bike's own display reads, to capture the
+screen, and to **Save files**: a text recording and a PNG for each capture. Nothing is sent
+anywhere, and without `?diagnose` none of it is loaded.
+[Diagnostic recording](docs/protocol/diagnostic-recording.md) says how to read the file.
+
 ## Host it
 
 Telo Ride 1 is static files, with no backend
@@ -226,6 +238,7 @@ other courses leave in a later change.
 | [Mocks](docs/mocks/) | Every page, dialog and state, the source of truth for the UI |
 | [Design system](docs/design-system/) | Tokens and components extracted from the mocks |
 | [Echelon protocol](docs/protocol/echelon-ble-messages.md) | The Bluetooth messages and their [frames](docs/protocol/echelon-ble-frames.md) |
+| [Diagnostic recording](docs/protocol/diagnostic-recording.md) | How to record what a bike and the app said to each other with `?diagnose`, and how to read the file |
 | [Architecture decisions](docs/adr/README.md) | Why the architecture is the way it is |
 | [Requirements](docs/specs/L1.md) | Telo Ride 1's requirements (L1, with acceptance criteria in [L2](docs/specs/L2.md)) |
 | [User journeys](docs/journeys.md) | Telo Ride 1's journeys and progress; slices in [detailed journeys](docs/detailed-journeys.md) |
