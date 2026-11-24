@@ -86,6 +86,10 @@ Variants and states are the rows and columns of each page's state matrix; every 
 | [HUD panel](components/hud-panel.html) | Ride | Glass step, Class step, Dashboard step, Level bar, Sync toggle (+2) | Default, Hover, Focus, Active, Disabled, Current / open | [race](../mocks/pages/race/default.html), [class-ride](../mocks/pages/class-ride/default.html), [class-start](../mocks/pages/class-start/default.html) (+1) |
 | [Countdown](components/countdown.html) | Ride | Ready toggle, Lobby clock, 3-2-1 step, Join button | Default, Hover, Focus, Active, Disabled, Pressed / current | [race-lobby](../mocks/pages/race-lobby/default.html), [class-start](../mocks/pages/class-start/default.html) |
 | [Ride trace](components/ride-trace.html) | Ride | View tab | Default, Hover, Focus, Active, Disabled, Selected | [custom-ride](../mocks/pages/custom-ride/default.html) |
+| [Recording mark](components/recording-mark.html) | Diagnostic recording | Recording, Busy; on The Class, on Class Ride | Default, Hover, Focus, Busy | [connect-bike](../mocks/pages/connect-bike/recording.html), [the-class](../mocks/pages/the-class/recording.html), [class-ride](../mocks/pages/class-ride/recording.html), [class-done](../mocks/pages/class-done/recording.html) |
+| [Diagnostic panel](components/diagnostic-panel.html) | Diagnostic recording | One form | Default, Note ready, Note added, Capture kept, Capture refused, Capture unsupported, Saved, Save failed, Limit reached | [dialog diagnostic-recording](../mocks/dialogs/diagnostic-recording/default.html) (+9) |
+
+The last two were added on 23 November 2026 for the diagnostic recording (L2-178, ADR 0048), a diagnostic aid that is off for every rider and no part of the rider's design; nothing else in the system was regenerated. Their dialog is the platform's `<dialog>` element, not the `.scrim` + `.dialog` shell of the Dialog page.
 
 ## Patterns
 
