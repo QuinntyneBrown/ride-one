@@ -297,3 +297,14 @@ because the road's blur is wider than a texel; it would have cost fill for nothi
   texel at every step, not at a fixed level. (The second alone, sheet 024, changed almost nothing.)
 - **Result (sheet 025):** on the lowest step both hoops, the bent back and the head are there at 150 s and 425 s,
   a little crisper across than on the higher steps, at the same 3 readings.
+
+### 25. Crisp at the tyre, soft at the top of the wheel
+
+- **Found (sheet 026b, 3 m above the rear wheel, three moments 0.15 s apart):** the legs' shadow moves with the
+  pedalling, as it should, but each wheel's hoop was evenly soft from the tyre's foot to its top. The height that
+  sets the blur was read from a level of the picture where one texel is 7 cm of figure, so the foot of a wheel
+  was averaged with what stands above it.
+- **Changed:** the height is read twice: at a level four times finer, used where the figure itself is, and at the
+  coarse one, used just outside the figure's edge where the fine one sees nothing.
+- **Result (sheet 026):** at 350 s the rear tyre's shadow leaves the tyre as a sharp line and softens as it runs
+  out; at 150 s likewise on the other side.

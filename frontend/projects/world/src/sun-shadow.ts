@@ -360,8 +360,17 @@ export class SunShadow {
     // A shadow is as soft as what throws it is far away. A coarse reading of the picture says how high the figure
     // stands hereabouts, and that height is thrown `1 / tan(altitude)` as far along the road: a tyre's shadow stays
     // sharp even when the wheel stands a metre down-sun of the bike's middle, and the head's is the softest.
-    const about = texture(this.target.texture, place).level(this.texels.div(ABOUT).log2());
-    const thrownFrom = about.g.div(about.r.max(0.02)).mul(TALLEST / Math.tan(altitude));
+    // Read twice: finely, which is right where the figure itself is (a tyre's foot is low, so its shadow is
+    // sharp there), and coarsely, which still knows the height just outside the figure's edge, where the fine
+    // reading sees nothing and the blur has yet to spread the shadow.
+    const coarse = texture(this.target.texture, place).level(this.texels.div(ABOUT).log2());
+    const fine = texture(this.target.texture, place).level(this.texels.div(ABOUT * 4).log2());
+    const height = mix(
+      coarse.g.div(coarse.r.max(0.02)),
+      fine.g.div(fine.r.max(0.02)),
+      smoothstep(0.05, 0.4, fine.r),
+    );
+    const thrownFrom = height.mul(TALLEST / Math.tan(altitude));
     const soft = thrownFrom.mul(SOFT.grows).add(SOFT.near);
     const softUp = soft.mul(Math.sin(altitude));
     const level = softUp
