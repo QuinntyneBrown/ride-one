@@ -308,3 +308,40 @@ because the road's blur is wider than a texel; it would have cost fill for nothi
   coarse one, used just outside the figure's edge where the fine one sees nothing.
 - **Result (sheet 026):** at 350 s the rear tyre's shadow leaves the tyre as a sharp line and softens as it runs
   out; at 150 s likewise on the other side.
+
+*Checked, nothing to change:* at 1 s the start grid's white lines look unshaded where the shadow crosses them.
+Measured in the picture they are shaded: 190 falls to 158 on the line where 69 falls to 36 on the asphalt beside
+it. The shadow takes the same share of the light from both, and the course's tone curve then presses the bright
+paint's change together, as a camera exposed for the road would. Raising the shadow further changed nothing.
+
+## Frame rate on a low-power device (asked for during the work)
+
+`frontend/e2e/perf/ibiza-frames.perf.ts` (`npm run perf -- ibiza-frames`, only when a person asks) rides ten seconds
+at each step with the shadow and, through the test-only hook's `shadow: false`, without it, on the reference
+tablet's screen (1194 × 834) with the CPU slowed 4 times and the display's frame limit lifted. It asks Chromium for
+the machine's own GPU and names what it got: here a Qualcomm Adreno X1-85, a laptop's built-in GPU, through D3D11.
+It reads the frames a second, and the page's own time spent on the shadow each frame (`shadow.ms` in the hook's
+report). The frames a second moved by 20 or more from one run to the next on this machine; the shadow's own time
+did not, so that is what the check holds to a number (1.5 ms a frame).
+
+### 26. The figure is drawn without working out the whole scene's places again
+
+- **Found (first run of the check):** with the shadow the step every ride opens on drew 52 frames a second against
+  68 without it, and the two steps above it 48 against 63: the shadow was costing 4 to 5 ms of a 16.7 ms frame.
+  Of that, 1.4 to 2.8 ms was the page's own time. Drawing the figure is a second `render()` of the scene, and each
+  `render()` first works out the place of every object in the scene, the map's hundreds of chunks among them.
+- **Changed:** the scene's places are not worked out again for the figure: the rider was placed and posed for the
+  frame before it is drawn.
+- **Result:** the shadow's own time fell from 2.75 ms to 1.88 ms a frame on the fourth step and from 1.44 ms to
+  1.31 ms on the lowest (which already drew the figure every other frame).
+
+### 27. One picture of the figure serves two frames at every step
+
+- **Found:** 1.88 ms a frame was still a ninth of a frame, on the steps that drew the figure every frame.
+- **Changed:** the figure is drawn every second frame at every step and every third at the lowest. The strip on
+  the road still moves with the rider every frame; only the pose in the picture is a frame or two old.
+- **Result:** the shadow's own time is 0.7 to 1.1 ms a frame at every step with the CPU slowed 4 times (about a
+  quarter of that on this machine as it is). In the last run every step drew 63 frames a second or more with the
+  shadow and without it (lowest 84 and 80, second 83 and 68, fourth 66 and 66, highest 102 and 63: the differences
+  are the machine's noise, not the shadow's). Sheet 027 is the lowest step afterwards: the shadow is unchanged.
+  The shadow, budget and leave specs pass.

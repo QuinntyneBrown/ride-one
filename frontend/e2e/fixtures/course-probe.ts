@@ -37,7 +37,13 @@ export interface CourseDrawn {
    * degrees; the metres from under the wheels to the shadow of the rider's head; and how many times the rider's
    * figure has been drawn for it.
    */
-  readonly shadow: { readonly off: number; readonly reach: number; readonly figures: number };
+  readonly shadow: {
+    readonly off: number;
+    readonly reach: number;
+    readonly figures: number;
+    /** The page's own milliseconds spent on the shadow, all frames together. */
+    readonly ms: number;
+  };
 }
 
 export class CourseProbe {
@@ -45,17 +51,18 @@ export class CourseProbe {
 
   /**
    * Call before the page loads: the course is drawn at `tier` and never leaves it. With `above`, the camera looks
-   * straight down on the rider from that many metres.
+   * straight down on the rider from that many metres; with `shadow` false the rider throws no shadow.
    */
-  async pin(tier: Tier = 'low', above = 0): Promise<void> {
+  async pin(tier: Tier = 'low', above = 0, shadow = true): Promise<void> {
     await this.page.addInitScript(
-      ([pinned, height]) => {
+      ([pinned, height, thrown]) => {
         (window as unknown as Record<string, unknown>)['__wzWorldRide'] = {
           tier: pinned,
           above: height,
+          shadow: thrown,
         };
       },
-      [tier, above] as const,
+      [tier, above, shadow] as const,
     );
   }
 

@@ -3,7 +3,8 @@
 // frame budget never moves it, and the renderer writes what it draws to `__wzWorldRide.course`. No rider can set it:
 // it is not an option, not in the README, and nothing in the app sets it.
 // `from` starts the ride that many metres up the road, and `above` looks straight down on the rider from that many
-// metres, for the pictures a person looks at the rider's shadow in (e2e/shadow/shadow.shots.ts).
+// metres, for the pictures a person looks at the rider's shadow in (e2e/shadow/shadow.shots.ts); `shadow: false`
+// leaves the rider's shadow out, so the frame-rate check can time a frame with and without it.
 
 import type { ChaseCamera } from './chase-camera';
 
@@ -58,6 +59,8 @@ export interface ShadowDrawn {
   reach: number;
   /** How many times the rider's figure has been drawn for it since the course started. */
   figures: number;
+  /** The milliseconds of the page's own time spent laying the shadow and drawing its figure, all frames together. */
+  ms: number;
 }
 
 /** The pinned step, or null when the hook is not set (every rider's ride). */

@@ -4,7 +4,6 @@
 // compared in depth and nothing but the road under the rider reads the picture. sun-shadow-frame.ts says which way
 // the rays run and how deep the shade is.
 import {
-  float,
   mix,
   positionLocal,
   positionWorld,
@@ -96,11 +95,11 @@ const AXLE = 0.5;
  * picture, how many times the road reads it for each of its points, and how many frames one picture serves.
  */
 const STEPS = [
-  { texels: 128, readings: 3, frames: 2 },
+  { texels: 128, readings: 3, frames: 3 },
   { texels: 128, readings: 5, frames: 2 },
-  { texels: 192, readings: 7, frames: 1 },
-  { texels: 256, readings: 7, frames: 1 },
-  { texels: 256, readings: 7, frames: 1 },
+  { texels: 192, readings: 7, frames: 2 },
+  { texels: 256, readings: 7, frames: 2 },
+  { texels: 256, readings: 7, frames: 2 },
 ] as const;
 /** The most readings a step takes: with fewer, the blur is narrower across the shadow. */
 const MOST = 7;
@@ -299,7 +298,8 @@ export class SunShadow {
 
   /**
    * Draws the rider's figure as the sun sees it: call it once the rider is posed, before the frame is drawn. At
-   * the course's lower steps one picture serves two frames.
+   * every step one picture serves two frames, and three at the lowest: the legs' shadow is a frame or two behind the
+   * legs, which no eye can tell, and the rider is drawn twice in only half the frames.
    */
   draw(renderer: WebGPURenderer, scene: Scene): void {
     if (this.frame++ % this.step.frames !== 0) return;
@@ -314,11 +314,16 @@ export class SunShadow {
     }
     scene.background = this.black;
     scene.overrideMaterial = this.figure;
+    // The rider was placed and posed for this frame already (the batch of their moving parts saw to it): the
+    // whole scene's places are not worked out a second time for a picture of one rider.
+    const places = scene.matrixWorldAutoUpdate;
+    scene.matrixWorldAutoUpdate = false;
     renderer.setRenderTarget(this.target);
     renderer.render(scene, this.eye);
     renderer.setRenderTarget(before);
     scene.overrideMaterial = null;
     scene.background = background;
+    scene.matrixWorldAutoUpdate = places;
     for (let i = 0; i < children.length; i++) children[i]!.visible = this.shown[i]!;
     this.report.figures = ++this.figures;
   }

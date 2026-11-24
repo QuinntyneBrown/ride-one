@@ -206,7 +206,7 @@ export class ThreeCourseRenderer implements CourseRenderer {
     metres: 0,
     frames: 0,
     camera: { behind: 0, above: 0 },
-    shadow: { off: 0, reach: 0, figures: 0 },
+    shadow: { off: 0, reach: 0, figures: 0, ms: 0 },
   };
   private readonly chosenAt = new Vector3();
   /** The start lights: red until the ride's clock starts, green from then. */
@@ -251,6 +251,8 @@ export class ThreeCourseRenderer implements CourseRenderer {
   private benchFrom = 0;
   /** Set by the test-only hook: the camera looks straight down on the rider from this many metres (0: it chases). */
   private above = 0;
+  /** Set by the test-only hook: the rider throws no shadow, so a bench can time a frame with and without it. */
+  private shadowless = false;
   /** The street lamps' light on what stands near the road, where the course has lamps; and the riders' materials lit by it. */
   private lampGlow: LampGlow | null = null;
   /** The daylight on the riders of a course without lamps (sun-glow.ts). */
@@ -280,6 +282,7 @@ export class ThreeCourseRenderer implements CourseRenderer {
         if (typeof from.from === 'number') this.benchFrom = from.from;
         const { above } = from as { above?: unknown };
         if (typeof above === 'number' && above > 0) this.above = above;
+        this.shadowless = (from as { shadow?: unknown }).shadow === false;
         this.tier = PINNED[asked.tier] ?? START;
         renderer.info.autoReset = false;
       }
@@ -726,7 +729,9 @@ export class ThreeCourseRenderer implements CourseRenderer {
       'YXZ',
     );
     if (this.casting.has(cyclist) && cyclist.group.visible) this.lampShadows?.add(metres, lane);
+    const began = this.pinned ? performance.now() : 0;
     this.sunShadow?.at(at, metres, this.course!);
+    if (this.pinned) this.drawn.shadow.ms += performance.now() - began;
     return outOfTheSaddle(Math.tan(at.pitch) * 100);
   }
 
@@ -826,6 +831,7 @@ export class ThreeCourseRenderer implements CourseRenderer {
       this.casting.add(cyclist);
       return;
     }
+    if (this.shadowless) return;
     const shadow = new SunShadow(
       this.course!.file.sun,
       courseLook(this.course!.file),
@@ -858,7 +864,9 @@ export class ThreeCourseRenderer implements CourseRenderer {
     if (!renderer) return;
     if (this.pinned) renderer.info.reset();
     // The rider's figure for their shadow is part of the frame, and of what the frame is counted to cost.
+    const began = this.pinned ? performance.now() : 0;
     this.sunShadow?.draw(renderer, this.scene);
+    if (this.pinned) this.drawn.shadow.ms += performance.now() - began;
     if (this.pipeline && TIERS[this.tier]!.bloom) this.pipeline.render();
     else renderer.render(this.scene, this.camera);
     if (this.pinned) this.report(renderer);
