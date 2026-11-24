@@ -1,6 +1,6 @@
 # 0046. Class Ride is at `/ride`, and only a connected bike opens it
 
-- **Status:** Accepted
+- **Status:** Accepted, narrowed by [0049](0049-a-ride-is-shaped-like-a-race-for-one.md) (`/ride` shows Ibiza Flyover, then Class Ride)
 - **Date:** 2026-11-23
 - **Carries out:** [0040](0040-four-screens-and-no-menus.md) and [0042](0042-one-class-and-one-course-shipped-with-the-app.md) ("until slice 31.1 moves it to `/ride`")
 - **Narrows:** [0038](0038-always-solo-no-ride-hub.md) (an address with `?session=…` no longer opens a ride by itself)

@@ -16,7 +16,8 @@ screens and no menus:
    built in Blender from the class's plan), and one start button ("Connect your bike" when no
    bike is connected). A returning rider also sees their ride count, best output and last output.
 3. **Ibiza Flyover**: before a ride in Ibiza only, the course seen from above, start to finish,
-   while it loads; the camera lands on the grid. The rider can skip it or cancel.
+   while it loads; the camera lands on the grid. The rider can skip it or cancel. It never holds
+   the ride: it gives way if the course cannot be drawn, and is not shown with reduced motion.
 4. **Class Ride**: a countdown ("3, 2, 1, Go!"), then the video in sync, or the course drawn as
    the rider rides, while the class's plan sets target resistance; the rider just pedals. In
    Ibiza one track plays in the background: *Beautiful Boom Bap* (Music_Unlimited, Pixabay), the
@@ -27,7 +28,7 @@ screens and no menus:
    of the ride was on target, and the class's efforts. **Done** returns to The Class.
 
 A ride borrows a race's shape and nothing else: the flyover, the countdown and the finish banner
-are for one rider alone, with no other riders, positions, laps or places.
+are for one rider alone, with no other riders, positions, laps or places (ADR 0049).
 
 Telo Ride 1 has no class library, races, maps or worlds beyond Ibiza Sunset Strip, music beyond
 that one track, group classes or live races, XP, rider
@@ -44,9 +45,15 @@ Do not invent a mission in its place.
 
 ## Design
 
-The design is the **Telo Ride 1** prototype in Magic Patterns (the *Echelon Bike Telemetry
+The mocks in `docs/mocks/` are the design and the source of truth: every screen in every state,
+with `docs/mocks/manifest.json` listing them. `docs/specs/`, the ADRs, `docs/detailed-designs/`
+and the code follow the mocks. When a mock changes, the requirement, the ADR it touches and the
+detailed design are brought in line with it in that order, before any code.
+
+The mocks copy the **Telo Ride 1** prototype in Magic Patterns (the *Echelon Bike Telemetry
 Dashboard* OS): the frames Connect Bike, The Class, Ibiza Flyover, Class Ride and Class Done, and
 the canvas *The Class · Form Factors*. Its own design threads hold the decisions behind it.
+`docs/mocks/README.md` says where the mocks depart from the prototype, and why.
 
 - **Wordmark:** **TELO RIDE 1**, the Telo Ride lockup with "RIDE 1" in signal orange, on every
   screen. It is "1", never "One" or "I".
@@ -56,27 +63,30 @@ the canvas *The Class · Form Factors*. Its own design threads hold the decision
   landscape screen 768 px wide or more.
 - **Phone and tablet in portrait:** one column that scrolls, with the start button pinned to the
   bottom and clear of the home bar.
+- **The shape of a ride:** Ibiza Flyover is the course edge to edge between a bar and a band, so
+  no word lies on the course. On Class Ride the countdown, the finish banner and the roll-out lie
+  inside the video's or the course's box, above the bike panel and its stepper.
 
-Before a screen is built, its states are transcribed from the prototype into `docs/mocks/`, which
-stays the source of truth for the code. The prototype's numbers (6 rides, a 342 kJ best, an
-output estimated from ride time) are placeholders, not rules.
+Before a screen is built or changed, its states are drawn in `docs/mocks/`. The mocks' numbers
+(6 rides, a 342 kJ best, a 351 kJ finish) are the cast, not rules.
 
-The prototype was drawn for an earlier class, 30 Minute HIIT Cardio, and later for one called
-20 Minute HIIT on a 3.2 km loop; it has no music. The class, riding in Ibiza and the music are
-decided in `docs/specs/`; where the prototype disagrees, the specs stand and the mock is brought
-in line before the screen is built. The prototype's newest Class Ride (the video or the course
-edge to edge under the readouts, efforts called "drops") is not adopted: only the flyover, the
-countdown, the finish banner, easing off and the roll-out are, drawn in Class Ride as it is
-built (`docs/specs/L2.md`, open questions 39 and 40).
+The prototype disagrees with the mocks in places, and there the mocks stand. It was drawn for an
+earlier class, 30 Minute HIIT Cardio, and later for one called 20 Minute HIIT on a 3.2 km loop,
+and it has no music; the mocks draw Intervals to the Beat, the course as built and the Music
+button. The prototype's newest Class Ride (the video or the course edge to edge under the
+readouts, no stepper, efforts called "drops") is not in the mocks and is not adopted: only the
+flyover, the countdown, the finish banner, easing off and the roll-out are (ADR 0049;
+`docs/specs/L2.md`, open questions 39 and 40).
 
 ## Carried over from Telo Ride
 
 This repository began as a copy of Telo Ride. Telo Ride's other features are removed from its
 code and tests: races, the class library and the other seven courses, sign-in, progression, group
 classes and live races, feedback, the custom workout, the `marketing` application and the backend
-(ADRs 0036 to 0043). What the code still holds beyond the five screens is World loading and the
-`world` library's other worlds with their music, until the slices that build riding in Ibiza
-decide them (ADR 0042). The ADRs before 0036 still describe Telo Ride; `docs/specs/`,
+(ADRs 0036 to 0043), and World loading, the `world` library's other worlds and their music
+(ADR 0047). The code holds four of the five screens: Ibiza Flyover, the countdown, the finish
+banner and the roll-out are specified and drawn but not built (ADR 0049, journey 39). The ADRs
+before 0036 still describe Telo Ride; `docs/specs/`,
 `docs/journeys.md`, `docs/detailed-journeys.md`, `docs/mocks/` and `docs/detailed-designs/` are
 rewritten for Telo Ride 1.
 
@@ -126,18 +136,18 @@ A multi-project workspace under `frontend/projects/`. The baseline is three libr
 (contracts, types and injection tokens), `domain`
 (the bike and its rules: `protocol/`, `bluetooth/`, `engine/`, `storage/`) and `components`
 (presentation), and one application, `ride`. A `video` library (the YouTube player, imported
-dynamically) and a `world` library (World Ride's rendering from `main`, imported dynamically, ADR
-0030) have joined them.
+dynamically) and a `world` library (the Ibiza Sunset Strip course's renderer, imported dynamically, ADRs
+0030 and 0047) have joined them.
 
 That baseline is where the organisation starts, not a limit on it. When a concern earns its own
-library (a `browser` project for browser-only implementations, a `world` project for World Ride
+library (a `browser` project for browser-only implementations, as `world` is for the course's
 rendering, and so on), add it. A smaller, focused library that can be lazy-loaded on its own is
 better than one that keeps growing. A further application still needs its own ADR; there
 is none (ADR 0041).
 
 - **Dependency direction.** `ride` → `components`, `api`, `domain`, `video`, `world`; `domain` →
-  `api`; `components` → `api` for types only; `video` → `api`; `world` → `api`; `api` → nothing;
-  `marketing` → `components`, `api`. No library imports an app. `ride`'s
+  `api`; `components` → `api` for types only; `video` → `api`; `world` → `api`; `api` → nothing.
+  No library imports an app. `ride`'s
   `app.config.ts` is the composition root and binds every token, except those the first screen
   brings, which the lazy parent route in `ride.routes.ts` binds so their code stays out of the
   initial bundle. ESLint enforces it. A new library takes its place in this direction, and the
@@ -215,7 +225,7 @@ it has to stay as smooth at the end of the ride as at the start. A change that g
 bundle or leaks memory is not done, whatever else it achieves.
 
 - **Load only what is needed now.** Every route uses `loadComponent`/`loadChildren`; heavy or
-  below-the-fold UI uses `@defer`; large libraries (Three.js, World Ride, video, charts) and
+  below-the-fold UI uses `@defer`; large libraries (Three.js, the course's renderer, video, charts) and
   whole feature libraries are imported dynamically, never from the initial chunk. Keep the
   initial bundle small and the `angular.json` budgets tight; raising a budget needs a reason in
   the change.
@@ -230,13 +240,13 @@ bundle or leaks memory is not done, whatever else it achieves.
   Nothing accumulates without a limit for the length of a ride.
 - **Scope state to its use.** Provide services at the route or component that needs them, not
   in `root`, unless the whole app shares them. A screen's state goes when the rider leaves it.
-- **Prove it.** Leaving a screen returns its memory: a feature that allocates heavily (World
-  Ride, video) is checked for a stable heap across repeated enter and leave, and
+- **Prove it.** Leaving a screen returns its memory: a feature that allocates heavily (the
+  course, video) is checked for a stable heap across repeated enter and leave, and
   like the visual and accessibility sweeps, these heap checks run only when a person asks.
 
 ## Low-power rendering
 
-The frontend, World rendering (Three.js, WebGPU, TSL) and their detail are scaled back to run
+The frontend, the course's rendering (Three.js, WebGPU, TSL) and their detail are scaled back to run
 smoothly on low-power devices, while still using every technique the reference projects teach
 for a beautiful, realistic, high-quality picture. Choose the cheap form of a technique (baked,
 lower resolution, fewer samples, LOD) before dropping it.
