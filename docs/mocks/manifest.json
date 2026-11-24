@@ -97,13 +97,15 @@
       "route": "/ride",
       "requirements": [
         "L2-175",
+        "L2-178",
         "L2-179"
       ],
       "states": [
         "default",
         "loading",
         "landed",
-        "bike-lost"
+        "bike-lost",
+        "recording"
       ],
       "not_applicable": {
         "empty": "The flyover always has the course’s name and the bike; there is nothing to be empty of.",
@@ -154,10 +156,13 @@
         "video-unavailable-by-hand",
         "disconnected",
         "disconnected-ibiza",
+        "countdown-disconnected",
         "finish",
         "finish-ibiza",
         "rolling-on",
         "rolling-on-ibiza",
+        "finish-by-hand",
+        "rolling-on-by-hand",
         "recording"
       ],
       "not_applicable": {

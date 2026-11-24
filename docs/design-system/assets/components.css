@@ -1269,6 +1269,11 @@ textarea.input { height: auto; min-height: var(--space-28); padding-block: var(-
 /* On Class Ride: a landscape window from md does not scroll and its foot is the bike panel, every part of it a readout
    or a control, so the mark stands above the panel, on the bottom-left corner of the video or the course. */
 @media (min-width: 48rem) and (orientation: landscape) { .diagnostic-mark--on-class-ride { --diagnostic-mark-inset: var(--space-7); --diagnostic-mark-lift: var(--space-36); } }
+/* On Ibiza Flyover the foot of the screen is the band (the course's name, the caption, the bike's status), so the mark
+   stands just above it, on the bottom-left corner of the course, and lies over no word. The lift is the band's minimum
+   height plus a gap: the band's column below sm and its row from sm. */
+.diagnostic-mark--on-ibiza-flyover { --diagnostic-mark-lift: calc(var(--space-40) + var(--space-2)); }
+@media (min-width: 40rem) { .diagnostic-mark--on-ibiza-flyover { --diagnostic-mark-lift: calc(var(--space-36) + var(--space-2)); } }
 
 /* ---------- Diagnostic recording dialog: the platform's <dialog>, opened with showModal() ----------
    The browser gives the top layer, the inert page, the focus trap, Escape and the dialog role. A sheet at the foot of

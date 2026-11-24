@@ -129,13 +129,11 @@ the plan built riding in Ibiza (L2-174 to L2-177).
   course in the box and its loading.
 - **Journey 39** follows Class Ride (31.1 to 31.3), riding in Ibiza (journey 37) and Class Done
   (32.2). Its mocks are drawn (`ibiza-flyover/*`, and Class Ride's `countdown`, `countdown-ibiza`,
-  `go-ibiza`, `finish`, `finish-ibiza`, `rolling-on` and `rolling-on-ibiza`); its detailed designs
-  are not yet written. 39.1 comes first, because it moves the start of the clock that every later
+  `countdown-disconnected`, `go-ibiza`, `finish`, `finish-ibiza`, `finish-by-hand`, `rolling-on`,
+  `rolling-on-ibiza` and `rolling-on-by-hand`) and so are its detailed designs (the plan is
+  `docs/plans/journey-39-the-shape-of-a-ride.md`). 39.1 comes first, because it moves the start of the clock that every later
   slice counts from; 39.2 and 39.3 follow in that order, and 39.4 needs both. 39.5 follows 39.1,
-  since the flyover lands on the countdown; 39.6 follows 39.5. Three mocks are still to draw
-  (`specs/L2.md`, *Mock gaps*): the bike lost during the countdown before 39.1, the finish on a
-  bike that gives no control before 39.3, and the recording mark on Ibiza Flyover before 39.5.
-  L2's open questions 41 to 46 are theirs: the timings (42) and the frames from above (45) are
+  since the flyover lands on the countdown; 39.6 follows 39.5. L2's open questions 41 to 46 are theirs: the timings (42) and the frames from above (45) are
   tried on a bike and a tablet by 39.3 and 39.6.
 - **Journey 38** follows everything it records: the link (2.4, 29.1), the decoders (3.1), the
   commands (4.1) and Class Ride (31.1). 38.1 comes first, because every later slice is proved by
