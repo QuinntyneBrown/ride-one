@@ -76,8 +76,9 @@ Where these depart from the frames, and why:
   and level 11 as the banner shows, 82 W at 70 rpm and level 4 four seconds into the roll-out,
   by L2-023's formula.
 
-No component page was written in `../design-system/components/` for the four new blocks; their
-styles are in `../design-system/assets/components.css`.
+The four new blocks have component pages in `../design-system/components/` (`ibiza-flyover`,
+`countdown`, `finish-banner` and `roll-out`); their styles are in
+`../design-system/assets/components.css`.
 
 ## The diagnostic recording
 

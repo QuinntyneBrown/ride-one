@@ -3,25 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Number stepper — Telo Ride design system</title>
-<meta name="description" content="Minus, value, plus for values nudged in fixed steps: interval lengths, warm-up and cool-down, duration, cadence goal, the video offset; with a 48px ride size.">
+<title>Resistance stepper — Telo Ride 1 design system</title>
+<meta name="description" content="Lower, the level, raise: the bike’s resistance, and the rider’s way to nudge it mid-ride.">
 <link rel="stylesheet" href="../tokens/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
 <link rel="stylesheet" href="../assets/ds.css">
-<style>
-  .ds-pairs-stack { display: flex; flex-direction: column; gap: var(--space-2); }
-  .ds-matrix td { min-width: var(--space-28); }
-  .ds-demo-col { display: flex; flex-direction: column; gap: var(--space-4); width: 100%; max-width: calc(var(--space-48) * 2); }
-  .ds-demo-wide { width: 100%; max-width: calc(var(--space-36) * 4); }
-  .ds-demo-panel { background: var(--color-panel); border: var(--border-width-hairline) solid var(--color-line); border-radius: var(--radius-2xl); padding: var(--space-5); width: 100%; }
-  .ds-menu-stage { min-height: calc(var(--space-44) * 2); align-items: flex-start; }
-</style>
 </head>
 <body id="top">
 <a class="ds-skip" href="#main">Skip to content</a>
 <div class="ds-shell">
   <nav class="ds-nav" aria-label="Design system">
-    <div class="ds-nav__brand"><a href="../index.html">Telo Ride DS</a><button class="ds-theme-toggle" type="button" aria-pressed="true">☀ Light</button></div>
+    <div class="ds-nav__brand"><a href="../index.html">Telo Ride 1 DS</a><button class="ds-theme-toggle" type="button" aria-pressed="true">☀ Light</button></div>
     <details open><summary>Foundations</summary><ul>
       <li><a href="../foundations/color.html">Color</a></li>
       <li><a href="../foundations/typography.html">Typography</a></li>
@@ -36,369 +28,260 @@
       <li><a href="../foundations/accessibility.html">Accessibility</a></li>
       <li><a href="../foundations/content.html">Content</a></li>
     </ul></details>
-    <details open><summary>Actions</summary><ul>
-      <li><a href="../components/button.html">Button</a></li>
-      <li><a href="../components/button-group.html">Button group</a></li>
-      <li><a href="../components/link.html">Link</a></li>
-      <li><a href="../components/menu.html">Menu</a></li>
-    </ul></details>
-    <details open><summary>Inputs</summary><ul>
-      <li><a href="../components/form-field.html">Form field</a></li>
-      <li><a href="../components/text-field.html">Text field</a></li>
-      <li><a href="../components/textarea.html">Textarea</a></li>
-      <li><a href="../components/select.html">Select</a></li>
-      <li><a href="../components/checkbox.html">Checkbox</a></li>
-      <li><a href="../components/radio-group.html">Radio group</a></li>
-      <li><a href="../components/switch.html">Switch</a></li>
-      <li><a href="../components/slider.html">Slider</a></li>
-      <li><a href="../components/number-stepper.html">Number stepper</a></li>
-      <li><a href="../components/form-layout.html">Form layout</a></li>
-    </ul></details>
-    <details open><summary>Navigation</summary><ul>
+    <details open><summary>Components</summary><ul>
+      <li><a href="../components/alert.html">Alert</a></li>
       <li><a href="../components/app-header.html">App header</a></li>
-      <li><a href="../components/sidebar-nav.html">Sidebar navigation</a></li>
-      <li><a href="../components/tabs.html">Tabs</a></li>
-      <li><a href="../components/breadcrumb.html">Breadcrumb</a></li>
-      <li><a href="../components/pagination.html">Pagination</a></li>
-      <li><a href="../components/skip-link.html">Skip link</a></li>
-    </ul></details>
-    <details open><summary>Containers and overlays</summary><ul>
-      <li><a href="../components/container.html">Container and grid</a></li>
-      <li><a href="../components/card.html">Card</a></li>
-      <li><a href="../components/dialog.html">Dialog</a></li>
-      <li><a href="../components/popover.html">Popover</a></li>
-      <li><a href="../components/tooltip.html">Tooltip</a></li>
-      <li><a href="../components/divider.html">Divider</a></li>
-    </ul></details>
-    <details open><summary>Data display</summary><ul>
-      <li><a href="../components/table.html">Table</a></li>
-      <li><a href="../components/list.html">List</a></li>
-      <li><a href="../components/description-list.html">Description list</a></li>
       <li><a href="../components/avatar.html">Avatar</a></li>
       <li><a href="../components/badge.html">Badge</a></li>
+      <li><a href="../components/ride-readout.html">Bike panel</a></li>
+      <li><a href="../components/breadcrumb.html">Breadcrumb</a></li>
+      <li><a href="../components/button.html">Button</a></li>
+      <li><a href="../components/card.html">Card</a></li>
+      <li><a href="../components/checkbox.html">Checkbox</a></li>
       <li><a href="../components/chip.html">Chip</a></li>
-      <li><a href="../components/stat.html">Stat</a></li>
-      <li><a href="../components/code-block.html">Code block</a></li>
-    </ul></details>
-    <details open><summary>Feedback</summary><ul>
-      <li><a href="../components/toast.html">Toast</a></li>
-      <li><a href="../components/alert.html">Alert and banner</a></li>
-      <li><a href="../components/inline-message.html">Inline message</a></li>
-      <li><a href="../components/progress-bar.html">Progress bar</a></li>
-      <li><a href="../components/spinner.html">Spinner</a></li>
-      <li><a href="../components/skeleton.html">Skeleton</a></li>
+      <li><a href="../components/class-done.html">Class Done</a></li>
+      <li><a href="../components/video.html">Class video</a></li>
+      <li><a href="../components/container.html">Container</a></li>
+      <li><a href="../components/countdown.html">Countdown</a></li>
+      <li><a href="../components/course.html">Course</a></li>
+      <li><a href="../components/description-list.html">Description list</a></li>
+      <li><a href="../components/device-list.html">Device list</a></li>
+      <li><a href="../components/diagnostic-panel.html">Diagnostic panel</a></li>
+      <li><a href="../components/dialog.html">Dialog</a></li>
+      <li><a href="../components/divider.html">Divider</a></li>
       <li><a href="../components/empty-state.html">Empty state</a></li>
       <li><a href="../components/error-page.html">Error page</a></li>
-    </ul></details>
-    <details open><summary>Brand and progress</summary><ul>
-      <li><a href="../components/lockup.html">Logo lockup</a></li>
-      <li><a href="../components/level-badge.html">Level badge</a></li>
-      <li><a href="../components/stars.html">Stars</a></li>
-      <li><a href="../components/photo-tag.html">Photo tag</a></li>
-      <li><a href="../components/section-head.html">Section head</a></li>
-    </ul></details>
-    <details open><summary>Ride</summary><ul>
-      <li><a href="../components/map-card.html">Map card</a></li>
-      <li><a href="../components/class-card.html">Class card</a></li>
-      <li><a href="../components/next-ride.html">Next ride</a></li>
-      <li><a href="../components/leaderboard.html">Leaderboard</a></li>
-      <li><a href="../components/device-list.html">Device list</a></li>
-      <li><a href="../components/video.html">Video</a></li>
+      <li><a href="../components/finish-banner.html">Finish banner</a></li>
+      <li><a href="../components/form-field.html">Form field</a></li>
+      <li><a href="../components/form-layout.html">Form layout</a></li>
+      <li><a href="../components/ibiza-flyover.html">Ibiza Flyover</a></li>
+      <li><a href="../components/inline-message.html">Inline message</a></li>
+      <li><a href="../components/link.html">Link</a></li>
+      <li><a href="../components/list.html">List</a></li>
+      <li><a href="../components/lockup.html">Lockup</a></li>
+      <li><a href="../components/menu.html">Menu</a></li>
+      <li><a href="../components/pagination.html">Pagination</a></li>
       <li><a href="../components/plan-chart.html">Plan chart</a></li>
-      <li><a href="../components/route-profile.html">Route profile</a></li>
-      <li><a href="../components/ride-readout.html">Ride readout</a></li>
-      <li><a href="../components/hud-panel.html">HUD panel</a></li>
-      <li><a href="../components/countdown.html">Countdown</a></li>
-      <li><a href="../components/ride-trace.html">Ride trace</a></li>
+      <li><a href="../components/progress-bar.html">Progress bar</a></li>
+      <li><a href="../components/radio-group.html">Radio group</a></li>
+      <li><a href="../components/recording-mark.html">Recording mark</a></li>
+      <li><a href="../components/number-stepper.html">Resistance stepper</a></li>
+      <li><a href="../components/roll-out.html">Roll-out</a></li>
+      <li><a href="../components/select.html">Select</a></li>
+      <li><a href="../components/sidebar-nav.html">Sidebar navigation</a></li>
+      <li><a href="../components/skeleton.html">Skeleton</a></li>
+      <li><a href="../components/skip-link.html">Skip link</a></li>
+      <li><a href="../components/spinner.html">Spinner</a></li>
+      <li><a href="../components/stat.html">Stat</a></li>
+      <li><a href="../components/switch.html">Switch</a></li>
+      <li><a href="../components/table.html">Table</a></li>
+      <li><a href="../components/tabs.html">Tabs</a></li>
+      <li><a href="../components/text-field.html">Text field</a></li>
+      <li><a href="../components/textarea.html">Textarea</a></li>
+      <li><a href="../components/the-class.html">The Class</a></li>
+      <li><a href="../components/toast.html">Toast</a></li>
+      <li><a href="../components/tooltip.html">Tooltip</a></li>
     </ul></details>
     <details open><summary>Patterns</summary><ul>
       <li><a href="../patterns/forms.html">Forms</a></li>
       <li><a href="../patterns/feedback-and-loading.html">Feedback and loading</a></li>
       <li><a href="../patterns/empty-and-error-states.html">Empty and error states</a></li>
-      <li><a href="../patterns/navigation.html">Navigation and page structure</a></li>
+      <li><a href="../patterns/navigation.html">Navigation</a></li>
       <li><a href="../patterns/dialogs-and-overlays.html">Dialogs and overlays</a></li>
       <li><a href="../patterns/data-tables-and-lists.html">Data tables and lists</a></li>
       <li><a href="../patterns/notifications.html">Notifications</a></li>
       <li><a href="../patterns/content-and-tone.html">Content and tone</a></li>
-      <li><a href="../patterns/live-ride.html">Live ride</a></li>
+      <li><a href="../patterns/live-ride.html">The shape of a ride</a></li>
     </ul></details>
   </nav>
   <main id="main" class="ds-main">
     <header class="ds-header">
       <p class="ds-kicker">Component · Inputs</p>
-      <h1>Number stepper</h1>
-      <p class="ds-lead">A number stepper nudges a value up or down by a fixed amount: 30 seconds on an effort, a minute on the warm-up, 5 rpm on the cadence goal. The value sits large between two square buttons, so the rider sees the result of every tap.</p>
-      <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span><span class="ds-pill">Status: stable</span><span class="ds-pill">Since v1.0</span></div>
+      <h1>Resistance stepper</h1>
+      <p class="ds-lead">Lower, the level, raise: the bike’s resistance, and the rider’s way to nudge it mid-ride.</p>
+      <div class="ds-meta"><span class="ds-pill ds-pill--ok">WCAG 2.2 AA</span><span class="ds-pill">Status: stable</span><span class="ds-pill">In the mocks</span></div>
       <ul class="ds-toc"><li><a href="#overview">Overview</a></li><li><a href="#anatomy">Anatomy</a></li><li><a href="#variants">Variants</a></li><li><a href="#sizes">Sizes</a></li><li><a href="#states">States</a></li><li><a href="#responsive">Responsive</a></li><li><a href="#theming">Theming</a></li><li><a href="#accessibility">Accessibility</a></li><li><a href="#content">Content</a></li><li><a href="#do-dont">Do and don't</a></li><li><a href="#tokens">Tokens</a></li><li><a href="#code">Code</a></li><li><a href="#sources">Sources</a></li></ul>
     </header>
-    <section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
-      <p>Use a stepper when the value moves in known steps inside a known range and the rider usually wants a nearby value: the interval ladder on Custom Setup, warm-up and cool-down, a flat ride's duration and cadence goal, the video offset ("Half a second earlier"). Use a <a class="link" href="slider.html">slider</a> when the range is wide and position matters (resistance 1–32), and a <a class="link" href="text-field.html">text field</a> when the rider knows the exact value to type.</p>
-      <p>Three sizes share one anatomy: <code>.mini-stepper</code> (28px buttons, inside dense rows like the interval ladder), <code>.training-stepper</code> (40px, a labelled setting), and <code>.training-stepper--ride</code> (48px, anything pressed during a ride).</p>
-    </section>
+<section class="ds-section" id="overview"><h2><a href="#overview">Overview</a></h2>
+<p>The class’s plan sets the <b>target resistance</b> for every segment; the rider just pedals. The stepper (<code>.class-resist</code>) shows the bike’s <b>resistance</b>, 1 to 32, and lets the rider step it down or up by one when a segment is too much or too little.</p>
+<p>It is the only stepper in Telo Ride 1. It is off (both buttons disabled) at the finish and through the roll-out, and when the bike gives no control of its resistance.</p>
+</section>
 
-    <section class="ds-section" id="anatomy"><h2><a href="#anatomy">Anatomy</a></h2>
-      <div class="ds-anatomy">
-        <figure class="ds-anatomy__figure">
-          <div class="training-stepper" role="group" aria-labelledby="an-st" style="width: 100%; max-width: calc(var(--space-40) * 2);">
-            <div class="training-stepper__label" id="an-st">Warm-up</div>
-            <div class="training-stepper__row">
-              <button class="training-stepper__btn" type="button" aria-label="Shorter warm-up"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
-              <output class="training-stepper__value" aria-live="polite">5:00</output>
-              <button class="training-stepper__btn" type="button" aria-label="Longer warm-up"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
-            </div>
-          </div>
-          <span class="ds-callout" style="left: 12%; top: 8%;" aria-hidden="true">1</span>
-          <span class="ds-callout" style="left: 14%; top: 92%;" aria-hidden="true">2</span>
-          <span class="ds-callout" style="left: 50%; top: 92%;" aria-hidden="true">3</span>
-          <span class="ds-callout" style="left: 86%; top: 92%;" aria-hidden="true">4</span>
-        </figure>
-        <ol class="ds-anatomy__list">
-          <li><div><b>Label</b><small>14px muted; names the group (<code>role="group"</code> <code>aria-labelledby</code>).</small></div></li>
-          <li><div><b>Decrease</b><small>40px square <code>.training-stepper__btn</code>, raised, <code>--radius-lg</code>, minus icon.</small></div></li>
-          <li><div><b>Value</b><small><code>&lt;output aria-live="polite"&gt;</code>, 30px display numerals with tabular figures, unit inline ("30 min", "85 rpm").</small></div></li>
-          <li><div><b>Increase</b><small>Same button with a plus icon.</small></div></li>
-        </ol>
-      </div>
-    </section>
-
-    <section class="ds-section" id="variants"><h2><a href="#variants">Variants</a></h2>
-      <h3>Labelled stepper pair (live)</h3>
-      <div class="ds-example">
-        <div class="ds-example__canvas ds-example__canvas--stack">
-          <div class="training-steppers ds-demo-wide" style="margin-top: 0;">
-            <div class="training-stepper" role="group" aria-labelledby="v-dur" data-stepper data-value="30" data-min="10" data-max="90" data-step="5" data-format="min">
-              <div class="training-stepper__label" id="v-dur">Duration</div>
-              <div class="training-stepper__row"><button class="training-stepper__btn" type="button" data-step-dir="-1" aria-label="Shorter duration"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><output class="training-stepper__value" aria-live="polite">30 min</output><button class="training-stepper__btn" type="button" data-step-dir="1" aria-label="Longer duration"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div>
-            </div>
-            <div class="training-stepper" role="group" aria-labelledby="v-cad" data-stepper data-value="85" data-min="60" data-max="110" data-step="5" data-format="rpm">
-              <div class="training-stepper__label" id="v-cad">Cadence goal</div>
-              <div class="training-stepper__row"><button class="training-stepper__btn" type="button" data-step-dir="-1" aria-label="Lower cadence goal"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><output class="training-stepper__value" aria-live="polite">85 rpm</output><button class="training-stepper__btn" type="button" data-step-dir="1" aria-label="Higher cadence goal"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div>
-            </div>
-          </div>
-        </div>
-        <div class="ds-example__caption"><span>The flat ride's settings (<code>.training-steppers</code>, two-up from 640px). Each tap steps by 5; the buttons take <code>aria-disabled</code> at the limits so focus stays on them.</span></div>
-        <details class="ds-example__code"><summary>HTML</summary><pre><code>&lt;div class="training-stepper" role="group" aria-labelledby="duration-label"&gt;
-  &lt;div class="training-stepper__label" id="duration-label"&gt;Duration&lt;/div&gt;
-  &lt;div class="training-stepper__row"&gt;
-    &lt;button class="training-stepper__btn" type="button" aria-label="Shorter duration"&gt;…&lt;/button&gt;
-    &lt;output class="training-stepper__value" aria-live="polite"&gt;30 min&lt;/output&gt;
-    &lt;button class="training-stepper__btn" type="button" aria-label="Longer duration"&gt;…&lt;/button&gt;
-  &lt;/div&gt;
-&lt;/div&gt;</code></pre></details>
-      </div>
-      <h3>Mini stepper in the interval ladder (live)</h3>
-      <div class="ds-example">
-        <div class="ds-example__canvas ds-example__canvas--stack">
-          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4);">
-            <div class="mini-stepper" role="group" aria-label="Effort 1" data-stepper data-value="30" data-min="10" data-max="300" data-step="10" data-format="time"><button class="mini-stepper__btn" type="button" data-step-dir="-1" aria-label="Shorter effort 1"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><output class="mini-stepper__value" aria-live="polite">0:30</output><button class="mini-stepper__btn" type="button" data-step-dir="1" aria-label="Longer effort 1"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div>
-            <div class="mini-stepper" role="group" aria-label="Recovery 1" data-stepper data-value="180" data-min="30" data-max="600" data-step="30" data-format="time"><button class="mini-stepper__btn" type="button" data-step-dir="-1" aria-label="Shorter recovery 1"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><output class="mini-stepper__value" aria-live="polite">3:00</output><button class="mini-stepper__btn" type="button" data-step-dir="1" aria-label="Longer recovery 1"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div>
-          </div>
-        </div>
-        <div class="ds-example__caption"><span>One ladder round: effort 0:30 and recovery 3:00. 28px buttons fit the dense row; the value is 18px.</span></div>
-      </div>
-      <h3>Ride size</h3>
-      <div class="ds-example">
-        <div class="ds-example__canvas ds-example__canvas--stack">
-          <div class="training-stepper training-stepper--ride ds-demo-col" role="group" aria-labelledby="v-ride" data-stepper data-value="85" data-min="60" data-max="110" data-step="5" data-format="rpm">
-            <div class="training-stepper__label" id="v-ride">Cadence goal</div>
-            <div class="training-stepper__row"><button class="training-stepper__btn" type="button" data-step-dir="-1" aria-label="Lower cadence goal (ride)"><svg class="icon icon--lg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><output class="training-stepper__value" aria-live="polite">85 rpm</output><button class="training-stepper__btn" type="button" data-step-dir="1" aria-label="Higher cadence goal (ride)"><svg class="icon icon--lg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div>
-          </div>
-        </div>
-        <div class="ds-example__caption"><span><code>.training-stepper--ride</code>: 48px buttons (<code>--target-ride</code>) for anything a rider presses mid-ride, with sweaty hands and a moving body. The custom ride's own resistance control uses the 64px <code>.ride-step</code> (see <a class="link" href="hud-panel.html">HUD panel</a>).</span></div>
-      </div>
-      <h3>Stepper around a typed value</h3>
-      <div class="ds-example">
-        <div class="ds-example__canvas ds-example__canvas--stack">
-          <div class="field ds-demo-col"><label class="field__label" for="v-off">Ride 0:00 starts at</label><div class="slider-row" style="margin-top: 0;"><button class="training-stepper__btn" type="button" aria-label="Half a second earlier"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><input class="input input--lg" id="v-off" type="text" inputmode="decimal" value="0:12.0" style="text-align: center;"><button class="training-stepper__btn" type="button" aria-label="Half a second later"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></div>
-        </div>
-        <div class="ds-example__caption"><span>The video offset: buttons step by half a second, and the field takes an exact time. Here the value is an <code>.input</code> with a label, not a bare borderless field.</span></div>
-      </div>
-    </section>
-
-    <section class="ds-section" id="sizes"><h2><a href="#sizes">Sizes</a></h2>
-      <div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Size</th><th scope="col">Buttons</th><th scope="col">Value</th><th scope="col">Use</th></tr></thead><tbody>
-        <tr><td><code>.mini-stepper</code></td><td>28px (<code>--space-7</code>), <code>--radius-md</code></td><td>18px, 48px wide</td><td>Dense rows: the interval ladder.</td></tr>
-        <tr><td><code>.training-stepper</code></td><td>40px (<code>--space-10</code>), <code>--radius-lg</code></td><td>30px</td><td>A labelled setting on a setup screen.</td></tr>
-        <tr><td><code>.training-stepper--ride</code></td><td>48px (<code>--target-ride</code>), <code>--radius-xl</code></td><td>30px</td><td>Anything pressed during a ride.</td></tr>
-      </tbody></table></div>
-    </section>
-
-    <section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
-      <div class="ds-matrix"><table>
-        <thead><tr><th scope="col">Size</th><th scope="col">Default</th><th scope="col">Hover</th><th scope="col">Focus</th><th scope="col">Active</th><th scope="col">Disabled</th><th scope="col">At limit</th></tr></thead>
-        <tbody>
-          <tr><th scope="row">Mini</th>
-            <td><button class="mini-stepper__btn" type="button" aria-label="Longer, default"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td>
-            <td><button class="mini-stepper__btn" type="button" aria-label="Longer, hover" data-state="hover"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td>
-            <td><button class="mini-stepper__btn" type="button" aria-label="Longer, focus" data-state="focus"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td>
-            <td><button class="mini-stepper__btn" type="button" aria-label="Longer, active" data-state="active"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td>
-            <td><button class="mini-stepper__btn" type="button" aria-label="Longer, disabled" disabled><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td>
-            <td><button class="mini-stepper__btn" type="button" aria-label="Longer, at limit" aria-disabled="true"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td></tr>
-          <tr><th scope="row">Default</th>
-            <td><button class="training-stepper__btn" type="button" aria-label="Longer warm-up, default"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td>
-            <td><button class="training-stepper__btn" type="button" aria-label="Longer warm-up, hover" data-state="hover"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td>
-            <td><button class="training-stepper__btn" type="button" aria-label="Longer warm-up, focus" data-state="focus"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td>
-            <td><button class="training-stepper__btn" type="button" aria-label="Longer warm-up, active" data-state="active"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td>
-            <td><button class="training-stepper__btn" type="button" aria-label="Longer warm-up, disabled" disabled><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td>
-            <td><button class="training-stepper__btn" type="button" aria-label="Longer warm-up, at limit" aria-disabled="true"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td></tr>
-          <tr><th scope="row">Ride</th>
-            <td><div class="training-stepper--ride"><button class="training-stepper__btn" type="button" aria-label="Higher, default"><svg class="icon icon--lg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></td>
-            <td><div class="training-stepper--ride"><button class="training-stepper__btn" type="button" aria-label="Higher, hover" data-state="hover"><svg class="icon icon--lg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></td>
-            <td><div class="training-stepper--ride"><button class="training-stepper__btn" type="button" aria-label="Higher, focus" data-state="focus"><svg class="icon icon--lg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></td>
-            <td><div class="training-stepper--ride"><button class="training-stepper__btn" type="button" aria-label="Higher, active" data-state="active"><svg class="icon icon--lg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></td>
-            <td><div class="training-stepper--ride"><button class="training-stepper__btn" type="button" aria-label="Higher, disabled" disabled><svg class="icon icon--lg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></td>
-            <td><div class="training-stepper--ride"><button class="training-stepper__btn" type="button" aria-label="Higher, at limit" aria-disabled="true"><svg class="icon icon--lg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></td></tr>
-        </tbody>
-      </table></div>
-      <p><b>Hover</b> lifts the fill from raised to line; <b>active</b> scales to 96%. <b>Disabled</b> (<code>disabled</code>) is for a whole stepper that does not apply; <b>at limit</b> (<code>aria-disabled="true"</code>) is one button at the end of the range, which keeps focus and simply does nothing.</p>
-      <h3>Both themes</h3>
-      <div class="ds-themes">
-        <div data-theme="light"><div class="training-steppers" style="margin-top: 0;"><div class="training-stepper" role="group" aria-labelledby="th-l1"><div class="training-stepper__label" id="th-l1">Warm-up</div><div class="training-stepper__row"><button class="training-stepper__btn" type="button" aria-label="Shorter warm-up (light)"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><output class="training-stepper__value">5:00</output><button class="training-stepper__btn" type="button" aria-label="Longer warm-up (light)"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></div><div class="training-stepper" role="group" aria-labelledby="th-l2"><div class="training-stepper__label" id="th-l2">Cool-down</div><div class="training-stepper__row"><button class="training-stepper__btn" type="button" aria-label="Shorter cool-down (light)"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><output class="training-stepper__value">6:00</output><button class="training-stepper__btn" type="button" aria-label="Longer cool-down (light)"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></div></div></div>
-        <div data-theme="dark"><div class="training-steppers" style="margin-top: 0;"><div class="training-stepper" role="group" aria-labelledby="th-d1"><div class="training-stepper__label" id="th-d1">Warm-up</div><div class="training-stepper__row"><button class="training-stepper__btn" type="button" aria-label="Shorter warm-up (dark)"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><output class="training-stepper__value">5:00</output><button class="training-stepper__btn" type="button" aria-label="Longer warm-up (dark)"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></div><div class="training-stepper" role="group" aria-labelledby="th-d2"><div class="training-stepper__label" id="th-d2">Cool-down</div><div class="training-stepper__row"><button class="training-stepper__btn" type="button" aria-label="Shorter cool-down (dark)"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><output class="training-stepper__value">6:00</output><button class="training-stepper__btn" type="button" aria-label="Longer cool-down (dark)"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></div></div></div>
-      </div>
-    </section>
-
-    <section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive behaviour</a></h2>
-      <div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Width</th><th scope="col">Rule</th></tr></thead><tbody>
-        <tr><td>360 (base)</td><td>Labelled steppers stack one per row, buttons at the edges and the value centred between them. Mini steppers keep their size; a ladder row wraps its second stepper under the first if it must.</td></tr>
-        <tr><td>640 (sm)</td><td><code>.training-steppers</code> goes two-up (Warm-up | Cool-down, Duration | Cadence goal).</td></tr>
-        <tr><td>1024 (lg)</td><td>No change; the setup column caps the width so the buttons stay near the value.</td></tr>
-      </tbody></table></div>
-    </section>
-
-    <section class="ds-section" id="theming"><h2><a href="#theming">Theming</a></h2>
-      <p>Buttons read <code>--color-raised</code> (hover <code>--color-line</code>) with <code>--color-fg</code> icons; the value is <code>--color-fg</code> in the display face. Raised sits one step above the panel in both themes, so the buttons read as pressable on paper and on ink.</p>
-    </section>
-
-    <section class="ds-section" id="accessibility"><h2><a href="#accessibility">Accessibility</a></h2>
-      <h3>Role and pattern</h3>
-      <p>A <code>role="group"</code> named by its label, holding two named buttons and an <code>&lt;output aria-live="polite"&gt;</code> so each change is read ("5:30"). This is the simpler alternative to the <a class="link" href="https://www.w3.org/WAI/ARIA/apg/patterns/spinbutton/">APG Spinbutton pattern</a>: two plain buttons are easier on touch and need no custom keys. Where the value can be typed (the video offset), the field is a labelled <code>&lt;input&gt;</code>.</p>
-      <h3>Keyboard</h3>
-      <div class="ds-table-wrap"><table class="ds-table ds-keys"><thead><tr><th scope="col">Key</th><th scope="col">Action</th></tr></thead><tbody>
-        <tr><td><kbd>Tab</kbd></td><td>Decrease button, then increase button (the output is not a tab stop).</td></tr>
-        <tr><td><kbd>Enter</kbd> / <kbd>Space</kbd></td><td>One step; held, the key repeats.</td></tr>
-      </tbody></table></div>
-      <h3>Focus</h3>
-      <p>The shared ring around each square button at a 2px offset. At a limit the button keeps focus (<code>aria-disabled</code>) instead of dropping it to the page.</p>
-      <h3>Labelling</h3>
-      <p>Buttons are named for the direction and the setting: "Shorter warm-up", "Longer effort 1", "Half a second earlier". The group label names the setting once for the screen reader.</p>
-      <h3>Contrast</h3>
-      <div class="ds-themes">
-<div data-theme="light"><div class="ds-pairs-stack">
-<div class="ds-pair"><span>Icon on button</span><span class="ds-pair__ratio" data-contrast="--color-fg|--color-raised" data-min="4.5"></span></div>
-<div class="ds-pair"><span>Value</span><span class="ds-pair__ratio" data-contrast="--color-fg|--color-ink" data-min="4.5"></span></div>
-<div class="ds-pair"><span>Label</span><span class="ds-pair__ratio" data-contrast="--color-muted|--color-ink" data-min="4.5"></span></div>
-</div></div>
-<div data-theme="dark"><div class="ds-pairs-stack">
-<div class="ds-pair"><span>Icon on button</span><span class="ds-pair__ratio" data-contrast="--color-fg|--color-raised" data-min="4.5"></span></div>
-<div class="ds-pair"><span>Value</span><span class="ds-pair__ratio" data-contrast="--color-fg|--color-ink" data-min="4.5"></span></div>
-<div class="ds-pair"><span>Label</span><span class="ds-pair__ratio" data-contrast="--color-muted|--color-ink" data-min="4.5"></span></div>
-</div></div>
+<section class="ds-section" id="anatomy"><h2><a href="#anatomy">Anatomy</a></h2>
+<div class="ds-anatomy">
+<figure class="ds-anatomy__figure"><div class="ds-anatomy__target"><div class="ds-w-sm"><div class="class-resist class-stat--wide">
+<button aria-label="Lower resistance" class="class-resist__btn" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+<div aria-label="Resistance 13 of 32" class="class-resist__value"><div class="class-resist__level">13</div><div class="class-resist__of">of 32</div></div>
+<button aria-label="Raise resistance" class="class-resist__btn" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+</div></div></div></figure>
+<ol class="ds-anatomy__list">
+<li><div><b>Cell</b><small><code>--color-panel</code>, 12px radius, 12px padding; the last cell of the <a href="ride-readout.html">bike panel</a>.</small></div></li>
+<li><div><b>Lower / Raise</b><small>48 × 48px buttons on <code>--color-raised</code>, 8px radius, with a 20px minus or plus.</small></div></li>
+<li><div><b>Level</b><small>The display face, 36px, tabular.</small></div></li>
+<li><div><b>“of 32”</b><small>12px, muted: the scale’s top, so “13” is never a bare number.</small></div></li>
+</ol>
 </div>
-      <p>The button fill against the page is below 3:1, which 1.4.11 allows because the icon, not the fill, identifies the control.</p>
-      <h3>Motion</h3>
-      <p>Active scale over <code>--duration-fast</code>; none under reduced motion.</p>
-      <h3>Touch</h3>
-      <p>28px mini buttons clear 24px (2.5.8) with 6px between them; use them only in dense rows. Setup screens use 40px, ride screens 48px.</p>
-    </section>
+</section>
 
-    <section class="ds-section" id="content"><h2><a href="#content">Content</a></h2>
-      <ul>
-        <li>Times as m:ss ("0:30", "5:00"); durations with a unit ("30 min"); cadence "85 rpm".</li>
-        <li>Button names in sentence case, direction first: "Shorter warm-up", not "Less Warm-up".</li>
-        <li>Say the step when it is not obvious, in the hint or the button name ("Half a second earlier").</li>
-      </ul>
-    </section>
+<section class="ds-section" id="variants"><h2><a href="#variants">Variants</a></h2>
+<p>One stepper. It has no variants.</p>
+</section>
 
-    <section class="ds-section" id="do-dont"><h2><a href="#do-dont">Do and don't</a></h2>
-      <div class="ds-dodont">
-        <figure class="ds-do"><div class="ds-example__canvas"><div class="training-stepper" role="group" aria-label="Warm-up (do)" style="width: 100%;"><div class="training-stepper__row" style="margin: 0;"><button class="training-stepper__btn" type="button" aria-label="Shorter warm-up (do)"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><output class="training-stepper__value" aria-live="polite">5:00</output><button class="training-stepper__btn" type="button" aria-label="Longer warm-up (do)"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></div></div><figcaption>The value is an <code>&lt;output aria-live&gt;</code>: each tap is announced.</figcaption></figure>
-        <figure class="ds-dont"><div class="ds-example__canvas"><div class="training-stepper" style="width: 100%;"><div class="training-stepper__row" style="margin: 0;"><button class="training-stepper__btn" type="button" aria-label="Less Warm-up"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><span class="training-stepper__value">5:00</span><button class="training-stepper__btn" type="button" aria-label="More Warm-up"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></div></div><figcaption>A plain span (the mock): screen reader users press "More Warm-up" and hear nothing change.</figcaption></figure>
-        <figure class="ds-do"><div class="ds-example__canvas"><div class="training-stepper training-stepper--ride"><div class="training-stepper__row" style="margin: 0;"><button class="training-stepper__btn" type="button" aria-label="Lower cadence goal (do)"><svg class="icon icon--lg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><output class="training-stepper__value">85 rpm</output><button class="training-stepper__btn" type="button" aria-label="Higher cadence goal (do)"><svg class="icon icon--lg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></div></div><figcaption>48px buttons mid-ride.</figcaption></figure>
-        <figure class="ds-dont"><div class="ds-example__canvas"><div class="mini-stepper"><button class="mini-stepper__btn" type="button" aria-label="Lower cadence goal (don't)"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><output class="mini-stepper__value">85</output><button class="mini-stepper__btn" type="button" aria-label="Higher cadence goal (don't)"><svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></div></div><figcaption>The 28px ladder stepper on the ride screen: too small to hit at 90 rpm.</figcaption></figure>
-      </div>
-    </section>
+<section class="ds-section" id="sizes" data-na="One size: 48px buttons, the size for anything pressed mid-ride."><h2><a href="#sizes">Sizes</a></h2>
+<p class="ds-na">One size: 48px buttons, the size for anything pressed mid-ride.</p>
+</section>
 
-    <section class="ds-section" id="tokens"><h2><a href="#tokens">Tokens</a></h2>
-      <div class="ds-table-wrap"><table class="ds-table">
-        <thead><tr><th scope="col">Part</th><th scope="col">Token</th><th scope="col">Light</th><th scope="col">Dark</th></tr></thead>
-        <tbody>
-          <tr><td>Button</td><td><code>--color-raised</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-raised" data-swatch></i><span data-token="--color-raised"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-raised" data-swatch></i><span data-token="--color-raised"></span></span></td></tr>
-          <tr><td>Button, hover</td><td><code>--color-line</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-line" data-swatch></i><span data-token="--color-line"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-line" data-swatch></i><span data-token="--color-line"></span></span></td></tr>
-          <tr><td>Icon; value</td><td><code>--color-fg</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-fg" data-swatch></i><span data-token="--color-fg"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-fg" data-swatch></i><span data-token="--color-fg"></span></span></td></tr>
-          <tr><td>Label</td><td><code>--color-muted</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-muted" data-swatch></i><span data-token="--color-muted"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-muted" data-swatch></i><span data-token="--color-muted"></span></span></td></tr>
-          <tr><td>Button mini / default / ride</td><td><code>--space-7</code> <code>--space-10</code> <code>--target-ride</code></td><td colspan="2"><span data-token="--space-7"></span> / <span data-token="--space-10"></span> / <span data-token="--target-ride"></span></td></tr>
-          <tr><td>Radius mini / default / ride</td><td><code>--radius-md</code> <code>--radius-lg</code> <code>--radius-xl</code></td><td colspan="2"><span data-token="--radius-md"></span> / <span data-token="--radius-lg"></span> / <span data-token="--radius-xl"></span></td></tr>
-          <tr><td>Value mini / default</td><td><code>--font-size-lg</code> <code>--font-size-3xl</code></td><td colspan="2"><span data-token="--font-size-lg"></span> / <span data-token="--font-size-3xl"></span></td></tr>
-          <tr><td>Mini value width; mini gap</td><td><code>--space-12</code> <code>--space-1-5</code></td><td colspan="2"><span data-token="--space-12"></span> / <span data-token="--space-1-5"></span></td></tr>
-          <tr><td>Transition</td><td><code>--duration-fast</code> <code>--ease-standard</code></td><td colspan="2"><span data-token="--duration-fast"></span><span data-token="--ease-standard"></span></td></tr>
-        </tbody>
-      </table></div>
-    </section>
+<section class="ds-section" id="states"><h2><a href="#states">States</a></h2>
+<div class="ds-matrix"><table>
+<thead><tr><th scope="col">Button</th><th scope="col">Default</th><th scope="col">Hover</th><th scope="col">Focus</th><th scope="col">Active</th><th scope="col">Disabled</th></tr></thead>
+<tbody>
+<tr><th scope="row">Raise</th><td><button aria-label="Raise resistance" class="class-resist__btn" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td><td><button aria-label="Raise resistance" class="class-resist__btn" data-state="hover" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td><td><button aria-label="Raise resistance" class="class-resist__btn" data-state="focus" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td><td><button aria-label="Raise resistance" class="class-resist__btn" data-state="active" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td><td><button aria-label="Raise resistance" class="class-resist__btn" disabled="" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></td></tr>
+</tbody>
+</table></div><div class="ds-matrix"><table>
+<thead><tr><th scope="col">State</th><th scope="col">Stepper</th></tr></thead>
+<tbody>
+<tr><th scope="row">Mid-ride</th><td><div class="ds-w-sm"><div class="class-resist class-stat--wide">
+<button aria-label="Lower resistance" class="class-resist__btn" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+<div aria-label="Resistance 13 of 32" class="class-resist__value"><div class="class-resist__level">13</div><div class="class-resist__of">of 32</div></div>
+<button aria-label="Raise resistance" class="class-resist__btn" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+</div></div></td></tr>
+<tr><th scope="row">At the finish: the plan’s last level, stepper off</th><td><div class="ds-w-sm"><div class="class-resist class-stat--wide">
+<button aria-label="Lower resistance" class="class-resist__btn" disabled="" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+<div aria-label="Resistance 11 of 32" class="class-resist__value"><div class="class-resist__level">11</div><div class="class-resist__of">of 32</div></div>
+<button aria-label="Raise resistance" class="class-resist__btn" disabled="" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+</div></div></td></tr>
+<tr><th scope="row">Roll-out: eased to 4 of 32, stepper off</th><td><div class="ds-w-sm"><div class="class-resist class-stat--wide">
+<button aria-label="Lower resistance" class="class-resist__btn" disabled="" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+<div aria-label="Resistance 4 of 32" class="class-resist__value"><div class="class-resist__level">4</div><div class="class-resist__of">of 32</div></div>
+<button aria-label="Raise resistance" class="class-resist__btn" disabled="" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+</div></div></td></tr>
+<tr><th scope="row">A bike that gives no control: “—”, named “Resistance unknown”</th><td><div class="ds-w-sm"><div class="class-resist class-stat--wide">
+<button aria-label="Lower resistance" class="class-resist__btn" disabled="" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+<div aria-label="Resistance unknown" class="class-resist__value"><div class="class-resist__level">—</div><div class="class-resist__of">of 32</div></div>
+<button aria-label="Raise resistance" class="class-resist__btn" disabled="" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+</div></div></td></tr>
+</tbody>
+</table></div>
+</section>
 
-    <section class="ds-section" id="code"><h2><a href="#code">Code</a></h2>
-      <pre><code>&lt;div class="mini-stepper" role="group" aria-label="Effort 1"&gt;
-  &lt;button class="mini-stepper__btn" type="button" aria-label="Shorter effort 1"&gt;…&lt;/button&gt;
-  &lt;output class="mini-stepper__value" aria-live="polite"&gt;0:30&lt;/output&gt;
-  &lt;button class="mini-stepper__btn" type="button" aria-label="Longer effort 1"&gt;…&lt;/button&gt;
-&lt;/div&gt;</code></pre>
-      <div class="ds-table-wrap"><table class="ds-table"><thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead><tbody>
-        <tr><td><code>.mini-stepper</code> <code>__btn __value</code></td><td>28px stepper (kit).</td></tr>
-        <tr><td><code>.training-steppers</code> (<code>--ruled</code>, <code>--spaced</code>)</td><td>Grid of labelled steppers, two-up from 640px (kit).</td></tr>
-        <tr><td><code>.training-stepper</code> <code>__label __row __btn __value</code></td><td>40px labelled stepper (kit).</td></tr>
-        <tr><td><code>.training-stepper--ride</code></td><td>48px buttons (forms.css).</td></tr>
-        <tr><td><code>aria-disabled="true"</code> / <code>disabled</code></td><td>At a limit (keeps focus) / whole stepper off.</td></tr>
-        <tr><td><code>data-state="hover|focus|active"</code></td><td>Documentation only.</td></tr>
-      </tbody></table></div>
-    </section>
+<section class="ds-section" id="responsive"><h2><a href="#responsive">Responsive behaviour</a></h2>
+<ul><li><b>Below 768px:</b> a full row of the bike panel, the buttons at its two ends.</li><li><b>From 768px:</b> the panel’s last column, as wide as its content.</li><li>The buttons are 48px at every width.</li></ul>
+</section>
 
-    <section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
-      <ul>
-        <li><a href="../../mocks/pages/custom-setup/default.html">pages/custom-setup/default</a> — interval ladder mini steppers, Warm-up and Cool-down, the video offset</li>
-        <li><a href="../../mocks/pages/custom-setup/flat.html">pages/custom-setup/flat</a> — Duration 30 min and Cadence goal 85 rpm</li>
-      </ul>
-      <p>Drift fixed during extraction:</p>
-      <ul>
-        <li><code>custom-setup/*</code>: the value is a plain <code>&lt;span&gt;</code>, so changes are silent; it is an <code>&lt;output aria-live="polite"&gt;</code>.</li>
-        <li><code>custom-setup/*</code>: buttons named "Less Warm-up" / "More Cadence goal" (title case pasted into a template); renamed in sentence case with a real direction ("Shorter warm-up", "Higher cadence goal").</li>
-        <li><code>custom-setup/default</code>: the ladder's mini steppers are not grouped (no <code>role="group"</code>); added, named "Effort 1" / "Recovery 1".</li>
-        <li>Kit: <code>.mini-stepper__btn:disabled</code> and <code>.training-stepper__btn:disabled</code> are the only limit style, and <code>disabled</code> drops focus when the limit is reached; no mock shows a limit, so forms.css adds an <code>aria-disabled</code> style for it.</li>
-        <li><code>custom-setup/default</code>: the offset value is a borderless text input with its label above the whole row; it becomes a labelled <code>.input</code>.</li>
-      </ul>
-    </section>
+<section class="ds-section" id="theming"><h2><a href="#theming">Theming</a></h2>
+<p>The cell is <code>--color-panel</code>, the buttons <code>--color-raised</code>, hovering to <code>--color-line</code>. Disabled buttons are 30% opaque.</p><div class="ds-themes"><div data-theme="light"><div class="ds-w-sm"><div class="class-resist class-stat--wide">
+<button aria-label="Lower resistance" class="class-resist__btn" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+<div aria-label="Resistance 13 of 32" class="class-resist__value"><div class="class-resist__level">13</div><div class="class-resist__of">of 32</div></div>
+<button aria-label="Raise resistance" class="class-resist__btn" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+</div></div></div><div data-theme="dark"><div class="ds-w-sm"><div class="class-resist class-stat--wide">
+<button aria-label="Lower resistance" class="class-resist__btn" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+<div aria-label="Resistance 13 of 32" class="class-resist__value"><div class="class-resist__level">13</div><div class="class-resist__of">of 32</div></div>
+<button aria-label="Raise resistance" class="class-resist__btn" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+</div></div></div></div>
+</section>
 
-    <footer class="ds-footer"><span>Telo Ride design system · extracted from <a href="../../mocks/index.html">docs/mocks</a></span><a href="#top">Back to top</a></footer>
+<section class="ds-section" id="accessibility"><h2><a href="#accessibility">Accessibility</a></h2>
+<h3>Role and pattern</h3>
+<p>Two <code>&lt;button&gt;</code>s around a value. Not a spinbutton: there is nothing to type, and the bike, not the page, owns the value.</p>
+<h3>Keyboard</h3>
+<div class="ds-table-wrap"><table class="ds-table ds-keys">
+<thead><tr><th scope="col">Key</th><th scope="col">Action</th></tr></thead>
+<tbody>
+<tr><td><kbd>Tab</kbd></td><td>Lower, then Raise</td></tr>
+<tr><td><kbd>Space</kbd> <kbd>Enter</kbd></td><td>Steps one level</td></tr>
+</tbody>
+</table></div>
+<h3>Focus</h3>
+<p>The standard 2px ring on each button.</p>
+<h3>Labelling</h3>
+<p>The buttons are named “Lower resistance” and “Raise resistance”; the value’s <code>aria-label</code> is “Resistance 13 of 32”, or “Resistance unknown”.</p>
+<h3>Contrast</h3>
+<div class="ds-pairs"><div class="ds-pairs-col" data-theme="light"><span class="ds-pairs-col__title">light theme</span><div class="ds-pair"><span>Level on the cell</span><span class="ds-pair__ratio" data-contrast="--color-fg|--color-panel" data-min="4.5"></span></div><div class="ds-pair"><span>“of 32”</span><span class="ds-pair__ratio" data-contrast="--color-muted|--color-panel" data-min="4.5"></span></div><div class="ds-pair"><span>Icon on the button</span><span class="ds-pair__ratio" data-contrast="--color-fg|--color-raised" data-min="3"></span></div></div><div class="ds-pairs-col" data-theme="dark"><span class="ds-pairs-col__title">dark theme</span><div class="ds-pair"><span>Level on the cell</span><span class="ds-pair__ratio" data-contrast="--color-fg|--color-panel" data-min="4.5"></span></div><div class="ds-pair"><span>“of 32”</span><span class="ds-pair__ratio" data-contrast="--color-muted|--color-panel" data-min="4.5"></span></div><div class="ds-pair"><span>Icon on the button</span><span class="ds-pair__ratio" data-contrast="--color-fg|--color-raised" data-min="3"></span></div></div></div>
+<h3>Motion</h3>
+<p>A press scales the button to 96%. The level changes when the bike reports it, not when the button is pressed.</p>
+<h3>Touch</h3>
+<p>48 × 48px (<code>--target-ride</code>), 8px apart at the least.</p>
+</section>
+
+<section class="ds-section" id="content"><h2><a href="#content">Content</a></h2>
+<ul><li>The word is “resistance”; what the plan asks for is “target resistance”. Never “gear”, “level” alone or “difficulty”.</li><li>“13 of 32”; an unknown level is an em dash.</li><li>When the class cannot set it: “The class can’t set this bike’s resistance. Set it by hand.”</li></ul>
+</section>
+
+<section class="ds-section" id="do-dont"><h2><a href="#do-dont">Do and don't</a></h2>
+<div class="ds-dodont">
+<figure class="ds-do"><div class="ds-example__canvas ds-example__canvas--stack"><div class="ds-w-sm"><div class="class-resist class-stat--wide">
+<button aria-label="Lower resistance" class="class-resist__btn" disabled="" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+<div aria-label="Resistance 4 of 32" class="class-resist__value"><div class="class-resist__level">4</div><div class="class-resist__of">of 32</div></div>
+<button aria-label="Raise resistance" class="class-resist__btn" disabled="" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+</div></div></div><figcaption>Keep the stepper in place and disable it when the plan has ended.</figcaption></figure>
+<figure class="ds-dont"><div class="ds-example__canvas ds-example__canvas--stack"><p class="ds-note">The stepper removed during the roll-out.</p></div><figcaption>Take it away: the panel would jump, and the eased level would have nowhere to show.</figcaption></figure>
+</div>
+<div class="ds-dodont">
+<figure class="ds-do"><div class="ds-example__canvas ds-example__canvas--stack"><div class="ds-w-sm"><div class="class-resist class-stat--wide">
+<button aria-label="Lower resistance" class="class-resist__btn" disabled="" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+<div aria-label="Resistance unknown" class="class-resist__value"><div class="class-resist__level">—</div><div class="class-resist__of">of 32</div></div>
+<button aria-label="Raise resistance" class="class-resist__btn" disabled="" type="button"><svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+</div></div></div><figcaption>Show “—” and say why under the panel.</figcaption></figure>
+<figure class="ds-dont"><div class="ds-example__canvas ds-example__canvas--stack"><p class="ds-note">“0 of 32”</p></div><figcaption>Invent a level the bike did not report.</figcaption></figure>
+</div>
+</section>
+
+<section class="ds-section" id="tokens"><h2><a href="#tokens">Tokens</a></h2>
+<div class="ds-table-wrap"><table class="ds-table">
+<thead><tr><th scope="col">Used by</th><th scope="col">Token</th><th scope="col">Light</th><th scope="col">Dark</th></tr></thead>
+<tbody>
+<tr><td>btn</td><td><code>--color-fg</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-fg" data-swatch></i><span data-token="--color-fg"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-fg" data-swatch></i><span data-token="--color-fg"></span></span></td></tr>
+<tr><td>btn</td><td><code>--color-line</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-line" data-swatch></i><span data-token="--color-line"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-line" data-swatch></i><span data-token="--color-line"></span></span></td></tr>
+<tr><td>of</td><td><code>--color-muted</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-muted" data-swatch></i><span data-token="--color-muted"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-muted" data-swatch></i><span data-token="--color-muted"></span></span></td></tr>
+<tr><td>the block</td><td><code>--color-panel</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-panel" data-swatch></i><span data-token="--color-panel"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-panel" data-swatch></i><span data-token="--color-panel"></span></span></td></tr>
+<tr><td>btn</td><td><code>--color-raised</code></td><td><span class="ds-swatch-cell" data-theme="light"><i data-token="--color-raised" data-swatch></i><span data-token="--color-raised"></span></span></td><td><span class="ds-swatch-cell" data-theme="dark"><i data-token="--color-raised" data-swatch></i><span data-token="--color-raised"></span></span></td></tr>
+<tr><td>btn</td><td><code>--duration-fast</code></td><td><span data-theme="light"><span data-token="--duration-fast"></span></span></td><td><span data-theme="dark"><span data-token="--duration-fast"></span></span></td></tr>
+<tr><td>btn</td><td><code>--ease-out</code></td><td><span data-theme="light"><span data-token="--ease-out"></span></span></td><td><span data-theme="dark"><span data-token="--ease-out"></span></span></td></tr>
+<tr><td>level</td><td><code>--font-family-display</code></td><td><span data-theme="light"><span data-token="--font-family-display"></span></span></td><td><span data-theme="dark"><span data-token="--font-family-display"></span></span></td></tr>
+<tr><td>level</td><td><code>--font-size-4xl</code></td><td><span data-theme="light"><span data-token="--font-size-4xl"></span></span></td><td><span data-theme="dark"><span data-token="--font-size-4xl"></span></span></td></tr>
+<tr><td>of</td><td><code>--font-size-xs</code></td><td><span data-theme="light"><span data-token="--font-size-xs"></span></span></td><td><span data-theme="dark"><span data-token="--font-size-xs"></span></span></td></tr>
+<tr><td>level</td><td><code>--font-weight-bold</code></td><td><span data-theme="light"><span data-token="--font-weight-bold"></span></span></td><td><span data-theme="dark"><span data-token="--font-weight-bold"></span></span></td></tr>
+<tr><td>level</td><td><code>--letter-spacing-display</code></td><td><span data-theme="light"><span data-token="--letter-spacing-display"></span></span></td><td><span data-theme="dark"><span data-token="--letter-spacing-display"></span></span></td></tr>
+<tr><td>level</td><td><code>--line-height-none</code></td><td><span data-theme="light"><span data-token="--line-height-none"></span></span></td><td><span data-theme="dark"><span data-token="--line-height-none"></span></span></td></tr>
+<tr><td>of</td><td><code>--line-height-xs</code></td><td><span data-theme="light"><span data-token="--line-height-xs"></span></span></td><td><span data-theme="dark"><span data-token="--line-height-xs"></span></span></td></tr>
+<tr><td>btn</td><td><code>--radius-lg</code></td><td><span data-theme="light"><span data-token="--radius-lg"></span></span></td><td><span data-theme="dark"><span data-token="--radius-lg"></span></span></td></tr>
+<tr><td>the block</td><td><code>--radius-xl</code></td><td><span data-theme="light"><span data-token="--radius-xl"></span></span></td><td><span data-theme="dark"><span data-token="--radius-xl"></span></span></td></tr>
+<tr><td>of</td><td><code>--space-1</code></td><td><span data-theme="light"><span data-token="--space-1"></span></span></td><td><span data-theme="dark"><span data-token="--space-1"></span></span></td></tr>
+<tr><td>the block, value</td><td><code>--space-2</code></td><td><span data-theme="light"><span data-token="--space-2"></span></span></td><td><span data-theme="dark"><span data-token="--space-2"></span></span></td></tr>
+<tr><td>the block</td><td><code>--space-3</code></td><td><span data-theme="light"><span data-token="--space-3"></span></span></td><td><span data-theme="dark"><span data-token="--space-3"></span></span></td></tr>
+<tr><td>btn</td><td><code>--target-ride</code></td><td><span data-theme="light"><span data-token="--target-ride"></span></span></td><td><span data-theme="dark"><span data-token="--target-ride"></span></span></td></tr>
+</tbody>
+</table></div>
+</section>
+
+<section class="ds-section" id="code"><h2><a href="#code">Code</a></h2>
+<pre><code>&lt;div class="class-resist class-stat--wide"&gt;
+&lt;button aria-label="Lower resistance" class="class-resist__btn" type="button"&gt;&lt;svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"&gt;…&lt;/svg&gt;&lt;/button&gt;
+&lt;div aria-label="Resistance 13 of 32" class="class-resist__value"&gt;&lt;div class="class-resist__level"&gt;13&lt;/div&gt;&lt;div class="class-resist__of"&gt;of 32&lt;/div&gt;&lt;/div&gt;
+&lt;button aria-label="Raise resistance" class="class-resist__btn" type="button"&gt;&lt;svg aria-hidden="true" class="icon icon--lg" viewBox="0 0 24 24"&gt;…&lt;/svg&gt;&lt;/button&gt;
+&lt;/div&gt;</code></pre><div class="ds-table-wrap"><table class="ds-table">
+<thead><tr><th scope="col">Class / attribute</th><th scope="col">Effect</th></tr></thead>
+<tbody>
+<tr><td><code>.class-resist</code></td><td>The cell.</td></tr>
+<tr><td><code>.class-resist__btn</code></td><td>A 48px step button; <code>disabled</code> when the stepper is off.</td></tr>
+<tr><td><code>.class-resist__value</code> with <code>aria-label</code></td><td>The level and its scale, named as one.</td></tr>
+</tbody>
+</table></div>
+</section>
+
+<section class="ds-section" id="sources"><h2><a href="#sources">Sources</a></h2>
+<p>Mocks this component was extracted from:</p>
+<ul>
+<li><a href="../../mocks/pages/class-ride/default.html">pages/class-ride/default</a></li>
+<li><a href="../../mocks/pages/class-ride/finish.html">pages/class-ride/finish</a></li>
+<li><a href="../../mocks/pages/class-ride/rolling-on.html">pages/class-ride/rolling-on</a></li>
+<li><a href="../../mocks/pages/class-ride/by-hand.html">pages/class-ride/by-hand</a></li>
+</ul>
+<p>Drift fixed during extraction: none. The custom workout’s steppers (<code>.training-stepper</code>, <code>.mini-stepper</code>) were removed with that feature.</p>
+</section>
+    <footer class="ds-footer"><span>Telo Ride 1 design system · extracted from <a href="../../mocks/index.html">docs/mocks</a> on 24 November 2026</span><a href="#top">Back to top</a></footer>
   </main>
 </div>
 <script src="../assets/ds.js"></script>
-<script>
-/* Live steppers: [data-stepper] holds data-value, data-min, data-max, data-step and data-format
-   (time = m:ss, or a unit suffix). Buttons with data-step-dir change it, take aria-disabled at the ends (so focus stays put), and the
-   <output> announces the new value politely. */
-document.querySelectorAll('[data-stepper]').forEach(function (box) {
-  var out = box.querySelector('output');
-  var v = Number(box.dataset.value), min = Number(box.dataset.min), max = Number(box.dataset.max), step = Number(box.dataset.step);
-  var fmt = box.dataset.format || '';
-  function show(n) {
-    if (fmt === 'time') { var m = Math.floor(n / 60), s = n % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
-    return n + (fmt ? ' ' + fmt : '');
-  }
-  var btns = box.querySelectorAll('[data-step-dir]');
-  function sync() {
-    out.textContent = show(v);
-    btns.forEach(function (b) {
-      var d = Number(b.getAttribute('data-step-dir'));
-      b.setAttribute('aria-disabled', String(d < 0 ? v <= min : v >= max));
-    });
-  }
-  btns.forEach(function (b) {
-    b.addEventListener('click', function () {
-      v = Math.min(max, Math.max(min, v + step * Number(b.getAttribute('data-step-dir'))));
-      sync();
-    });
-  });
-  sync();
-});
-</script>
 </body>
 </html>

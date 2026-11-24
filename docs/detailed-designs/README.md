@@ -11,10 +11,16 @@ PlantUML sources in the feature's `diagrams/` folder, rendered to PNG beside the
 Each L2 requirement they cover belongs to exactly one design. A gap the requirements leave open is marked
 `<TO SUPPLY>` and cites the open question or mock gap in `L2.md`.
 
-The designs were written against the requirements as they stood before the class became Intervals
-to the Beat. They still describe 30 Minute HIIT Cardio (30:00, eight efforts) and the class video
-only. Riding in Ibiza and its music (`L2-173` to `L2-177`) have no design yet, and `L2-169` is
-designed as the eight efforts. A feature is brought in line with `L2.md` before it is built.
+The designs of journey 28 to 34 were written against the requirements as they stood before the
+class became Intervals to the Beat; a feature is brought in line with `L2.md` before it is built,
+and the designs of the screens built since say which slice built each part. Riding in Ibiza
+(`L2-174` to `L2-177`) and the shape of a ride (`L2-179` to `L2-182`, ADR 0049) have designs of
+their own. The shape of a ride is designed and not built: journey 39 builds it, and its four
+designs say what changes in the designs of the ride as built
+([ride the class](class-ride/ride-the-class/README.md),
+[pause, leave or finish the class](class-ride/pause-leave-or-finish-the-class/README.md) and
+[wait for a lost bike](class-ride/wait-for-a-lost-bike/README.md)), which each slice brings in
+line first.
 
 ## Bike
 
@@ -32,7 +38,13 @@ designed as the eight efforts. A feature is brought in line with `L2.md` before 
 | Feature | Requirements |
 |---|---|
 | [Open the app](the-class/open-the-app/README.md) | `L2-167` |
-| [Show The Class](the-class/show-the-class/README.md) | `L2-080` `L2-084` |
+| [Show The Class](the-class/show-the-class/README.md) | `L2-080` `L2-084` `L2-173` |
+
+## Ibiza Flyover
+
+| Feature | Requirements |
+|---|---|
+| [Fly over the course](ibiza-flyover/fly-over-the-course/README.md) | `L2-179` |
 
 ## Class Ride
 
@@ -41,6 +53,12 @@ designed as the eight efforts. A feature is brought in line with `L2.md` before 
 | [Ride the class](class-ride/ride-the-class/README.md) | `L2-087` `L2-088` `L2-089` |
 | [Pause, leave or finish the class](class-ride/pause-leave-or-finish-the-class/README.md) | `L2-091` `L2-093` |
 | [Wait for a lost bike](class-ride/wait-for-a-lost-bike/README.md) | `L2-092` |
+| [Ride in Ibiza](class-ride/ride-in-ibiza/README.md) | `L2-174` |
+| [Load the course](class-ride/load-the-course/README.md) | `L2-175` |
+| [Play the music](class-ride/play-the-music/README.md) | `L2-176` |
+| [Count down to the start](class-ride/count-down-to-the-start/README.md) | `L2-180` |
+| [Show the finish banner](class-ride/show-the-finish-banner/README.md) | `L2-181` |
+| [Ease off and roll on](class-ride/ease-off-and-roll-on/README.md) | `L2-182` |
 
 ## Class Done
 
@@ -68,6 +86,7 @@ designed as the eight efforts. A feature is brought in line with `L2.md` before 
 | [Ride without a network](performance/ride-without-a-network/README.md) | `L2-135` |
 | [Meet performance budgets](performance/meet-performance-budgets/README.md) | `L2-136` |
 | [Stay smooth on long rides](performance/stay-smooth-on-long-rides/README.md) | `L2-138` |
+| [Draw the course on a low-power tablet](performance/draw-the-course-on-a-low-power-tablet/README.md) | `L2-177` |
 
 ## UI
 
