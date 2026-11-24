@@ -248,6 +248,23 @@ export class FakeBluetooth {
     );
   }
 
+  /** Pushes the same `bytes` from the bike `times` times at once, as an hour of notifications arrives. */
+  async notifyTimes(
+    characteristic: string,
+    bytes: readonly number[],
+    times: number,
+  ): Promise<void> {
+    await this.page.evaluate(
+      ({ characteristic, bytes, times }) => {
+        const fake = (
+          window as unknown as { __fakeBluetooth: { notify(c: string, b: number[]): void } }
+        ).__fakeBluetooth;
+        for (let sent = 0; sent < times; sent++) fake.notify(characteristic, bytes);
+      },
+      { characteristic, bytes: [...bytes], times },
+    );
+  }
+
   /** Every write the page made, oldest first. */
   writes(): RecordedWrite[] {
     return [...this.recorded];

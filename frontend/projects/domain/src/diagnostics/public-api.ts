@@ -5,3 +5,4 @@ export { DiagnosticRecorder } from './recording/diagnostic-recorder';
 export { RECORDING_LIMITS } from './recording/recording-buffer';
 export { RecordingAppLogger } from './recording/recording-app-logger';
 export { BrowserFileSaver } from '../browser/browser-file-saver';
+export { BrowserScreenCapture } from '../browser/browser-screen-capture';

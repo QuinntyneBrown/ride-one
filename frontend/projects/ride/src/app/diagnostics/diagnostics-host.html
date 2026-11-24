@@ -1,5 +1,5 @@
 <!-- prettier-ignore -->
-<button wz-diagnostic-mark type="button" aria-haspopup="dialog" [screen]="screen()" (click)="show(dialog)">Recording</button>
+<button wz-diagnostic-mark type="button" aria-haspopup="dialog" [screen]="screen()" [busy]="capturing()" (click)="show(dialog)">{{ capturing() ? 'Capturing…' : 'Recording' }}</button>
 <dialog
   #dialog
   class="diagnostic-dialog"
@@ -11,7 +11,10 @@
       [entries]="recording.entries()"
       [dropped]="recording.dropped()"
       [since]="since"
+      [canCapture]="screenCapture.supported"
       [status]="status()"
+      (note)="addNote($event)"
+      (capture)="capture(dialog)"
       (save)="save()"
       (closed)="dialog.close()"
     />

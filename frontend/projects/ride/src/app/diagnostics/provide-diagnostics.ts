@@ -8,8 +8,19 @@ import {
   inject,
   provideEnvironmentInitializer,
 } from '@angular/core';
-import { APP_LOGGER, BIKE_LINK_TAP, DIAGNOSTIC_RECORDING, FILE_SAVER } from '@telo/api';
-import { BrowserFileSaver, DiagnosticRecorder, RecordingAppLogger } from '@telo/domain/diagnostics';
+import {
+  APP_LOGGER,
+  BIKE_LINK_TAP,
+  DIAGNOSTIC_RECORDING,
+  FILE_SAVER,
+  SCREEN_CAPTURE,
+} from '@telo/api';
+import {
+  BrowserFileSaver,
+  BrowserScreenCapture,
+  DiagnosticRecorder,
+  RecordingAppLogger,
+} from '@telo/domain/diagnostics';
 import { DiagnosticsHost } from './diagnostics-host';
 
 /**
@@ -25,6 +36,7 @@ export function provideDiagnostics(): (Provider | EnvironmentProviders)[] {
     { provide: BIKE_LINK_TAP, useExisting: DiagnosticRecorder },
     { provide: DIAGNOSTIC_RECORDING, useExisting: DiagnosticRecorder },
     { provide: FILE_SAVER, useClass: BrowserFileSaver },
+    { provide: SCREEN_CAPTURE, useClass: BrowserScreenCapture },
     // The console still gets every logged error; the recording gets the same line (L2-115 AC4).
     { provide: APP_LOGGER, useClass: RecordingAppLogger },
     provideEnvironmentInitializer(() => {
