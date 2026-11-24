@@ -15,6 +15,14 @@ import {
   DiagnosticPanel,
   type DiagnosticStatus,
 } from '@telo/components/diagnostics';
+import {
+  CAPTURE_NOT_KEPT,
+  FILES_NOT_SAVED,
+  NOTE_ADDED,
+  captureKept,
+  filesSaved,
+  screenAt,
+} from './diagnostic-words';
 
 /**
  * The diagnostic recording's controls (docs/mocks/dialogs/diagnostic-recording/, L2-178 AC11): the recording mark,
@@ -69,7 +77,7 @@ export class DiagnosticsHost {
   /** What the bike's own display reads, as the person typed it, into the recording (AC12). */
   protected addNote(text: string): void {
     this.recording.note(text);
-    this.status.set({ text: 'Note added', tone: 'ok' });
+    this.status.set(NOTE_ADDED);
   }
 
   /**
@@ -86,16 +94,13 @@ export class DiagnosticsHost {
       await this.nextFrame();
       await this.nextFrame();
       const number = this.recording.keepCapture(await this.screenCapture.capture());
-      said = { text: `Screen capture ${number} kept`, tone: 'ok' };
+      said = captureKept(number);
     } catch (error) {
       // A capture error's message is the browser's own error, as text.
       if (error instanceof ScreenCaptureError)
         this.recording.captureFailed(error.code, error.message);
       else this.recording.captureFailed('failed', error);
-      said = {
-        text: 'The browser didn’t share the screen, so no capture was kept. The ride carries on.',
-        tone: 'warn',
-      };
+      said = CAPTURE_NOT_KEPT;
     }
     this.capturing.set(false);
     if (this.destroyed) return;
@@ -110,10 +115,10 @@ export class DiagnosticsHost {
     try {
       for (const file of files) this.saver.save(file);
     } catch {
-      this.status.set({ text: 'The files couldn’t be saved. Try again.', tone: 'warn' });
+      this.status.set(FILES_NOT_SAVED);
       return;
     }
-    this.status.set({ text: savedText(files.length), tone: 'ok' });
+    this.status.set(filesSaved(files.length));
   }
 
   private nextFrame(): Promise<void> {
@@ -121,21 +126,4 @@ export class DiagnosticsHost {
       this.view ? this.view.requestAnimationFrame(() => resolve()) : resolve(),
     );
   }
-}
-
-/** The screen at an address, for the two that keep their foot for something else. */
-function screenAt(url: string): DiagnosticMarkScreen | null {
-  const path = url.split(/[?#]/)[0];
-  if (path === '/') return 'the-class';
-  return path === '/ride' ? 'class-ride' : null;
-}
-
-/** "Saved 1 file: the recording." or "Saved 3 files: the recording and 2 screen captures." */
-function savedText(files: number): string {
-  const captures = files - 1;
-  const what =
-    captures === 0
-      ? 'the recording'
-      : `the recording and ${captures} screen capture${captures === 1 ? '' : 's'}`;
-  return `Saved ${files} file${files === 1 ? '' : 's'}: ${what}.`;
 }

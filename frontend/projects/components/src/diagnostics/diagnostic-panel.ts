@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { Button } from '../button/button';
+import { entriesLine } from './entries-line';
 
 /** What the dialog says of the last note, screen capture or save, and whether it reads as a warning. */
 export interface DiagnosticStatus {
@@ -43,14 +44,9 @@ export class DiagnosticPanel {
 
   protected readonly maxLength = NOTE_MAX_LENGTH;
   protected readonly draft = signal('');
-  protected readonly count = computed(() => {
-    const entries = this.entries();
-    const held = `${entries.toLocaleString('en-US')} ${entries === 1 ? 'entry' : 'entries'}`;
-    const dropped = this.dropped();
-    return dropped > 0
-      ? `${held} · the oldest ${dropped.toLocaleString('en-US')} were dropped`
-      : `${held} since ${this.since()}`;
-  });
+  protected readonly count = computed(() =>
+    entriesLine(this.entries(), this.dropped(), this.since()),
+  );
 
   protected type(event: Event): void {
     this.draft.set((event.target as HTMLInputElement).value);
