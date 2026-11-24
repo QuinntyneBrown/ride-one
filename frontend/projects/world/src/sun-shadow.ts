@@ -61,9 +61,12 @@ const SPOKED = 0.08;
 /** The picture of the figure: half its width and height in metres, and the height of its middle. */
 const HALF = 1.1;
 const MIDDLE = 0.8;
-/** The tallest a part's height is kept as, in metres, and the level of the picture read to find it. */
+/**
+ * The tallest a part's height is kept as, in metres, and how many texels across the picture is when it is read to
+ * find that height: the same 7 cm of the figure to a texel at every step, whatever the picture's own size.
+ */
 const TALLEST = 2;
-const ABOUT = 3;
+const ABOUT = 32;
 /** The height of the rider's head on the bike, in metres: its shadow is the shadow's far end. */
 const HEAD = 1.65;
 /**
@@ -82,7 +85,7 @@ const SKY = 1.5;
 /** How much of the shadow's dark the sky's light has filled in by its far end. */
 const FILLED = 0.2;
 /** The blur at the wheels, in metres, and how much wider it grows for each metre the shadow lies from them. */
-const SOFT = { near: 0.025, grows: 0.05 } as const;
+const SOFT = { near: 0.02, grows: 0.085 } as const;
 /** The dark under the bike that the sky cannot reach: how far it spreads along the bike and across it, in metres. */
 const UNDER = { long: 0.7, wide: 0.22, dark: 0.3 } as const;
 /** The same under each tyre, and how far each axle is from the bike's middle. */
@@ -99,7 +102,7 @@ const STEPS = [
   { texels: 256, readings: 7, frames: 1 },
   { texels: 256, readings: 7, frames: 1 },
 ] as const;
-/** The most readings a step takes: with fewer, each reads a coarser picture to cover the same blur. */
+/** The most readings a step takes: with fewer, the blur is narrower across the shadow. */
 const MOST = 7;
 
 /** A soft bump: 1 at 0, falling away over `width`. */
@@ -354,20 +357,21 @@ export class SunShadow {
     // The blur's reach on the road, in metres, the same along the shadow as across it. The picture is the road
     // seen along the sun's rays, so a metre along the shadow is only `sin(altitude)` of a metre up the picture: the
     // picture is read at the fineness of the short way, and several readings side by side make up the long way.
-    // Fewer readings stand further apart, so each reads a coarser picture.
     // A shadow is as soft as what throws it is far away. A coarse reading of the picture says how high the figure
     // stands hereabouts, and that height is thrown `1 / tan(altitude)` as far along the road: a tyre's shadow stays
     // sharp even when the wheel stands a metre down-sun of the bike's middle, and the head's is the softest.
-    const about = texture(this.target.texture, place).level(float(ABOUT));
+    const about = texture(this.target.texture, place).level(this.texels.div(ABOUT).log2());
     const thrownFrom = about.g.div(about.r.max(0.02)).mul(TALLEST / Math.tan(altitude));
     const soft = thrownFrom.mul(SOFT.grows).add(SOFT.near);
     const softUp = soft.mul(Math.sin(altitude));
     const level = softUp
       .mul(this.texels.div(2 * HALF))
-      .mul(MOST / readings)
       .max(1)
       .log2();
-    const reach = vec2(soft.div(2 * HALF), softUp.div(2 * HALF));
+    // Fewer readings cannot span the whole blur without gaps between them, and reading a coarser picture to fill
+    // the gaps smears the bike into a smudge: they stand as close as the full count does, and the shadow is a
+    // little sharper across than it should be at the cheaper steps instead.
+    const reach = vec2(soft.mul(readings / MOST).div(2 * HALF), softUp.div(2 * HALF));
     // The readings run across the shadow, each a little up or down, and those nearest the middle count for most.
     const taps = Array.from({ length: readings }, (_, i) => {
       const x = readings > 1 ? (i / (readings - 1)) * 2 - 1 : 0;

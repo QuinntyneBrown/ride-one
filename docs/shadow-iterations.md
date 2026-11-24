@@ -274,3 +274,26 @@ because the road's blur is wider than a texel; it would have cost fill for nothi
   road's own profile (entry 18) it can sit there without cutting into a dip.
 - **Result (sheet 022):** at 250 s the chevrons are shaded where the shadow crosses them, and at 1 s the grid's
   white lines are.
+
+### 23. Softer where it should be, now that the tyres can stay sharp
+
+- **Found (425 s, full size, highest step):** with the blur following each part's height (entry 17) the head and
+  trunk were still nearly as crisp as the hoops: a cut-out lying on the road. The issue asks for "blurred out".
+- **Changed:** the blur is 2 cm at the road and grows 8.5 cm for each metre the light travels along the road from
+  what throws the shadow (it was 2.5 cm and 5 cm).
+- **Result (sheet 023):** at 150 s and 425 s the tyres' shadows are still lines, the hoops soften towards their
+  tops, and the bent back and head are soft shapes about 30 cm across at their edges. Sheet 023c is the same on
+  WebGPU, which matches WebGL 2; sheet 024a is the grid (5 s), the tightest bend (372 s), the steepest climb
+  (915 s) and the finish (1196 s), with nothing cut off or misplaced at any of them.
+
+### 24. The cheapest step shows a bike again, not a smudge
+
+- **Found (sheet 024b, lowest step, 150 s and 425 s):** on the step a slow tablet settles at, the shadow was a
+  shapeless dark patch: no wheel, no rider. With 3 readings where the higher steps take 7, each reading was of a
+  picture 2.3 times coarser so that three would span the blur, and the height that sets the blur was read at a
+  level meant for a picture twice the size. Both smear.
+- **Changed:** fewer readings stand as close together as the full seven do and read the same fineness of picture,
+  so the blur is narrower across the shadow instead of coarser; and the figure's height is read at 7 cm of figure a
+  texel at every step, not at a fixed level. (The second alone, sheet 024, changed almost nothing.)
+- **Result (sheet 025):** on the lowest step both hoops, the bent back and the head are there at 150 s and 425 s,
+  a little crisper across than on the higher steps, at the same 3 readings.
