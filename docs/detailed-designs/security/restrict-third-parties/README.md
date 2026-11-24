@@ -102,6 +102,15 @@ The policy below is the value the static host sends for Telo Ride 1.
 - **No other origin in code**: `connect-src 'self'` leaves the app no cross-origin `fetch`. The
   class ships with the app (ADR 0042), so nothing is fetched for it.
 
+### The diagnostic recording changes nothing here
+
+The diagnostic recording of [Record diagnostics](../record-diagnostics/README.md) (`L2-178`)
+leaves the header set as it is. Its code is one more chunk from the app's own origin, admitted by
+`script-src 'self'`. A saved file is a download of a `blob:` object URL, which is not a
+connection, so no directive gains `blob:`. A screen capture is read from the browser's own
+Screen Capture API and is fetched from nowhere. No origin is added and nothing is uploaded
+(`L2-178` AC15, ADR 0048).
+
 ### What is left out
 
 `class-start/class-sync.ts` in `components` builds a link to `youtube.com/watch`, and

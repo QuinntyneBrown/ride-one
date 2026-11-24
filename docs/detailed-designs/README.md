@@ -58,6 +58,7 @@ designed as the eight efforts. A feature is brought in line with `L2.md` before 
 | [Treat device data as untrusted](security/treat-device-data-as-untrusted/README.md) | `L2-129` |
 | [Restrict third parties](security/restrict-third-parties/README.md) | `L2-131` |
 | [Keep data on the device](security/keep-data-on-the-device/README.md) | `L2-132` |
+| [Record diagnostics](security/record-diagnostics/README.md) | `L2-178` |
 
 ## Performance
 

@@ -69,6 +69,12 @@ teardown in the `ride` application, and two heap checks under `frontend/e2e/`.
 - **`ClassSegment`** (exists in `components`). The resistance profile is computed from the
   plan's 17 segments, not from readings, so it does not grow.
 - **`VideoClockSync`**, **`WorkoutEngine`** (exist). Each keeps the current state only.
+- **The diagnostic recording** (only when the app is opened with `?diagnose`). It is the one
+  list of readings the page holds, and it is bounded: `RecordingBuffer` is a ring of at most
+  20,000 entries and 3,000,000 bytes of text, line breaks counted, that drops its oldest lines
+  first, and at most 8 screen captures are kept beside it (`L2-178` AC9). Its size therefore
+  stops growing with the ride's length. A rider's app holds none of it. The ring belongs to
+  [record diagnostics](../../security/record-diagnostics/README.md).
 
 ### Release on leaving (`L2-138` AC3)
 
@@ -110,6 +116,14 @@ Both are new. They sit apart from the behaviour specs, because `playwright.confi
   ten times. After each return it collects garbage and reads the heap. It fails when the heap
   after the tenth return exceeds the heap after the third by more than 5 MB. The first two
   returns are left out because lazy chunks and the YouTube script load once and stay.
+- **`e2e/long-ride-recording.spec.ts`**. A behaviour spec: the class is ridden to its end with
+  the recording on. A readout still follows a notification within 250 ms, Class Done opens with
+  20:00 and its output, and the saved recording is within its limits (`L2-178` AC9, AC19).
+- **`e2e/heap/recording.heap.ts`**. The 3-hour check of `long-ride.heap.ts` with `?diagnose`.
+  The ride is paused after a minute and the clock runs 3 hours in ten-minute steps, while the
+  fake bike sends five notifications a second through `FakeBluetooth.notifyTimes`, so the
+  recording passes 20,000 entries and drops its oldest. The heap is held to the same 50 MB
+  (`L2-178` AC19). Like the other heap checks, it runs only when a person asks.
 - **`playwright.heap.config.ts`** (new). A second Playwright configuration with
   `testMatch: '**/*.heap.ts'`, Chromium only, one worker. A person runs it with
   `npx playwright test -c playwright.heap.config.ts`. No agent and no CI job runs it.

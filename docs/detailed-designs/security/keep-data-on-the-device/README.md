@@ -81,6 +81,17 @@ Neighbouring features own the adjacent concerns:
   spec on a request off localhost and on a request no fixture answers. A spec that finishes a ride
   and declares no answer therefore proves that no request leaves for it.
 
+### The diagnostic recording (`L2-178`)
+
+The app opened with `?diagnose` holds a diagnostic recording
+([Record diagnostics](../record-diagnostics/README.md)). The recording stays in the page's memory:
+it is written to no `localStorage`, IndexedDB or cookie, and it is gone when the tab is closed or
+reloaded. It leaves the device only as files the person diagnosing saves with **Save files**, as
+downloads of object URLs. No request is made for a recording, a note, a screen capture or a save
+(`L2-178` AC15), and the `guard` fixture proves it in the recording's specs. The record and the
+remembered bike are no part of a recording; the bike's name and identifier are, and the dialog
+says so before anything is saved (`L2-178` AC16).
+
 ### Clearing site data (`L2-132` AC4)
 
 Both stores read `localStorage` when the app opens and hold no second copy. After the rider clears
