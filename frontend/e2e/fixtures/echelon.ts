@@ -10,6 +10,7 @@ export const echelonBike: FakeBike = {
   name: 'ECH-EX5S-141844',
   card: { name: 'Echelon EX-5s', identifier: 'EX5S-141844' },
   services: { [ECHELON_SERVICE]: [ECHELON_WRITE, ECHELON_NOTIFY] },
+  properties: { [ECHELON_WRITE]: ['write'], [ECHELON_NOTIFY]: ['notify'] },
 };
 
 const withChecksum = (bytes: number[]): number[] => [

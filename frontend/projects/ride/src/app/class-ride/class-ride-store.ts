@@ -6,6 +6,7 @@ import {
   BIKE_CONNECTION,
   COURSE_GRAPHICS,
   type ClassDefinition,
+  DIAGNOSTIC_RECORDING,
   type ClassResult,
   HOW_TO_RIDE,
   RIDE_ACTIVITY,
@@ -149,6 +150,20 @@ export class ClassRideStore {
     // class video has its own sound and no music (AC3).
     if (this.way === 'ibiza') {
       effect(() => (this.running() && this.music.on() ? this.music.play() : this.music.pause()));
+    }
+    // With a diagnostic recording on, the readouts the rider sees go into it as they change (L2-178 AC8). The
+    // recording is bound only when the app is opened with `?diagnose`; for a rider this is `null` and nothing runs.
+    const recording = inject(DIAGNOSTIC_RECORDING, { optional: true });
+    if (recording) {
+      const shown = (level: number | null): string => (level === null ? '—' : String(level));
+      effect(() =>
+        recording.readouts({
+          power: this.power().value,
+          cadence: this.cadence().value,
+          resistance: shown(this.level()),
+          targetResistance: shown(this.resistance.target()),
+        }),
+      );
     }
     this.start(inject(THE_CLASS).get());
     this.destroyRef.onDestroy(() => {

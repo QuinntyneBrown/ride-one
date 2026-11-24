@@ -41,7 +41,7 @@
 | [0037](0037-no-backend-the-class-ships-with-the-app.md) | Telo Ride 1 has no backend: the class ships with the app | Accepted |
 | [0038](0038-always-solo-no-ride-hub.md) | Telo Ride 1 is always solo: no ride hub | Accepted |
 | [0039](0039-no-account-nothing-signed-in-recorded-or-earned.md) | Telo Ride 1 has no account: nothing is signed in, recorded or earned | Accepted |
-| [0040](0040-four-screens-and-no-menus.md) | Telo Ride 1 has four screens and no menus | Accepted |
+| [0040](0040-four-screens-and-no-menus.md) | Telo Ride 1 has four screens and no menus | Accepted, amended by 0048 |
 | [0041](0041-one-application-the-marketing-site-is-removed.md) | One application: the marketing site is removed | Accepted |
 | [0042](0042-one-class-and-one-course-shipped-with-the-app.md) | One class and one course, shipped with the app | Accepted |
 | [0043](0043-static-files-on-azure-static-web-apps.md) | Static files on Azure Static Web Apps: the backend is removed | Accepted |
@@ -49,3 +49,4 @@
 | [0045](0045-the-courses-rider-built-in-blender.md) | The course's rider is one mesh built in Blender, carried over from Telo Ride | Accepted |
 | [0046](0046-class-ride-at-ride-behind-a-connected-bike.md) | Class Ride is at `/ride`, and only a connected bike opens it | Accepted |
 | [0047](0047-a-ride-in-ibiza-is-class-ride-with-the-course-in-the-box.md) | A ride in Ibiza is Class Ride with the course in the video's box; World loading and Telo Ride's worlds are removed | Accepted |
+| [0048](0048-diagnostic-recording-behind-configuration.md) | Diagnostic recording behind configuration | Accepted |

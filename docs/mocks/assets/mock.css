@@ -35,3 +35,12 @@
 .mock-note::before { content: "Note"; display: block; font-weight: var(--font-weight-semibold); text-transform: uppercase; letter-spacing: var(--letter-spacing-wide); }
 [data-chrome="off"] .mock-note { display: none; }
 @media (max-width: 39.99rem) { .mock-bar__states { max-width: 40vw; } }
+
+/* The diagnostic recording dialog (L2-178) is the platform's <dialog>, which the app opens with showModal(). A mock
+   draws it with the open attribute instead, so the mock bar stays in reach; that leaves it out of the top layer and
+   without its ::backdrop, so the mock stands in for both. The app's own rules are in the design system. */
+.diagnostic-dialog:not(:modal) { z-index: var(--z-modal); box-shadow: var(--shadow-4), 0 0 0 100vmax var(--color-scrim); }
+/* On a mock with the recording mark, the mock bar moves to the top so it never lies over the mark it is there to show. */
+body:has(.diagnostic-mark) .mock-bar { top: var(--space-3); bottom: auto; }
+/* The note about the mark or the dialog is fixed under the mock bar, clear of the screen's own notes. */
+.mock-note.diagnostic-note { position: fixed; z-index: calc(var(--z-tooltip) + 5); right: var(--space-3); top: var(--space-16); }

@@ -22,7 +22,7 @@ box "Frontend — Ride app (domain library)" #ECFDF3
   participant "WebBluetoothBikeConnection" as conn
   participant "DeviceReconnector" as recon
   participant "EchelonLink" as link
-  participant "ConsoleLogger" as logger
+  participant "ConsoleAppLogger" as logger
 end box
 box "Device — Browser" #F2F4F7
   participant "console" as console
@@ -31,7 +31,7 @@ box "Device — Smart bike" #F2F4F7
   participant "Echelon EX-5s" as bike
 end box
 bike --> conn : gattserverdisconnected, or a Web Bluetooth call fails
-conn -> logger : LOGGER.error("bluetooth", error) (L2-017 AC5)
+conn -> logger : APP_LOGGER.error("bluetooth", error) (L2-017 AC5)
 logger -> console : One line: area, name and message as text (L2-115 AC3)
 conn -> link : close(); the keepalive stops (L2-016 AC3)
 conn --> screen : ble is disconnected (L2-017 AC1)
@@ -56,7 +56,7 @@ loop every 3 s until connected or disconnect() (L2-017 AC1)
     screen --> rider : Status and controls follow within 1 s (L2-019 AC5)
   else bike still off
     bike --> conn : NetworkError
-    conn -> logger : LOGGER.error("bluetooth", error)
+    conn -> logger : APP_LOGGER.error("bluetooth", error)
     conn --> recon : false; wait 3 s from the end of the attempt
   end
 end

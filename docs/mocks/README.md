@@ -18,12 +18,39 @@ library, Profile or sign-in in this design. The set replaces the earlier mocks o
 | Class Ride | `aoEFCcdCfGyw78yfGMkVPr` | The ride, solo. The same frame as Ride's Class Ride, branded Ride 1; Telo Ride 1 passes `group={false}`. |
 | Class Done | `6eiQRDcbF5DL67X51aRw3D` | The output in kJ, the facts and the eight efforts. ||  
 | Page not found | — | An addition: the design has none (L2-145). ||  
+| Diagnostic recording | — | An addition, and no part of the rider’s design: the dialog the recording mark opens, drawn over Class Ride (L2-178). ||  
 
 The prototype's flow: a **new** rider opens on Connect Bike and lands on The Class once paired; a
 **returning** rider opens on The Class. The Class → Class Ride → Class Done → Done → The Class (now
 returning). The OS also holds a canvas, *The Class · Form Factors* (`f63HnRzoU7dNKbsvUoH3eZ`), that
 draws The Class at 11" tablet landscape (1194 × 834), desktop (1440 × 900), tablet portrait
 (834 × 1194) and phone (390 × 844); the mocks follow it.
+
+## The diagnostic recording
+
+The diagnostic recording (L2-178, ADR 0048) is a diagnostic aid that is off for every rider. It is drawn in
+`dialogs/diagnostic-recording/*` (the dialog and each of its states, open over Class Ride) and in the
+`recording` state of each of the four screens (`pages/connect-bike/recording`, `pages/the-class/recording`,
+`pages/class-ride/recording`, `pages/class-done/recording`): that screen’s `default` with the recording mark
+added and nothing else changed. **Every other mock is the app with the recording off and is unchanged**; with
+the recording off no screen differs by a pixel. The Magic Patterns prototype has none of these: the
+recording is no part of the rider’s design.
+
+- **The recording mark** (`diagnostic-mark`) is a button that reads “Recording”, a dot and the word, 44 px
+  tall, fixed at the foot of the screen at the left, 12 px in and above the home bar. On The Class it stands
+  above the pinned start button below 1024 px and above “What the bike will do” from 1024 px
+  (`diagnostic-mark--on-the-class`); on Class Ride in a landscape window from 768 px, where the foot of the
+  screen is the bike panel, it stands above the panel on the video’s bottom-left corner
+  (`diagnostic-mark--on-class-ride`). While a screen capture is taken it reads “Capturing…” with a turning
+  ring (`diagnostic-mark--busy`, `aria-busy`).
+- **The dialog** is the platform’s `<dialog>` element (`diagnostic-dialog`), which the app opens with
+  `showModal()`; the mocks draw it with the `open` attribute so the mock bar stays in reach, and `mock.css`
+  stands in for the top layer and the backdrop. It is a sheet at the foot of the screen below 640 px and a
+  centred card 448 px wide from 640 px, and holds one block, `diagnostic-panel`.
+- **Its numbers** are placeholders: 1,284 entries since 18:00, the note “bike shows 82 rpm, resistance 14”,
+  screen capture 1, three saved files, and 4,312 entries dropped at the limit of 20,000. The copy in quotes
+  is L2-178’s, word for word.
+- On a mock with the mark the mock bar is at the top of the window, so it never lies over the mark.
 
 ## How to open
 
@@ -86,6 +113,7 @@ assets/tokens.css      a one-line shim importing ../design-system/tokens/tokens.
 assets/images/         the bike photo and the class cover
 assets/mock.css, mock.js   mock bar and notes (not product UI)
 pages/<id>/<state>.html
+dialogs/<id>/<state>.html   a dialog, drawn open over its page (the diagnostic recording)
 ```
 
 ## Re-check and re-screenshot
@@ -181,12 +209,18 @@ Legend: ✅ mock exists · ➖ not applicable (reason in manifest) · ❌ missin
 
 ### Pages
 
-| Screen | default | loading | empty | error | searching | pairing | paired | bluetooth-off | unsupported-browser | needs-https | chooser-blocked | chooser-failed | returning | no-bike | ibiza | ibiza-loading | ibiza-unavailable | ibiza-music-off | ibiza-music-unavailable | video-unavailable | cannot-draw | needs-chromium | link-copied | cannot-load | paused | paused-ibiza | off-target | by-hand | video-unavailable-by-hand | disconnected | disconnected-ibiza | first | not-best | efforts-none | not-saved | Requirements |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Connect Bike (`connect-bike`) | [✅](pages/connect-bike/default.html) | ➖ | ➖ | ➖ | [✅](pages/connect-bike/searching.html) | [✅](pages/connect-bike/pairing.html) | [✅](pages/connect-bike/paired.html) | [✅](pages/connect-bike/bluetooth-off.html) | [✅](pages/connect-bike/unsupported-browser.html) | [✅](pages/connect-bike/needs-https.html) | [✅](pages/connect-bike/chooser-blocked.html) | [✅](pages/connect-bike/chooser-failed.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-007`, `L2-008`, `L2-009`, `L2-011`, `L2-012`, `L2-013`, `L2-014`, `L2-018` |
-| The Class (`the-class`) | [✅](pages/the-class/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/the-class/needs-https.html) |  |  | [✅](pages/the-class/returning.html) | [✅](pages/the-class/no-bike.html) | [✅](pages/the-class/ibiza.html) |  |  |  |  | [✅](pages/the-class/video-unavailable.html) | [✅](pages/the-class/cannot-draw.html) | [✅](pages/the-class/needs-chromium.html) | [✅](pages/the-class/link-copied.html) | [✅](pages/the-class/cannot-load.html) |  |  |  |  |  |  |  |  |  |  |  | `L2-008`, `L2-009`, `L2-010`, `L2-019`, `L2-080`, `L2-084`, `L2-144`, `L2-173` |
-| Class Ride (`class-ride`) | [✅](pages/class-ride/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-ride/ibiza.html) | [✅](pages/class-ride/ibiza-loading.html) | [✅](pages/class-ride/ibiza-unavailable.html) | [✅](pages/class-ride/ibiza-music-off.html) | [✅](pages/class-ride/ibiza-music-unavailable.html) | [✅](pages/class-ride/video-unavailable.html) |  |  |  |  | [✅](pages/class-ride/paused.html) | [✅](pages/class-ride/paused-ibiza.html) | [✅](pages/class-ride/off-target.html) | [✅](pages/class-ride/by-hand.html) | [✅](pages/class-ride/video-unavailable-by-hand.html) | [✅](pages/class-ride/disconnected.html) | [✅](pages/class-ride/disconnected-ibiza.html) |  |  |  |  | `L2-014`, `L2-023`, `L2-026`, `L2-027`, `L2-028`, `L2-087`, `L2-088`, `L2-089`, `L2-091`, `L2-092`, `L2-093`, `L2-135`, `L2-173`, `L2-174`, `L2-175` |
-| Class Done (`class-done`) | [✅](pages/class-done/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-done/first.html) | [✅](pages/class-done/not-best.html) | [✅](pages/class-done/efforts-none.html) | [✅](pages/class-done/not-saved.html) | `L2-077`, `L2-078`, `L2-079` |
-| Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-145` |
+| Screen | default | loading | empty | error | searching | pairing | paired | bluetooth-off | unsupported-browser | needs-https | chooser-blocked | chooser-failed | recording | returning | no-bike | ibiza | video-unavailable | cannot-draw | needs-chromium | link-copied | cannot-load | paused | ibiza-loading | ibiza-unavailable | ibiza-music-off | ibiza-music-unavailable | paused-ibiza | off-target | by-hand | video-unavailable-by-hand | disconnected | disconnected-ibiza | first | not-best | efforts-none | not-saved | Requirements |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Connect Bike (`connect-bike`) | [✅](pages/connect-bike/default.html) | ➖ | ➖ | ➖ | [✅](pages/connect-bike/searching.html) | [✅](pages/connect-bike/pairing.html) | [✅](pages/connect-bike/paired.html) | [✅](pages/connect-bike/bluetooth-off.html) | [✅](pages/connect-bike/unsupported-browser.html) | [✅](pages/connect-bike/needs-https.html) | [✅](pages/connect-bike/chooser-blocked.html) | [✅](pages/connect-bike/chooser-failed.html) | [✅](pages/connect-bike/recording.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-007`, `L2-008`, `L2-009`, `L2-011`, `L2-012`, `L2-013`, `L2-014`, `L2-018`, `L2-178` |
+| The Class (`the-class`) | [✅](pages/the-class/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  | [✅](pages/the-class/needs-https.html) |  |  | [✅](pages/the-class/recording.html) | [✅](pages/the-class/returning.html) | [✅](pages/the-class/no-bike.html) | [✅](pages/the-class/ibiza.html) | [✅](pages/the-class/video-unavailable.html) | [✅](pages/the-class/cannot-draw.html) | [✅](pages/the-class/needs-chromium.html) | [✅](pages/the-class/link-copied.html) | [✅](pages/the-class/cannot-load.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-008`, `L2-009`, `L2-010`, `L2-019`, `L2-080`, `L2-084`, `L2-144`, `L2-173`, `L2-178` |
+| Class Ride (`class-ride`) | [✅](pages/class-ride/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  | [✅](pages/class-ride/recording.html) |  |  | [✅](pages/class-ride/ibiza.html) | [✅](pages/class-ride/video-unavailable.html) |  |  |  |  | [✅](pages/class-ride/paused.html) | [✅](pages/class-ride/ibiza-loading.html) | [✅](pages/class-ride/ibiza-unavailable.html) | [✅](pages/class-ride/ibiza-music-off.html) | [✅](pages/class-ride/ibiza-music-unavailable.html) | [✅](pages/class-ride/paused-ibiza.html) | [✅](pages/class-ride/off-target.html) | [✅](pages/class-ride/by-hand.html) | [✅](pages/class-ride/video-unavailable-by-hand.html) | [✅](pages/class-ride/disconnected.html) | [✅](pages/class-ride/disconnected-ibiza.html) |  |  |  |  | `L2-014`, `L2-023`, `L2-026`, `L2-027`, `L2-028`, `L2-087`, `L2-088`, `L2-089`, `L2-091`, `L2-092`, `L2-093`, `L2-135`, `L2-173`, `L2-174`, `L2-175`, `L2-178` |
+| Class Done (`class-done`) | [✅](pages/class-done/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  | [✅](pages/class-done/recording.html) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✅](pages/class-done/first.html) | [✅](pages/class-done/not-best.html) | [✅](pages/class-done/efforts-none.html) | [✅](pages/class-done/not-saved.html) | `L2-077`, `L2-078`, `L2-079`, `L2-178` |
+| Page not found (`not-found`) | [✅](pages/not-found/default.html) | ➖ | ➖ | ➖ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | `L2-145` |
+
+### Dialogs
+
+| Screen | default | busy | invalid | note-ready | note-added | capturing | capture-kept | capture-refused | capture-unsupported | saved | save-failed | limit-reached | Requirements |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Diagnostic recording (`diagnostic-recording`) | [✅](dialogs/diagnostic-recording/default.html) | ➖ | ➖ | [✅](dialogs/diagnostic-recording/note-ready.html) | [✅](dialogs/diagnostic-recording/note-added.html) | [✅](dialogs/diagnostic-recording/capturing.html) | [✅](dialogs/diagnostic-recording/capture-kept.html) | [✅](dialogs/diagnostic-recording/capture-refused.html) | [✅](dialogs/diagnostic-recording/capture-unsupported.html) | [✅](dialogs/diagnostic-recording/saved.html) | [✅](dialogs/diagnostic-recording/save-failed.html) | [✅](dialogs/diagnostic-recording/limit-reached.html) | `L2-178` |
 
 <!-- coverage:end -->

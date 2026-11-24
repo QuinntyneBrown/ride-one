@@ -9,6 +9,12 @@ const outside = {
   message: 'A library never imports outside its project.',
 };
 const noRide = { group: ['**/ride/**'], message: 'No library imports the app.' };
+/** The diagnostic recording's entry points (L2-178, ADR 0048): only the ride app imports them, and only dynamically. */
+const noDiagnostics = {
+  group: ['@telo/*/diagnostics'],
+  message:
+    'Only the ride app imports the diagnostic recording, from its dynamically imported chunk.',
+};
 
 /** Only `domain/src/bluetooth/` may touch Web Bluetooth (AGENTS.md, L2-146 AC3). */
 const noBluetooth = {
@@ -90,7 +96,7 @@ module.exports = defineConfig([
             },
             { name: '@angular/router', message: 'The api library knows no route.' },
           ],
-          patterns: [outside, noRide],
+          patterns: [outside, noRide, noDiagnostics],
         },
       ],
     },
@@ -108,7 +114,7 @@ module.exports = defineConfig([
             { name: '@telo/world', message: 'The domain library depends on api only.' },
             { name: '@angular/router', message: 'The domain library knows no route.' },
           ],
-          patterns: [outside, noRide],
+          patterns: [outside, noRide, noDiagnostics],
         },
       ],
     },
@@ -138,7 +144,7 @@ module.exports = defineConfig([
               message: 'Presentation components know no route; emit an output.',
             },
           ],
-          patterns: [outside, noRide],
+          patterns: [outside, noRide, noDiagnostics],
         },
       ],
     },
@@ -156,7 +162,7 @@ module.exports = defineConfig([
             { name: '@telo/world', message: 'The video library depends on api only.' },
             { name: '@angular/router', message: 'The video library knows no route.' },
           ],
-          patterns: [outside, noRide],
+          patterns: [outside, noRide, noDiagnostics],
         },
       ],
     },
@@ -174,7 +180,7 @@ module.exports = defineConfig([
             { name: '@telo/video', message: 'The world library depends on api only.' },
             { name: '@angular/router', message: 'The world library knows no route.' },
           ],
-          patterns: [outside, noRide],
+          patterns: [outside, noRide, noDiagnostics],
         },
       ],
     },

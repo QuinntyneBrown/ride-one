@@ -51,5 +51,10 @@ body:
   - type: textarea
     id: logs
     attributes:
-      label: Logs, raw packets or screenshots
+      label: Diagnostic recording, logs or screenshots
+      description: >-
+        For a bike that will not connect, report pedalling or take a target resistance: open the app with
+        ?diagnose on the end of its address, reproduce the problem, press Recording, note what the bike's own
+        display reads, and Save files. Paste the lines of the saved telo-ride-1-recording file around the
+        problem, or attach it. It holds your bike's name and identifier; see docs/protocol/diagnostic-recording.md.
       render: text

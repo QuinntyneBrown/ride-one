@@ -2,7 +2,7 @@
 
 This document is rewritten for Telo Ride 1 and drops what Telo Ride 1 leaves out: races and the
 World, the class library, sign-in, progression, group classes and live races, Home, Profile,
-ride settings, the custom workout, heart rate, diagnostics, feedback and installing the app. It
+ride settings, the custom workout, heart rate, Telo Ride's Diagnostics screen, feedback and installing the app. It
 follows the requirements in [`specs/L1.md`](specs/L1.md) and [`specs/L2.md`](specs/L2.md).
 
 Estimates are working days for one intermediate developer. **% complete** is the days of a
@@ -42,6 +42,9 @@ Telo Ride 1's journeys, ordered by value added to the product, scaffolding first
 | 34 | Stay smooth on long rides | Bundle budgets, running totals only, stable heap, web vitals. | 6 | 100% |
 | 35 | Keep it private | Nothing loads from or goes to a third party but YouTube; bike and stored data are untrusted. | 3 | 100% |
 | 36 | Use by touch, keyboard and screen reader | Every width, 44 px targets, keyboard paths, announcements, motion, theme, full screen. | 8 | 100% |
+| 38 | Diagnose a bike that misbehaves | A diagnostic recording, off unless the app is opened with `?diagnose`: every byte both ways with what the app decoded, the link's events, the readouts shown, notes and screen captures, saved as files. | 11 | 100% |
 
-**Total:** 119 days. **Complete:** 119 days (100%), 27 of them carried over. **To build:** 0 days.
+**Total:** 130 days. **Complete:** 130 days (100%), 27 of them carried over. **To build:** 0 days.
 Journey 37 was added by slice 30.2 and is built after journey 31, so its number is out of order.
+Journey 38 was added for L2-178 (ADR 0048). It is not a journey of the rider's: the person
+diagnosing takes it, with the app opened at `/?diagnose`.

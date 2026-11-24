@@ -13,8 +13,16 @@
           "/icons/**",
           "/*.css",
           "/*.js",
+          "!/provide-diagnostics-*.js",
           "/fonts/**"
         ]
+      }
+    },
+    {
+      "name": "diagnostics",
+      "installMode": "lazy",
+      "resources": {
+        "files": ["/provide-diagnostics-*.js"]
       }
     },
     {

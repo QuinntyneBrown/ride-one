@@ -4,7 +4,9 @@
     "paths": {
       "@telo/api": ["./projects/api/src/public-api.ts"],
       "@telo/domain": ["./projects/domain/src/public-api.ts"],
+      "@telo/domain/diagnostics": ["./projects/domain/src/diagnostics/public-api.ts"],
       "@telo/components": ["./projects/components/src/public-api.ts"],
+      "@telo/components/diagnostics": ["./projects/components/src/diagnostics/public-api.ts"],
       "@telo/video": ["./projects/video/src/public-api.ts"],
       "@telo/world": ["./projects/world/src/public-api.ts"]
     },

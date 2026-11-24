@@ -57,6 +57,27 @@ below is an artefact in the repository.
   `() => import('@telo/video')`. Only the routes of The Class and Class Ride provide it, and the
   `video` library's chunk is fetched only when one of them asks for a player. Connect Bike,
   Class Done and page not found never fetch it.
+- **The diagnostic recording** (ADR 0048). None of its code is in the initial bundle or in a
+  chunk a rider loads (`L2-178` AC1). Four mechanisms hold that:
+  - `ride.routes.ts`, itself a lazy chunk, exports `rideRoutes` as a `Promise<Routes>`. It reads
+    the switch once and awaits `import('./diagnostics/provide-diagnostics')` only when the app is
+    opened with `?diagnose`. `app.routes.ts`, `AppShell` and `app.config.ts` are not changed.
+  - The recording's code is exported only from the entry points `@telo/domain/diagnostics` and
+    `@telo/components/diagnostics`. Exported from the libraries' main entry points, it was
+    bundled into a chunk every rider loads; the acceptance test for "off" caught it.
+  - `noDiagnostics` in `frontend/eslint.config.js` keeps each library from importing those two
+    entry points.
+  - The production build sets `namedChunks`, and `projects/ride/ngsw-config.json` leaves
+    `/provide-diagnostics-*.js` out of the prefetched `app` group and lists it in a lazy
+    `diagnostics` group, so the service worker downloads the chunk to no rider's device.
+    `e2e/diagnostic-recording-app-cache.spec.ts` proves it.
+
+  Measured: `main` is 243.06 kB raw, from 243.05 kB, and the recording's chunk is 21.68 kB raw,
+  6.81 kB transferred; no budget changed. The dialog is the platform's `<dialog>` element and
+  not the CDK Dialog for a measured reason: with `@angular/cdk/dialog` imported from one lazy
+  chunk, `main` would have been 250.95 kB raw, because the parts of `@angular/core` the CDK needs
+  are bundled into the initial chunk. The recording belongs to
+  [record diagnostics](../../security/record-diagnostics/README.md).
 - **`angular.json` budgets** (exist; change). The `ride` project's production configuration
   sets an `initial` budget that warns at 304 kB and fails at 310 kB, and an
   `anyComponentStyle` budget that warns at 6 kB and fails at 10 kB. The Angular CLI measures

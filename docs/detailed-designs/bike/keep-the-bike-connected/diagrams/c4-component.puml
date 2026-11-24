@@ -22,7 +22,7 @@ Container_Boundary(api, "api library") {
   Component(token, "BIKE_CONNECTION", "Contract and token, exists", "ble, bike, reconnectRemembered, reconnectNow, forgetTarget")
   Component(remToken, "REMEMBERED_BIKE", "Contract and token, exists", "get, save, forget")
   Component(tick, "TICKER and MONOTONIC_TIME", "Contracts and tokens, exist", "A beat each second; a clock that never jumps")
-  Component(logger, "LOGGER", "Contract and token, new", "error(area, error); ConsoleLogger writes the line")
+  Component(logger, "APP_LOGGER", "Contract and token", "error(area, error); ConsoleAppLogger writes the line")
 }
 
 Rel(provide, conn, "Binds to BIKE_CONNECTION")

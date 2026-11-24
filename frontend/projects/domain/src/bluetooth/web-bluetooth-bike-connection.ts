@@ -2,9 +2,11 @@
 import { Injectable, type OnDestroy, inject, signal } from '@angular/core';
 import {
   APP_LOGGER,
+  BIKE_LINK_TAP,
   type BikeConnection,
   BikeConnectionError,
   type BikeInfo,
+  type BikeLinkTap,
   type BleState,
   type RememberedBikeRecord,
   TICKER,
@@ -35,7 +37,9 @@ const ECHELON_NAME_PREFIX = 'ECH';
 @Injectable()
 export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   private readonly received = new Subject<Uint8Array>();
-  private readonly queue = new GattWriteQueue();
+  /** The tap on the link, bound only while a diagnostic recording is on (L2-178); `null` for every rider. */
+  private readonly tap = inject(BIKE_LINK_TAP, { optional: true });
+  private readonly queue = new GattWriteQueue(this.tap);
   private readonly ticker = inject(TICKER);
   private readonly reconnector = new DeviceReconnector();
   private readonly logger = inject(APP_LOGGER, { optional: true }) ?? new ConsoleAppLogger();
@@ -54,7 +58,10 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
     const value = characteristic.value;
     if (!value) return;
-    this.received.next(bytesOf(value));
+    const bytes = bytesOf(value);
+    // The recording hears the bytes before anything decodes them (L2-178 AC3).
+    this.tap?.received(characteristic.uuid, bytes, 'notification', this.chosen()?.kind ?? null);
+    this.received.next(bytes);
   };
 
   private readonly linkState = signal<BleState>('idle');
@@ -69,26 +76,37 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
 
   /** Opens the browser's chooser; call it only from the rider's click. A closed chooser resolves `null`. */
   async requestBike(): Promise<BikeInfo | null> {
+    const options: RequestDeviceOptions = {
+      // An Echelon bike may advertise only its own name ("ECHEX-3-141844") and a sibling of the control service
+      // (0bf669f0-…), not the one it is controlled through, so a name filter finds it too; the service it is
+      // controlled through is asked for as optional so it can be read once connected.
+      filters: [
+        { services: [EchelonProtocol.service] },
+        { services: [FTMS] },
+        { namePrefix: ECHELON_NAME_PREFIX },
+      ],
+      optionalServices: [EchelonProtocol.service, FTMS],
+    };
+    this.tap?.event(
+      'chooser-opened',
+      `filters=${JSON.stringify(options.filters)} optional-services=${JSON.stringify(options.optionalServices)}`,
+    );
     try {
-      this.device = await navigator.bluetooth.requestDevice({
-        // An Echelon bike may advertise only its own name ("ECHEX-3-141844") and a sibling of the control service
-        // (0bf669f0-…), not the one it is controlled through, so a name filter finds it too; the service it is
-        // controlled through is asked for as optional so it can be read once connected.
-        filters: [
-          { services: [EchelonProtocol.service] },
-          { services: [FTMS] },
-          { namePrefix: ECHELON_NAME_PREFIX },
-        ],
-        optionalServices: [EchelonProtocol.service, FTMS],
-      });
+      this.device = await navigator.bluetooth.requestDevice(options);
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'NotFoundError') return null;
+      if (error instanceof DOMException && error.name === 'NotFoundError') {
+        this.tap?.event('chooser-closed');
+        return null;
+      }
+      this.tap?.event('chooser-failed', JSON.stringify(describeError(error)));
       const blocked = error instanceof DOMException && error.name === 'SecurityError';
       throw new BikeConnectionError(blocked ? 'blocked' : 'failed', String(error));
     }
-    const bike = this.info(this.device);
-    this.chosen.set(bike);
-    return bike;
+    this.tap?.event(
+      'chooser-picked',
+      `name=${JSON.stringify(this.device.name ?? null)} id=${JSON.stringify(this.device.id)}`,
+    );
+    return this.choose(this.info(this.device));
   }
 
   /**
@@ -100,15 +118,15 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     // A bike the rider picks in the chooser ends the wait for the remembered one.
     this.stopWaiting();
     this.watch(this.device);
-    this.linkState.set('connecting');
+    this.setBle('connecting');
     try {
       const link = await this.open(this.device.gatt);
-      this.linkState.set('connected');
+      this.setBle('connected');
       link.connected();
     } catch (error) {
       this.report(error);
       this.closeLink();
-      this.linkState.set('idle');
+      this.setBle('idle');
       throw error;
     }
   }
@@ -122,6 +140,7 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   private async open(gatt: BluetoothRemoteGATTServer): Promise<BikeLink> {
     const server = await gatt.connect();
     const services = await server.getPrimaryServices();
+    if (this.tap) await this.describe(services, this.tap);
     const echelon = services.find((service) => service.uuid === EchelonProtocol.service);
     const ftms = services.find((service) => service.uuid === FtmsProtocol.service);
     const service = echelon ?? ftms;
@@ -132,7 +151,8 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
       );
     const link: BikeLink = echelon
       ? new EchelonLink(this.queue, this.onValue, this.ticker, (error) => this.onFailure(error))
-      : new FtmsLink(this.queue, this.onValue);
+      : new FtmsLink(this.queue, this.onValue, this.tap);
+    this.tap?.event('link', echelon ? 'echelon' : 'ftms');
     await link.open(service);
     this.link = link;
     await link.initialise();
@@ -147,8 +167,9 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   private onDrop(error?: unknown): void {
     if (error !== undefined) this.report(error);
     if (this.linkState() !== 'connected') return;
+    this.tap?.event('dropped');
     this.closeLink();
-    this.linkState.set('disconnected');
+    this.setBle('disconnected');
     this.reconnector.start(() => this.attempt());
   }
 
@@ -156,17 +177,20 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   private async attempt(): Promise<boolean> {
     const gatt = this.device?.gatt;
     if (!gatt) return false;
+    this.tap?.event('reconnect-attempt');
     try {
       const link = await this.open(gatt);
       if (this.target !== null)
         await link.setResistance(this.target).catch((error: unknown) => {
           if (!(error instanceof BikeConnectionError)) throw error;
         });
-      this.linkState.set('connected');
+      this.tap?.event('reconnect-ok');
+      this.setBle('connected');
       link.connected();
       return true;
     } catch (error) {
       this.report(error);
+      this.tap?.event('reconnect-failed');
       this.closeLink();
       return false;
     }
@@ -204,7 +228,11 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
       if (waiting) return await waiting;
       this.device = device;
       // The identifier and the protocol are read from the device; only its name was kept (AC4).
-      this.chosen.set({ ...this.info(device), name: bike.name });
+      this.tap?.event(
+        'remembered-bike',
+        `name=${JSON.stringify(device.name ?? null)} id=${JSON.stringify(device.id)}`,
+      );
+      this.choose({ ...this.info(device), name: bike.name });
       if (typeof device.watchAdvertisements !== 'function') {
         await this.connect();
         return true;
@@ -224,6 +252,7 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
       const connect = (): void => {
         if (reached || signal.aborted) return;
         reached = true;
+        this.tap?.event('advertising');
         // The bike is here: the browser's watch ends, and the wait with it.
         this.advertising = null;
         abort.abort();
@@ -234,6 +263,7 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
       };
       signal.addEventListener('abort', () => !reached && resolve(false), { once: true });
       device.addEventListener('advertisementreceived', connect, { once: true, signal });
+      this.tap?.event('watching-advertisements');
       // A browser that cannot watch after all gets the one attempt at once.
       device.watchAdvertisements({ signal }).catch(connect);
     });
@@ -271,7 +301,7 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     this.stopWaiting();
     this.reconnector.stop();
     this.closeLink();
-    this.linkState.set('idle');
+    this.setBle('idle');
     this.device?.gatt?.disconnect();
   }
 
@@ -287,6 +317,50 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   private report(error: unknown): void {
     this.failure.set(describeError(error));
     this.logger.error('bluetooth', error);
+  }
+
+  /** The one place `ble` changes, so a diagnostic recording hears every state (L2-178 AC6). */
+  private setBle(state: BleState): void {
+    if (state !== this.linkState()) this.tap?.event('ble', state);
+    this.linkState.set(state);
+  }
+
+  /** The bike the app took the device for: the name and identifier the card shows, and the kind it is decoded by. */
+  private choose(bike: BikeInfo): BikeInfo {
+    this.tap?.event(
+      'bike',
+      `name=${JSON.stringify(bike.name)} identifier=${JSON.stringify(bike.identifier)} kind=${bike.kind}`,
+    );
+    this.chosen.set(bike);
+    return bike;
+  }
+
+  /**
+   * Tells the tap each service the bike offers with its characteristics and what each can do (L2-178 AC6). It is the
+   * one call a diagnostic recording adds to the link (ADR 0048): a rider's app never lists them, and a bike that
+   * refuses is recorded and connected as it would have been.
+   */
+  private async describe(
+    services: readonly BluetoothRemoteGATTService[],
+    tap: BikeLinkTap,
+  ): Promise<void> {
+    for (const service of services) {
+      try {
+        const characteristics = await service.getCharacteristics();
+        const listed = characteristics.map((characteristic) => {
+          const can = (['read', 'write', 'writeWithoutResponse', 'notify', 'indicate'] as const)
+            .filter((property) => characteristic.properties[property])
+            .join(',');
+          return can === '' ? characteristic.uuid : `${characteristic.uuid}(${can})`;
+        });
+        tap.event('service', `${service.uuid} characteristics=${listed.join(',')}`);
+      } catch (error) {
+        tap.event(
+          'service',
+          `${service.uuid} characteristics-unknown ${JSON.stringify(describeError(error))}`,
+        );
+      }
+    }
   }
 
   ngOnDestroy(): void {

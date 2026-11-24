@@ -1,7 +1,9 @@
 // Unit test
-// Traces to: L2-013 AC2, AC3
+// Traces to: L2-013 AC2, AC3; L2-178 AC5
 // Description: writes go one at a time in the order asked, a gapped write waits its gap after the one before, and a
-// failed write does not stop the next. Vitest's fake clock drives the gaps; nothing sleeps.
+// failed write does not stop the next. With a tap on the link (L2-178 AC5), each write is told to it as it starts and
+// as it settles. Vitest's fake clock drives the gaps; nothing sleeps.
+import type { BikeLinkTap } from '@telo/api';
 import { GattWriteQueue } from './gatt-write-queue';
 
 describe('GattWriteQueue', () => {
@@ -58,5 +60,64 @@ describe('GattWriteQueue', () => {
 
     await expect(first).rejects.toThrow('no');
     await expect(second).resolves.toBeGreaterThanOrEqual(0);
+  });
+
+  describe('with a tap on the link (L2-178 AC5)', () => {
+    const WRITE = '0bf669f2-45f2-11e7-9598-0800200c9a66';
+    /** A tap that keeps what it is told, in order. */
+    const tapped = () => {
+      const heard: string[] = [];
+      const tap: BikeLinkTap = {
+        received: () => undefined,
+        event: () => undefined,
+        writing: (to, bytes, targetResistance) => {
+          const write = `${to} ${Array.from(bytes).join(',')} ${targetResistance ?? '-'}`;
+          heard.push(`writing ${write}`);
+          return (error) => heard.push(error === undefined ? 'ok' : `failed ${String(error)}`);
+        },
+      };
+      return { tap, heard };
+    };
+
+    it('tells the tap of a write when it starts, after its gap, and when the bike acknowledges it', async () => {
+      const { tap, heard } = tapped();
+      const queue = new GattWriteQueue(tap);
+      const write = pending();
+      const done = queue.enqueue(write.write, 300, {
+        to: WRITE,
+        bytes: Uint8Array.of(0xf0, 0xb1),
+        targetResistance: 12,
+      });
+
+      await vi.advanceTimersByTimeAsync(299);
+      expect(heard).toEqual([]);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(heard).toEqual([`writing ${WRITE} 240,177 12`]);
+
+      write.settle(true);
+      await done;
+      expect(heard).toEqual([`writing ${WRITE} 240,177 12`, 'ok']);
+    });
+
+    it('tells the tap the error a write failed with, and still rejects', async () => {
+      const { tap, heard } = tapped();
+      const queue = new GattWriteQueue(tap);
+      const write = pending();
+      const done = queue.enqueue(write.write, 0, { to: WRITE, bytes: Uint8Array.of(0xf0) });
+      await vi.advanceTimersByTimeAsync(0);
+
+      write.settle(false);
+
+      await expect(done).rejects.toThrow('no');
+      expect(heard).toEqual([`writing ${WRITE} 240 -`, 'failed Error: no']);
+    });
+
+    it('tells the tap nothing of a write that says nothing of its bytes', async () => {
+      const { tap, heard } = tapped();
+
+      await new GattWriteQueue(tap).enqueue(async () => undefined);
+
+      expect(heard).toEqual([]);
+    });
   });
 });

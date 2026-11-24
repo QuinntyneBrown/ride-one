@@ -1,4 +1,9 @@
-import { inject, provideEnvironmentInitializer } from '@angular/core';
+import {
+  type EnvironmentProviders,
+  type Provider,
+  inject,
+  provideEnvironmentInitializer,
+} from '@angular/core';
 import type { Routes } from '@angular/router';
 import { ANNOUNCER, DISPLAY_PREFERENCES, FINISHED_RIDES, FULLSCREEN, RIDE_RECORD } from '@telo/api';
 import {
@@ -12,12 +17,14 @@ import { provideAppUpdates } from './app-update/provide-app-updates';
 import { connectedBikeGuard } from './bike/connected-bike.guard';
 import { provideBikeConnection } from './bike/provide-bike-connection';
 import { rememberedBikeGuard } from './bike/remembered-bike.guard';
+import { diagnosticsRequested } from './diagnostics/diagnostic-switch';
 
 /**
  * The four screens and page not found (ADR 0040), under one parent that provides the bike connection: one instance shared from Connect Bike to the ride,
- * loaded with the first screen instead of with the initial bundle (AGENTS.md, lazy loading first).
+ * loaded with the first screen instead of with the initial bundle (AGENTS.md, lazy loading first). `diagnostics`
+ * is what the diagnostic recording binds, and nothing for a rider (L2-178).
  */
-export const rideRoutes: Routes = [
+const routes = (diagnostics: (Provider | EnvironmentProviders)[]): Routes => [
   {
     path: '',
     providers: [
@@ -36,6 +43,9 @@ export const rideRoutes: Routes = [
       { provide: FULLSCREEN, useClass: BrowserFullscreen },
       // What a screen reader hears: a ride's steps and the result (L2-141 AC2).
       { provide: ANNOUNCER, useClass: LiveRegionAnnouncer },
+      // Last, so the recording's logger stands in for the console's; its environment initializer creates the
+      // recording with this injector, before any screen asks for the bike connection (L2-178 AC2).
+      ...diagnostics,
     ],
     children: [
       // Connect Bike, where a new rider starts (docs/mocks/pages/connect-bike/).
@@ -84,3 +94,15 @@ export const rideRoutes: Routes = [
     ],
   },
 ];
+
+/**
+ * The app's routes, once it is known whether the diagnostic recording is on (L2-178 AC1, AC2; ADR 0048). Opened with
+ * `?diagnose`, the recording's code is fetched here, before any route is drawn; opened without, nothing of it is
+ * fetched and the routes are ready at once. A recording that cannot be fetched leaves the plain app.
+ */
+export const rideRoutes: Promise<Routes> = diagnosticsRequested()
+  ? import('./diagnostics/provide-diagnostics').then(
+      (diagnostics) => routes(diagnostics.provideDiagnostics()),
+      () => routes([]),
+    )
+  : Promise.resolve(routes([]));

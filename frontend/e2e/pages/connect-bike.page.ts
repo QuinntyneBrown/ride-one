@@ -60,9 +60,15 @@ export class ConnectBikePage {
     this.blockerAction = page.locator('.connect-blocker__retry');
   }
 
-  /** Opens Connect Bike; `simulate` adds `?simulate`, which only a development build honours. */
-  async open(options: { simulate?: boolean } = {}): Promise<void> {
-    await this.page.goto(options.simulate ? '/connect?simulate' : '/connect');
+  /**
+   * Opens Connect Bike; `simulate` adds `?simulate`, which only a development build honours, and `diagnose` adds
+   * `?diagnose`, which switches the diagnostic recording on (L2-178 AC2).
+   */
+  async open(options: { simulate?: boolean; diagnose?: boolean } = {}): Promise<void> {
+    const query = [options.simulate ? 'simulate' : '', options.diagnose ? 'diagnose' : '']
+      .filter((name) => name !== '')
+      .join('&');
+    await this.page.goto(query === '' ? '/connect' : `/connect?${query}`);
   }
 
   /** The top of each "Works with" row, in order: equal tops share a line. */

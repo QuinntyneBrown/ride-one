@@ -141,6 +141,7 @@
         <li>Use a page when the task has steps, needs a URL, or is longer than one screen (Connect Bike, Custom workout).</li>
         <li>Never open a dialog on top of a running ride without pausing it first; Leave this ride says "The ride is paused while you decide."</li>
       </ul>
+      <p><b>One dialog is not this shell.</b> The Diagnostic recording dialog (L2-178) is the platform's <code>&lt;dialog&gt;</code> element opened with <code>showModal()</code>, which gives the top layer, the inert page, the focus trap and Escape from the browser; ADR 0048 gives the reason. It is a diagnostic aid, opens over a running ride without pausing it, and has its own block: see <a href="diagnostic-panel.html">Diagnostic panel</a> and the <a href="recording-mark.html">recording mark</a> that opens it.</p>
     </section>
 
     <section class="ds-section" id="anatomy"><h2><a href="#anatomy">Anatomy</a></h2>

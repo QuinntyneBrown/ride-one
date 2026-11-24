@@ -65,6 +65,18 @@ Neighbouring features own the adjacent concerns:
 - **`WakeLockFixture`** (`e2e/fixtures/wake-lock.ts`), **`hideTab`** and **`showTab`**
   (`e2e/fixtures/tab.ts`) and **`withoutFullscreen`** (`e2e/fixtures/fullscreen.ts`): exist. They
   fake the Screen Wake Lock API, the hidden tab and a browser without full screen.
+- **`ScreenCaptureFixture`** (`e2e/fixtures/screen-capture.ts`): exists, for the diagnostic
+  recording of [Record diagnostics](../../security/record-diagnostics/README.md) (`L2-178`).
+  Headless Chromium cannot show the browser's own sharing prompt, so `install(page)` answers
+  `navigator.mediaDevices.getDisplayMedia` before the app loads. Granted, it resolves a real
+  `MediaStream` of a drawn canvas of 640 × 360 px, so the app's capture code runs on real video
+  frames. `refuse()` makes it reject with `NotAllowedError`, and `remove()` takes the API away
+  from the next page load, as on Chrome for Android. `asked()` returns what the page asked for
+  and `tracks()` the state of each track handed out, so a spec proves the sharing ended.
+- **`FakeBluetooth` for the recording**: `failWrites()` and `allowWrites()` make every write
+  fail with `NetworkError` and succeed again; `notifyTimes()` pushes the same bytes a set number
+  of times at once; each fake service answers `getCharacteristics()`, and a `FakeBike` may state
+  each characteristic's `properties`.
 - **`ApiFixture`** (`e2e/fixtures/api.ts`): exists. It routes every localhost request under `/api/`
   and lists a request with no declared answer in `unanswered()`. Telo Ride 1 has no backend
   (ADR 0037, ADR 0043) and the class ships with the app (ADR 0042), so no spec declares an answer
@@ -86,6 +98,14 @@ Neighbouring features own the adjacent concerns:
   names the link "Back to the class".
 - **The Class** and **Class Done** page objects: new, as `e2e/pages/the-class.page.ts`
   (`TheClassPage`) and `e2e/pages/class-done.page.ts` (`ClassDonePage`).
+- **`DiagnosticsPage`** (`e2e/pages/diagnostics.page.ts`): exists. The page object of the
+  recording mark and the "Diagnostic recording" dialog, which are no screen of their own.
+  `open(path)` opens an address with `?diagnose`, and `addNoteOf(text)` adds a note.
+  `saveFiles(files)` presses **Save files** and reads each saved file, its name and its bytes,
+  from Playwright's `download` events; `savedRecording()` and `entries()` return the saved text
+  and its entry lines. A spec therefore asserts the saved recording's lines without a real
+  downloads folder and without a request. The specs that use it are listed in
+  [Record diagnostics](../../security/record-diagnostics/README.md).
 - **Storage**: Playwright gives each spec a fresh browser context, so `localStorage` starts empty.
   A spec seeds a returning rider by writing `telo-ride.bike` and `telo-ride.record` before the app
   loads.

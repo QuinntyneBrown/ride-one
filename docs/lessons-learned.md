@@ -270,8 +270,62 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 | L243 | `page.clock.fastForward` fires each due timer once, so what the app does in a chain (the bike answers, the ride resumes, the ticker starts) does not finish in it: after Resume or a bike's return the clock still read the held second, 1 run in 6. Use `runFor` for the seconds after a press or a bike event, and `fastForward` only to cross a long stretch of a ride that is already running, followed by `runFor(64)` to draw there. Each second of `runFor` in a running ride in Ibiza is sixty frames drawn in software. | 37.2 | | |
 | L244 | A ride in Ibiza on Playwright's paused clock from the start (`startRideInIbizaOnPausedClock`, then `courseDrawnOnPausedClock`, which steps a frame and waits 100 ms of real time for the files): the first frame is at 0:00 on the grid, the spec reads exact seconds, and a spec that draws the course takes about 10 s where one on the running clock takes 17 to 23 s. The rider is between `planMetres(second)` and `planMetres(second + 1)` (`e2e/fixtures/the-class.ts`). A film takes its pictures the same way, each inside `onPausedClock`. | 37.2 | | |
 | L245 | A criterion's number can be older than the code. L2-174 AC10 gave the camera's first numbers (4.9 m behind) and the course had since been framed at 2.75 m, on purpose. Before building to a number, `grep -rn` the docs for the code's constant (`docs/course-realism.md` named the passes that changed it) and check the still and the mocks: where they show the code's picture, the criterion is corrected and an open question says so; the picture is not changed to fit a stale number. | 37.2 | | |
+| L246 | A file exported from a library's `public-api.ts` is bundled into a chunk every rider loads, even when only a dynamically imported file uses it: the bundler places a file by every entry that can reach it. Code that must load on demand from inside `domain` or `components` gets an entry point of its own (`@telo/domain/diagnostics` in `tsconfig.json` paths), and a spec that reads the scripts a page fetched for a string only that code has (`ScriptLog.hasRecordingCode`). | 38.1 | | |
+| L247 | `@angular/cdk/dialog` imported from one lazy chunk grows `main` by 7.9 kB raw (243.05 to 250.95 kB): the parts of `@angular/core` it needs land in the initial chunk (L77). Measure a new Angular package with a throwaway dynamic import in a lazy page and one `ng build ride` before designing on it; the platform's `<dialog>` with `showModal()` costs nothing. | 38.1 | | |
+| L248 | The service worker prefetches every `/*.js` of the build (`ngsw-config.json`), so a chunk no rider's page asks for is still downloaded to an installed rider's device, and the specs, which block the worker, do not see it. `"namedChunks": true` gives a lazy chunk its entry file's name, which the config can leave out of the prefetched group; prove it with `cachedScriptsHolding` in a spec that allows the worker. | 38.7 | | |
+| L249 | On this Windows checkout (`core.autocrlf`), `npm run format:check` fails on every file until `npx prettier --write .` has run once in `frontend/`: it rewrites line endings only, and git sees no change. A long `python - <<'EOF'` or `cat <<'EOF'` in Git Bash can fail with "unexpected EOF while looking for matching quote": keep edit scripts in the scratchpad as files (`edit.py` with a spec of `(path, old, new)`, which is L25 and L234 by construction). | 38.1 | | |
+| L250 | Under a full parallel `verify` on this machine one or two of the Ibiza music and course specs time out, a different one each run, and all pass alone. Rerun the named spec alone before reading anything into it; a spec that fails alone too is real (`class-ride-ibiza-clock` read the wrong figure on `main` and was fixed in its own commit). | 38.1 | | |
+| L251 | A spec that counts entries across two moments is racy when something periodic (the keepalive) writes between them: assert on what the file itself says (its `# dropped:` line, a pattern, a range) rather than on arithmetic from an earlier reading. | 38.5 | | |
+| L252 | Saved files are read in a spec from Playwright's `download` events (`download.path()`), with no fixture: an `<a download>` on a `blob:` URL passes the Content Security Policy as it stands. A fake for an API Chromium cannot grant headless (`getDisplayMedia`) should hand the app a real object (`canvas.captureStream()`), so the app's own code runs on real frames and the spec can read `track.readyState` to see it let go. | 38.6 | | |
 
 ## Log
+
+### 38.1 to 38.7 Diagnose a bike that misbehaves (2026-11-23)
+
+Journey 38, all seven slices in one change: the diagnostic recording of L2-178, off unless the app is opened with
+`?diagnose` (ADR 0048).
+
+**Applied from earlier**
+
+- **L1, L13 (own worktree, own `npm ci`, the verify stamp):** saved time. The main checkout held another session's
+  uncommitted work on `fix-ex3-pedalling`; a worktree cut from `origin/main` never touched it.
+- **L2 (`E2E_PORT`):** saved time. Every run used 4380.
+- **L5, L54, L72, L77 (read the initial total after each step):** saved time, twice. It showed the CDK dialog's cost
+  before anything was designed on it (L247), and it showed `main` at 243.06 kB after every slice.
+- **L17 (judge verify by its exit status):** saved time.
+- **L18, L57 (bind on the lazy parent route):** saved time. The recorder, the tap and the recording's logger are bound
+  there, so one recording serves every screen and none of it is in `app.config.ts`.
+- **L19 (`*.development.spec.ts`):** saved time. The simulated bike's recording is proved in the development project.
+- **L25, L234 (all-or-nothing edit scripts):** saved time. Every multi-file edit went through one script that checks
+  each anchor occurs once before it writes anything; four edits missed their anchor and none left a file half changed.
+- **L27, L29 (frames after initialisation; the keepalive joins every log):** saved time for the first specs, and L29 was
+  still forgotten once (L251).
+- **L41, L69 (see the spec fail first):** saved time. The spec for "off" failed for a reason nobody planned (L246).
+- **L43 (the paused clock stops change detection):** saved time. Specs resume the clock before pressing the mark.
+- **L63 (an attribute button takes its name as content):** applied late. The mark first drew its own word, and lint
+  refused the empty button.
+- **L34 (render every diagram):** did not apply to this session's own files; the designs' diagrams were rendered by
+  the skill's script.
+
+**What slowed it down**
+
+- **The recording's code was in every rider's chunks, twice.** First through the libraries' main entry points (L246),
+  caught by the spec for "off"; then through the service worker's prefetch (L248), caught by reading
+  `ngsw-config.json` while writing the deployment note, after every spec had passed.
+- **The dialog.** `AGENTS.md` asks for a CDK Dialog, and the CDK left the workspace with ADR 0043. Measuring it took
+  one build and settled it: the platform's `<dialog>`, recorded as a departure in ADR 0048.
+- **The shell.** Long heredocs failed to parse in Git Bash, and the format check failed on untouched files until
+  their line endings were rewritten (L249).
+- **Specs that fail on `main`.** One Ibiza clock spec failed alone and was fixed in its own commit; others time out
+  only under a full parallel run (L250).
+
+**New lessons**
+
+- L246 to L252, in the table above.
+- **What was not run:** the heap check with the recording on (`e2e/heap/recording.heap.ts`) and the sweeps were written
+  or left as they were and not run, as `AGENTS.md` asks. No recording has been made on a real bike: every byte in the
+  specs came from the fake Bluetooth stack or the simulated bike, and the Screen Capture API was answered by a fixture.
+  The first recording of a real Echelon EX-3 is a person's to make.
 
 ### 36.5 Page not found (2026-11-23)
 

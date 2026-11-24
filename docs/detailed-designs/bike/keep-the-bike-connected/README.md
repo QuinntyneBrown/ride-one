@@ -43,7 +43,8 @@ The slice is mostly `domain` code that exists. The Description names each part a
 - **`forgetTarget()`** is on the contract since slice 31.2. It clears the kept target resistance, so a reconnect after a ride sends no resistance command. `ClassRideStore` calls it when the rider leaves or finishes (`L2-093` AC3), as [Pause, leave or finish the class](../../class-ride/pause-leave-or-finish-the-class/README.md) describes. `SimulatedBikeConnection` implements it as well.
 - **`reconnectNow()`** exists on the contract and calls `retryNow()` while `ble` is `disconnected`. It is the **Reconnect** action.
 - **`disconnect()`** exists. It stops the reconnector, closes the link and sets `ble` to `idle`. Class Ride calls it when the rider leaves a ride whose bike is lost, which ends the retries (`L2-017` AC1).
-- **`describeError(error)`** (`describe-error.ts`) exists and returns `name: message`. `report()` exists and calls `console.error` itself today. For Telo Ride 1 it calls `Logger.error('bluetooth', error)` through the `LOGGER` token, and `ConsoleLogger` formats the error with `describeError` and writes one line of text to the console (`L2-115` AC3). The `Logger` contract, the token and `ConsoleLogger` belong to [Log to the console only](../../security/log-to-the-console-only/README.md). The `lastError` signal on `BikeConnection` existed for Telo Ride's Diagnostics screen; Telo Ride 1 has no reader for it, and the contract drops it, so the rider sees only the app's own message (`L2-017` AC5).
+- **`describeError(error)`** (`describe-error.ts`) exists and returns `name: message`. `report()` exists and calls `AppLogger.error('bluetooth', error)` through the `APP_LOGGER` token; `ConsoleAppLogger` formats the error with `describeError` and writes one redacted line of text to the console (`L2-115` AC3). The `AppLogger` contract, the token and `ConsoleAppLogger` belong to [Log to the console only](../../security/log-to-the-console-only/README.md). The `lastError` signal on `BikeConnection` existed for Telo Ride's Diagnostics screen and is still on the contract; no screen of Telo Ride 1 shows it, so the rider sees only the app's own message (`L2-017` AC5).
+- **The tap** (changed for the diagnostic recording). `WebBluetoothBikeConnection` injects the optional `BIKE_LINK_TAP`. `setBle(state)` is the one place `ble` changes, and it reports each change as the event `ble`. A drop is reported as `dropped`, and each retry as `reconnect-attempt` followed by `reconnect-ok` or `reconnect-failed`. The reconnect of a remembered bike reports `remembered-bike` when the permitted device is found, `watching-advertisements` while the app waits and `advertising` when the bike is heard. The keepalive's writes go through `GattWriteQueue.enqueue` as before and are recorded there, each with its outcome, so a keepalive that fails is in the recording before the drop it causes (`L2-178` AC5, AC6). With the tap `null` nothing changes. The tap and the recording belong to [Record diagnostics](../../security/record-diagnostics/README.md).
 
 **Bike status**
 
@@ -96,7 +97,7 @@ The Ride app reads the remembered bike from browser storage and holds the Blueto
 
 ### Class structure
 
-`WebBluetoothBikeConnection` composes a `DeviceReconnector` and holds an `EchelonLink`, which composes a `KeepaliveScheduler`. The scheduler depends on the `Ticker` and `MonotonicTime` contracts. `RememberedBikeStore` realizes `RememberedBike` over a `RememberedBikeRecord`, and `bikeStatus()` returns a `BikeStatusView`. The connection reports errors through the `Logger` contract.
+`WebBluetoothBikeConnection` composes a `DeviceReconnector` and holds an `EchelonLink`, which composes a `KeepaliveScheduler`. The scheduler depends on the `Ticker` and `MonotonicTime` contracts. `RememberedBikeStore` realizes `RememberedBike` over a `RememberedBikeRecord`, and `bikeStatus()` returns a `BikeStatusView`. The connection reports errors through the `AppLogger` contract.
 
 ![Class diagram for keeping the bike connected](diagrams/class-structure.png)
 
@@ -114,6 +115,6 @@ Each tick reads the monotonic clock, and a keepalive is written when 900 ms or m
 
 ### Behaviour: recover a dropped bike
 
-A drop logs the error as text through `LOGGER`, sets `ble` to `disconnected` and starts a retry every 3 seconds. **Reconnect** cancels the pending wait and attempts at once. A successful attempt sends the current target resistance before anything else, then restarts the keepalive. During a ride the engine then sends the current segment's level.
+A drop logs the error as text through `APP_LOGGER`, sets `ble` to `disconnected` and starts a retry every 3 seconds. **Reconnect** cancels the pending wait and attempts at once. A successful attempt sends the current target resistance before anything else, then restarts the keepalive. During a ride the engine then sends the current segment's level.
 
 ![Sequence diagram for recovering a dropped bike](diagrams/sequence-recover-a-dropped-bike.png)

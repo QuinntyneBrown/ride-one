@@ -107,6 +107,11 @@ Then, in Chrome or Edge:
   the console shows no Content Security Policy refusal.
 - Open `http://$HOST/` and see the address change to `https://`.
 - Pair a bike. Web Bluetooth works only on a secure page, so this also proves HTTPS end to end.
+- Open `https://$HOST/?diagnose` and see the **Recording** button at the foot of the screen; open
+  `https://$HOST/` again and see it gone. The diagnostic recording (L2-178) needs no setting on
+  the host and no change to the Content Security Policy: it is a query on the address, and its
+  files are saved by the browser. [`protocol/diagnostic-recording.md`](protocol/diagnostic-recording.md)
+  is what to send someone whose bike misbehaves.
 
 If an answer differs from the comment beside it, the host reads the file differently from the
 spec server (`frontend/scripts/serve-dist.mjs`, which follows `globalHeaders`, `routes`,

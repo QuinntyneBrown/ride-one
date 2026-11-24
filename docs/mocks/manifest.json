@@ -34,7 +34,8 @@
         "L2-012",
         "L2-013",
         "L2-014",
-        "L2-018"
+        "L2-018",
+        "L2-178"
       ],
       "states": [
         "default",
@@ -45,7 +46,8 @@
         "unsupported-browser",
         "needs-https",
         "chooser-blocked",
-        "chooser-failed"
+        "chooser-failed",
+        "recording"
       ],
       "not_applicable": {
         "loading": "‘searching’ is the loading state: the card spins while the browser’s list of bikes is open.",
@@ -66,7 +68,8 @@
         "L2-080",
         "L2-084",
         "L2-144",
-        "L2-173"
+        "L2-173",
+        "L2-178"
       ],
       "states": [
         "default",
@@ -78,7 +81,8 @@
         "needs-chromium",
         "link-copied",
         "needs-https",
-        "cannot-load"
+        "cannot-load",
+        "recording"
       ],
       "not_applicable": {
         "loading": "Telo Ride 1 has one class, bundled with the app; nothing loads before the page shows. The video player fills its box when YouTube answers.",
@@ -106,7 +110,8 @@
         "L2-135",
         "L2-173",
         "L2-174",
-        "L2-175"
+        "L2-175",
+        "L2-178"
       ],
       "states": [
         "default",
@@ -122,7 +127,8 @@
         "by-hand",
         "video-unavailable-by-hand",
         "disconnected",
-        "disconnected-ibiza"
+        "disconnected-ibiza",
+        "recording"
       ],
       "not_applicable": {
         "loading": "The ride itself never loads: it starts from The Class with the bike connected and the plan in memory. In Ibiza the course loads in its box while the ride runs, which is the state ibiza-loading.",
@@ -138,14 +144,16 @@
       "requirements": [
         "L2-077",
         "L2-078",
-        "L2-079"
+        "L2-079",
+        "L2-178"
       ],
       "states": [
         "default",
         "first",
         "not-best",
         "efforts-none",
-        "not-saved"
+        "not-saved",
+        "recording"
       ],
       "not_applicable": {
         "loading": "The result is computed on the device when the class ends; the page has it before it opens.",
@@ -168,6 +176,32 @@
         "loading": "A static page; nothing loads.",
         "empty": "The page is itself the empty answer to an address with no screen.",
         "error": "The page is itself the error."
+      }
+    },
+    {
+      "id": "diagnostic-recording",
+      "kind": "dialog",
+      "title": "Diagnostic recording",
+      "route": "?diagnose",
+      "opens_from": "class-ride",
+      "requirements": [
+        "L2-178"
+      ],
+      "states": [
+        "default",
+        "note-ready",
+        "note-added",
+        "capturing",
+        "capture-kept",
+        "capture-refused",
+        "capture-unsupported",
+        "saved",
+        "save-failed",
+        "limit-reached"
+      ],
+      "not_applicable": {
+        "busy": "‘capturing’ is the busy state: the dialog is closed while the browser asks to share the tab, and the recording mark reads “Capturing…”.",
+        "invalid": "The note has no invalid value: an empty field turns Add note off (default), text turns it on (note-ready), and the field takes no more than 200 characters."
       }
     }
   ]

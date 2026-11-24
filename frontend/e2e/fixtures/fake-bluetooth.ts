@@ -10,6 +10,11 @@ export interface FakeBike {
   values?: Record<string, number[]>;
   /** The browser's identifier for the device; every bike is `fake-bike` unless the spec tells two apart. */
   id?: string;
+  /**
+   * What each characteristic can do, as its `properties` say (`read`, `write`, `notify`, `indicate`); one the bike
+   * does not list has none. Only a diagnostic recording reads them (L2-178 AC6).
+   */
+  properties?: Record<string, string[]>;
 }
 
 /** Telo Ride 1's record of the remembered bike, as it lies in the browser's storage. */
@@ -158,6 +163,16 @@ export class FakeBluetooth {
     );
   }
 
+  /** From now on every write to the bike fails, as a link that is going does: `NetworkError`. */
+  async failWrites(): Promise<void> {
+    await this.page.evaluate(() => Object.assign(window, { __fakeWritesFail: true }));
+  }
+
+  /** Writes reach the bike again. */
+  async allowWrites(): Promise<void> {
+    await this.page.evaluate(() => Object.assign(window, { __fakeWritesFail: false }));
+  }
+
   /** The bike is switched off: every GATT connection attempt fails, as a bike out of range does. */
   async switchOff(): Promise<void> {
     await this.power(false);
@@ -233,6 +248,23 @@ export class FakeBluetooth {
     );
   }
 
+  /** Pushes the same `bytes` from the bike `times` times at once, as an hour of notifications arrives. */
+  async notifyTimes(
+    characteristic: string,
+    bytes: readonly number[],
+    times: number,
+  ): Promise<void> {
+    await this.page.evaluate(
+      ({ characteristic, bytes, times }) => {
+        const fake = (
+          window as unknown as { __fakeBluetooth: { notify(c: string, b: number[]): void } }
+        ).__fakeBluetooth;
+        for (let sent = 0; sent < times; sent++) fake.notify(characteristic, bytes);
+      },
+      { characteristic, bytes: [...bytes], times },
+    );
+  }
+
   /** Every write the page made, oldest first. */
   writes(): RecordedWrite[] {
     return [...this.recorded];
@@ -276,6 +308,7 @@ function installInPage(): void {
     services: Record<string, string[]>;
     values?: Record<string, number[]>;
     id?: string;
+    properties?: Record<string, string[]>;
   }
   const report = (window as unknown as { __fakeBluetoothReport(r: unknown): Promise<void> })
     .__fakeBluetoothReport;
@@ -314,10 +347,21 @@ function installInPage(): void {
     for (const watched of [...watching]) watched.dispatchEvent(new Event('advertisementreceived'));
   };
   const characteristic = (bike: Bike, uuid: string) => {
-    const write = async (value: BufferSource, withResponse: boolean) =>
-      report({ kind: 'write', characteristic: uuid, hex: hex(value), withResponse });
+    const write = async (value: BufferSource, withResponse: boolean) => {
+      await report({ kind: 'write', characteristic: uuid, hex: hex(value), withResponse });
+      if ((window as unknown as { __fakeWritesFail?: boolean }).__fakeWritesFail)
+        throw new DOMException('GATT operation failed for unknown reason.', 'NetworkError');
+    };
+    const can = (property: string): boolean => bike.properties?.[uuid]?.includes(property) ?? false;
     const c = Object.assign(new EventTarget(), {
       uuid,
+      properties: {
+        read: can('read'),
+        write: can('write'),
+        writeWithoutResponse: can('writeWithoutResponse'),
+        notify: can('notify'),
+        indicate: can('indicate'),
+      },
       value: null as DataView | null,
       startNotifications: async () => {
         await report({ kind: 'subscribe', characteristic: uuid });
@@ -352,6 +396,8 @@ function installInPage(): void {
             if (bike.services[uuid].includes(c)) return characteristic(bike, c);
             throw new DOMException(`No characteristic ${c}`, 'NotFoundError');
           },
+          // Every characteristic of the service, which only a diagnostic recording asks for (L2-178 AC6).
+          getCharacteristics: async () => bike.services[uuid].map((c) => characteristic(bike, c)),
         },
         'service',
       );

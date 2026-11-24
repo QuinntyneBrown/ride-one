@@ -20,8 +20,10 @@ box "Frontend — Ride app (ride application)" #E0F2FE
 end box
 box "Frontend — Ride app (domain library)" #ECFDF3
   participant "WebBluetoothBikeConnection" as conn
-  participant "ConsoleLogger" as logger
+  participant "RecordingAppLogger" as reclogger
+  participant "ConsoleAppLogger" as logger
   participant "describeError" as describe
+  participant "DiagnosticRecorder" as recorder
 end box
 box "Device — Browser" #F2F4F7
   participant "navigator.bluetooth" as ble
@@ -37,10 +39,19 @@ ble -> bike : Connect
 bike --> ble : Connection fails
 ble --> conn : Reject with NetworkError
 conn -> conn : report(error)
-conn -> logger : error("bluetooth", error)
-logger -> describe : describeError(error)
-describe --> logger : "NetworkError: <message>"
-logger -> console : console.error("bluetooth: NetworkError: <message>") (L2-115 AC1, AC3)
+alt the diagnostic recording is off
+  conn -> logger : APP_LOGGER.error("bluetooth", error)
+  logger -> describe : describeError(error)
+  describe --> logger : "NetworkError: <message>"
+  logger -> console : console.error(redact("[bluetooth] NetworkError: <message>")) (L2-115 AC1, AC3)
+else the diagnostic recording is on
+  conn -> reclogger : APP_LOGGER.error("bluetooth", error)
+  reclogger -> logger : error("bluetooth", error)
+  logger -> describe : describeError(error)
+  describe --> logger : "NetworkError: <message>"
+  logger -> console : The same console.error line (L2-115 AC4)
+  reclogger -> recorder : logged(logLine("bluetooth", error)): the same redacted line as an ERR entry (L2-178 AC7)
+end
 note over logger, console : No request leaves the page for the line (L2-115 AC1)
 conn --> page : Reject connect()
 page --> rider : Show the app's own message, not the error text (L2-017 AC5)

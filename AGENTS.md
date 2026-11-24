@@ -24,7 +24,10 @@ screens and no menus:
 
 Telo Ride 1 has no class library, races, maps or worlds beyond Ibiza Sunset Strip, music beyond
 that one track, group classes or live races, XP, rider
-levels, stars or unlocks, sign-in, or custom workout. Before adding or changing anything, ask how
+levels, stars or unlocks, sign-in, or custom workout. One thing sits behind configuration and is
+no part of the rider's app: the diagnostic recording (L2-178, ADR 0048), on only when the app is
+opened with `?diagnose`, for finding why a bike will not connect, report pedalling or take a
+target resistance. Before adding or changing anything, ask how
 it serves connecting the bike and taking the one class; if it does not, do not build it, and if a
 request works against it, say so.
 
@@ -126,7 +129,10 @@ is none (ADR 0041).
   brings, which the lazy parent route in `ride.routes.ts` binds so their code stays out of the
   initial bundle. ESLint enforces it. A new library takes its place in this direction, and the
   same change adds it to this rule and to the ESLint boundaries; it never depends on `ride`,
-  and `api` still depends on nothing.
+  and `api` still depends on nothing. The diagnostic recording's code has entry points of its
+  own, `@telo/domain/diagnostics` and `@telo/components/diagnostics`, which only `ride` imports,
+  and only from the chunk it loads with `?diagnose`; the libraries' main entry points export
+  none of it, so no chunk a rider loads holds it (ADR 0048).
 - Protocol rules (framing, checksums, command bytes) live in `domain`'s `protocol/` only;
   business rules (workout stepping, target vs. actual resistance, sessions) in `engine/`.
   Nothing outside `bluetooth/` touches `navigator.bluetooth`. Every feature runs end to end
@@ -156,7 +162,9 @@ is none (ADR 0041).
   its unit tests, never in a component.
 - Each service has a contract and an injection token in `api`; components depend on the token.
 - **No inline forms.** Button-triggered editing opens a CDK Dialog or navigates to a screen.
-  Never hand-roll modals.
+  Never hand-roll modals. The diagnostic recording's dialog is the one exception: it is the
+  platform's `<dialog>` element, because the CDK would grow every rider's initial bundle for a
+  dialog no rider can open (ADR 0048).
 - A contract refuses with an error whose `code` a screen branches on; the rider sees a generic
   message. Device names and error strings are data, rendered as text, never as HTML.
 - Every interaction works by touch on a phone and by keyboard on a desktop; touch targets are
@@ -203,7 +211,8 @@ bundle or leaks memory is not done, whatever else it achieves.
   intervals and `requestAnimationFrame` loops, event and Bluetooth notification listeners,
   observers, `AbortController`s, object URLs, media elements, and every
   Three.js geometry, material, texture, render target and renderer (`dispose()`).
-- **Bound what grows.** Live data held during a ride (power and cadence traces) uses a fixed-size
+- **Bound what grows.** Live data held during a ride (power and cadence traces, the diagnostic
+  recording) uses a fixed-size
   or windowed buffer, or is persisted and dropped from memory.
   Nothing accumulates without a limit for the length of a ride.
 - **Scope state to its use.** Provide services at the route or component that needs them, not

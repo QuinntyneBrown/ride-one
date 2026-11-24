@@ -1,5 +1,5 @@
 /// <reference types="web-bluetooth" />
-import { BikeConnectionError } from '@telo/api';
+import { type BikeLinkTap, BikeConnectionError } from '@telo/api';
 import { FtmsProtocol, type ResistanceRange } from '../protocol/ftms-protocol';
 import type { BikeLink } from './bike-link';
 import type { GattWriteQueue } from './gatt-write-queue';
@@ -23,7 +23,9 @@ export class FtmsLink implements BikeLink {
   private state: BikeControl = 'unknown';
   private awaiting: ((success: boolean) => void) | null = null;
   private readonly onResponse = (event: Event): void => {
-    const value = (event.target as BluetoothRemoteGATTCharacteristic).value;
+    const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
+    const value = characteristic.value;
+    if (value) this.tap?.received(characteristic.uuid, bytesOf(value), 'indication', null);
     const response = value ? FtmsProtocol.decodeControlPointResponse(value) : null;
     if (response?.requestOpCode === FtmsProtocol.requestControl()[0])
       this.awaiting?.(response.success);
@@ -32,6 +34,8 @@ export class FtmsLink implements BikeLink {
   constructor(
     private readonly queue: GattWriteQueue,
     private readonly onValue: (event: Event) => void,
+    /** The tap on the link, bound only while a diagnostic recording is on (L2-178). */
+    private readonly tap: BikeLinkTap | null = null,
   ) {}
 
   get control(): BikeControl {
@@ -47,7 +51,9 @@ export class FtmsLink implements BikeLink {
       this.controlPoint.addEventListener('characteristicvaluechanged', this.onResponse);
       await this.controlPoint.startNotifications();
       const range = await service.getCharacteristic(FtmsProtocol.resistanceRange);
-      this.range = FtmsProtocol.decodeResistanceRange(await range.readValue());
+      const read = await range.readValue();
+      this.tap?.received(range.uuid, bytesOf(read), 'read', null);
+      this.range = FtmsProtocol.decodeResistanceRange(read);
     } catch {
       this.state = 'read-only';
     }
@@ -72,9 +78,7 @@ export class FtmsLink implements BikeLink {
         'The bike does not give control of its resistance',
       );
     const raw = FtmsProtocol.mapLevel(level, this.range);
-    return this.queue.enqueue(() =>
-      this.write(controlPoint, FtmsProtocol.setTargetResistanceLevel(raw)),
-    );
+    return this.write(controlPoint, FtmsProtocol.setTargetResistanceLevel(raw), level);
   }
 
   close(): void {
@@ -94,7 +98,7 @@ export class FtmsLink implements BikeLink {
       timer = setTimeout(() => resolve(false), CONTROL_TIMEOUT_MS);
     });
     try {
-      await this.queue.enqueue(() => this.write(controlPoint, FtmsProtocol.requestControl()));
+      await this.write(controlPoint, FtmsProtocol.requestControl());
       return await answered;
     } catch {
       return false;
@@ -104,11 +108,17 @@ export class FtmsLink implements BikeLink {
     }
   }
 
+  /** One control point command through the queue; `targetResistance` is the level a resistance command asks for. */
   private write(
     controlPoint: BluetoothRemoteGATTCharacteristic,
     bytes: Uint8Array<ArrayBuffer>,
-  ): Promise<void> {
-    return controlPoint.writeValueWithResponse(bytes);
+    targetResistance?: number,
+  ): Promise<number> {
+    return this.queue.enqueue(() => controlPoint.writeValueWithResponse(bytes), 0, {
+      to: controlPoint.uuid,
+      bytes,
+      targetResistance,
+    });
   }
 }
 

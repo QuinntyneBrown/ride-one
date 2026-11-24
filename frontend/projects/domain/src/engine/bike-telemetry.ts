@@ -1,8 +1,7 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BIKE_CONNECTION, type TelemetrySample } from '@telo/api';
-import { EchelonFrameDecoder } from '../protocol/echelon-frame-decoder';
-import { IndoorBikeDataDecoder } from '../protocol/indoor-bike-data-decoder';
+import { telemetryDecoder } from '../protocol/telemetry-decoder';
 import { PowerModel } from './power-model';
 import { SpeedModel } from './speed-model';
 
@@ -60,9 +59,7 @@ export class BikeTelemetry {
   }
 
   private decode(bytes: Uint8Array): void {
-    const decoder =
-      this.connection.bike()?.kind === 'ftms' ? IndoorBikeDataDecoder : EchelonFrameDecoder;
-    const sample = decoder.decode(bytes, Date.now());
+    const sample = telemetryDecoder(this.connection.bike()?.kind).decode(bytes, Date.now());
     if (sample) this.accept(sample);
   }
 

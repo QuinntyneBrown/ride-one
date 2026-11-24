@@ -48,6 +48,6 @@ loop each keepalive and each target resistance
   conn -> ble : writeValue(command)
   ble -> bike : Write
 end
-note over conn, console : No step above writes to the console (L2-115 AC2)
+note over conn, console : No step above writes to the console, with the diagnostic recording off or on (L2-115 AC2)
 page --> rider : Show power, cadence and resistance
 @enduml

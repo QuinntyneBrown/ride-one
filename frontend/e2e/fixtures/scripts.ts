@@ -19,6 +19,13 @@ export class ScriptLog {
     return (await Promise.all(this.bodies)).some((body) => body.includes('youtube-nocookie.com'));
   }
 
+  /** Whether any script downloaded so far carries the diagnostic recording's code (its saved file's first line). */
+  async hasRecordingCode(): Promise<boolean> {
+    return (await Promise.all(this.bodies)).some((body) =>
+      body.includes('Telo Ride 1 diagnostic recording'),
+    );
+  }
+
   /** Whether any script downloaded so far carries Three.js. */
   async hasWorldCode(): Promise<boolean> {
     return (await Promise.all(this.bodies)).some((body) => body.includes('isScene'));
