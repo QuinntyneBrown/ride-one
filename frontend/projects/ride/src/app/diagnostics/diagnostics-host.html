@@ -1,0 +1,19 @@
+<!-- prettier-ignore -->
+<button wz-diagnostic-mark type="button" aria-haspopup="dialog" [screen]="screen()" (click)="show(dialog)">Recording</button>
+<dialog
+  #dialog
+  class="diagnostic-dialog"
+  aria-labelledby="diagnostic-title"
+  (close)="open.set(false)"
+>
+  @if (open()) {
+    <wz-diagnostic-panel
+      [entries]="recording.entries()"
+      [dropped]="recording.dropped()"
+      [since]="since"
+      [status]="status()"
+      (save)="save()"
+      (closed)="dialog.close()"
+    />
+  }
+</dialog>

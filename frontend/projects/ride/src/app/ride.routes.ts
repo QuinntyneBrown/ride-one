@@ -1,4 +1,9 @@
-import { inject, provideEnvironmentInitializer } from '@angular/core';
+import {
+  type EnvironmentProviders,
+  type Provider,
+  inject,
+  provideEnvironmentInitializer,
+} from '@angular/core';
 import type { Routes } from '@angular/router';
 import { ANNOUNCER, DISPLAY_PREFERENCES, FINISHED_RIDES, FULLSCREEN, RIDE_RECORD } from '@telo/api';
 import {
@@ -12,15 +17,19 @@ import { provideAppUpdates } from './app-update/provide-app-updates';
 import { connectedBikeGuard } from './bike/connected-bike.guard';
 import { provideBikeConnection } from './bike/provide-bike-connection';
 import { rememberedBikeGuard } from './bike/remembered-bike.guard';
+import { diagnosticsRequested } from './diagnostics/diagnostic-switch';
 
 /**
  * The four screens and page not found (ADR 0040), under one parent that provides the bike connection: one instance shared from Connect Bike to the ride,
- * loaded with the first screen instead of with the initial bundle (AGENTS.md, lazy loading first).
+ * loaded with the first screen instead of with the initial bundle (AGENTS.md, lazy loading first). `diagnostics`
+ * is what the diagnostic recording binds, and nothing for a rider (L2-178).
  */
-export const rideRoutes: Routes = [
+const routes = (diagnostics: (Provider | EnvironmentProviders)[]): Routes => [
   {
     path: '',
     providers: [
+      // First, so the recording is there before the bike connection is made (L2-178 AC2).
+      ...diagnostics,
       provideBikeConnection(),
       // The record of finished rides, kept on the device (L2-168), which also says whether the rider has finished one:
       // the app opens by it (L2-167).
@@ -84,3 +93,15 @@ export const rideRoutes: Routes = [
     ],
   },
 ];
+
+/**
+ * The app's routes, once it is known whether the diagnostic recording is on (L2-178 AC1, AC2; ADR 0048). Opened with
+ * `?diagnose`, the recording's code is fetched here, before any route is drawn; opened without, nothing of it is
+ * fetched and the routes are ready at once. A recording that cannot be fetched leaves the plain app.
+ */
+export const rideRoutes: Promise<Routes> = diagnosticsRequested()
+  ? import('./diagnostics/provide-diagnostics').then(
+      (diagnostics) => routes(diagnostics.provideDiagnostics()),
+      () => routes([]),
+    )
+  : Promise.resolve(routes([]));

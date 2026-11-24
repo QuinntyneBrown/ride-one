@@ -23,6 +23,26 @@ export type { ResistanceSource, SentCommand } from './bike/sent-command';
 export type { BikeSupportLevel, SupportedBike } from './bike/supported-bike';
 export type { TelemetrySample } from './bike/telemetry-sample';
 export { APP_LOGGER, type AppLogger } from './diagnostics/app-logger';
+export {
+  BIKE_LINK_TAP,
+  type BikeLinkTap,
+  type ReceivedHow,
+  type WriteSettled,
+} from './diagnostics/bike-link-tap';
+export {
+  DIAGNOSTIC_RECORDING,
+  type DiagnosticRecording,
+  type RecordingFile,
+  type ShownReadouts,
+} from './diagnostics/diagnostic-recording';
+export {
+  SCREEN_CAPTURE,
+  type CapturedScreen,
+  type ScreenCapture,
+  ScreenCaptureError,
+  type ScreenCaptureErrorCode,
+} from './diagnostics/screen-capture';
+export { FILE_SAVER, FileSaveError, type FileSaver } from './diagnostics/file-saver';
 export type { ClassDefinition, ClassVideo } from './classes/class-definition';
 export { ClassError, type ClassErrorCode } from './classes/class-error';
 export { THE_CLASS, type TheClassSource } from './classes/the-class';
