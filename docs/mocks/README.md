@@ -12,14 +12,18 @@ library, Profile or sign-in in this design. The set replaces the earlier mocks o
 **"Ride"** prototype (`f5zb7cLTQFMdzC5JcFyupj`, in the same OS); they are in git history.
 
 | Screen | Frame | What it is |
-|---|---|---|---|---|---|---|
-| Connect Bike | `v5ssJFYbW1uP99Fy2dbgW9` | First run: pair the Echelon. The same frame as Ride's Connect Bike, branded Ride 1. ||  
-| The Class | `ptsPeNsftV4aApQQjN1LQX` | Where the app opens: the class, its length, what the bike will do, and the one button. |
+|---|---|---|
+| Connect Bike | `v5ssJFYbW1uP99Fy2dbgW9` | First run: pair the Echelon. The same frame as Ride's Connect Bike, branded Ride 1. |
+| The Class | `ptsPeNsftV4aApQQjN1LQX` | Where the app opens: the class, its length, how to ride it, what the bike will do, and the one button. |
 | Ibiza Flyover | `2b7QoPtdWBQRkuFtnCJLSA` | Before a ride in Ibiza: the course from above while it loads, landing on the grid (L2-179). |
-| Class Ride | `aoEFCcdCfGyw78yfGMkVPr` | The ride, solo. The same frame as Ride's Class Ride, branded Ride 1; Telo Ride 1 passes `group={false}`. |
-| Class Done | `6eiQRDcbF5DL67X51aRw3D` | The output in kJ, the facts and the eight efforts. ||  
-| Page not found | — | An addition: the design has none (L2-145). ||  
-| Diagnostic recording | — | An addition, and no part of the rider’s design: the dialog the recording mark opens, drawn over Class Ride (L2-178). ||  
+| Class Ride | `aoEFCcdCfGyw78yfGMkVPr` | The ride, solo: the countdown, the class, the finish banner and the roll-out. Drawn as built, not as the frame's newest layout (see *The shape of a ride*). |
+| Class Done | `6eiQRDcbF5DL67X51aRw3D` | The output in kJ, the facts and the 17 efforts. |
+| Page not found | — | An addition: the design has none (L2-145). |
+| Diagnostic recording | — | An addition, and no part of the rider’s design: the dialog the recording mark opens, drawn over Class Ride (L2-178). |
+
+These mocks are the source of truth for the UI. `docs/specs/`, the ADRs (0049 for the shape of a
+ride) and `docs/detailed-designs/` follow them; where the prototype and the mocks disagree, the
+mocks stand.
 
 The prototype's flow: a **new** rider opens on Connect Bike and lands on The Class once paired; a
 **returning** rider opens on The Class. The Class → Ibiza Flyover (in Ibiza only) → Class Ride
@@ -79,9 +83,9 @@ styles are in `../design-system/assets/components.css`.
 
 The diagnostic recording (L2-178, ADR 0048) is a diagnostic aid that is off for every rider. It is drawn in
 `dialogs/diagnostic-recording/*` (the dialog and each of its states, open over Class Ride) and in the
-`recording` state of each of the four screens (`pages/connect-bike/recording`, `pages/the-class/recording`,
+`recording` state of four of the five screens (`pages/connect-bike/recording`, `pages/the-class/recording`,
 `pages/class-ride/recording`, `pages/class-done/recording`): that screen’s `default` with the recording mark
-added and nothing else changed. **Every other mock is the app with the recording off and is unchanged**; with
+added and nothing else changed. Ibiza Flyover has no `recording` mock yet (L2.md, *Mock gaps*). **Every other mock is the app with the recording off and is unchanged**; with
 the recording off no screen differs by a pixel. The Magic Patterns prototype has none of these: the
 recording is no part of the rider’s design.
 
@@ -134,8 +138,9 @@ Every mock uses this cast, which is the design's own data (`shared/machines.ts`,
   sprints to finish." Plan (L2-080 AC2): 33 segments, 2:30 warm-up at level 14; 17 efforts of 0:15
   to 1:15 at levels 19 to 24, the last five sprints of 0:20 at 110 rpm, with recoveries of 0:20 to
   1:00 at levels 11 to 14; 2:30 cool-down at level 11. 20:00 in all, about 254 W on average. The
-  Class's mocks draw it (slice 30.3) and so do Class Ride's (slice 31.1); Class Done's still draw
-  the prototype's *30 Minute HIIT Cardio* (30:00, eight efforts, about 154 W) until its slice.
+  Class's mocks draw it (slice 30.3), and so do Class Ride's (slice 31.1) and Class Done's
+  (slices 32.2 and 32.4). No mock draws the prototype's *30 Minute HIIT Cardio* or *20 Minute
+  HIIT*.
 - **Mid-ride moment:** 5:30 of 20:00, in the second recovery with 0:30 left (half done); 233 W against
   a 231 W target (on target), 91 rpm aiming 90, resistance 13 of 32, as L2-023's formula gives them
   (slice 31.1). The prototype's moment was 7:00 of 30:00 with 108 W against 107 W. `off-target`, which
@@ -149,9 +154,12 @@ Every mock uses this cast, which is the design's own data (`shared/machines.ts`,
   “—” with both buttons disabled, and the notice “The class can’t set this bike’s resistance. Set it
   by hand.” stands under the bike panel. `video-unavailable-by-hand` is both. Each notice is an
   `inline-message--warn` with `role="status"`, 8 px under what it speaks of.
-- **Finished ride:** 30:12, 351 kJ (a new best over 342), 194 W average, 84% on target; the eight
-  efforts 407, 427, 398, 378, 369, 359, 349 and 417 W. Short of the best: 318 kJ, 175 W average,
-  efforts 368, 385, 359, 341, 333, 324, 315 and 376 W.
+- **Finished ride:** 20:00, 351 kJ (a new best over 342), 293 W average, 84% on target; the 17
+  efforts 407, 380, 398, 378, 369, 359, 349, 417, 427 (the strongest), 420, 400, 390, 380, 370,
+  360, 350 and 340 W. Short of the best: 318 kJ, 265 W average, efforts from 299 to 376 W, the
+  ninth again the strongest. `efforts-none` is the new best with every effort at 0 W, and
+  `not-saved` is the new best with "This ride could not be saved on this device. Your result is
+  above." under the facts (L2-168 AC4).
 
 ## Layout of this folder
 
@@ -174,20 +182,16 @@ python .claude/skills/writing-html-mocks/scripts/screenshot_mocks.py docs/mocks 
 
 ## Open questions
 
-Each of these is a place where the design, `docs/specs/` or `AGENTS.md` disagree, or where the
-design says nothing. None was settled quietly; the mocks follow the design.
+Each of these is a place where the design, `docs/specs/` or `AGENTS.md` disagreed, or where the
+design says nothing. None was settled quietly. Those marked closed are kept for their numbers.
 
-1. **Product scope against the direction.** `AGENTS.md` says Telo Ride is mainly a kart-racing game
-   (Race and Classes, one progression). Telo Ride 1 is one class with no racing, progression, maps
-   or sign-in. Is Telo Ride 1 a first release on the way to that game, or a new direction? The
-   specs, detailed designs, journeys, the design system's race and progression components and
-   the built frontend all still describe the larger product.
-2. **Requirements no longer match.** The IDs on each screen are the nearest in `docs/specs/L2.md`,
-   which was written for the "Ride" prototype. In particular: Class Start (L2-084, at
-   `/classes/:id`, with "← Classes", "Video link and sync" and the alone-or-group choice) is now The
-   Class at `/`; Results (L2-078, L2-079, with XP and "Ride it again") is now Class Done; pairing
-   lands on The Class, not Home (L2-011 AC5); and the 404 goes back to the class, not Home (L2-145).
-   The routes in `manifest.json` (`/`, `/connect`, `/ride`, `/done`) are assumptions.
+1. **Product scope against the direction.** Closed. Telo Ride 1 is a product of its own: one
+   class, five screens, no racing, progression, maps or sign-in (`AGENTS.md`, ADRs 0036 to 0043
+   and 0049). The specs, the journeys and the code were rewritten for it.
+2. **Requirements no longer match.** Closed. `docs/specs/L2.md` is rewritten for these mocks, and
+   the IDs in `manifest.json` are its own. The routes are `/connect`, `/`, `/ride` (Ibiza
+   Flyover, then Class Ride) and `/done`; pairing lands on The Class, and the 404 goes back to
+   the class.
 3. **Spec copy the design does not use.** Closed for Connect Bike by slice 29.1: the design showed
    "Strong signal · EX5S-0bf669f1" before Pair, which a browser cannot supply. The mock's `default`
    now names the offered model alone, and `pairing` and `paired` show the identifier of the bike
@@ -195,9 +199,9 @@ design says nothing. None was settled quietly; the mocks follow the design.
    AC4's solo text is "Your ride is paused. Pedal to wake the bike and it carries on from here."; the
    design says "The video is paused. Pedal to wake the bike, then reconnect." The earlier mocks'
    hint ("Not in the list? Close the Echelon app…") is not in the design.
-4. **Where rides go.** The design keeps the ride count and best on the device; `AGENTS.md` gives
-   the backend rider progress (XP, stars, unlocks, rides). Should Telo Ride 1 sign in and save
-   rides, and if so, Class Done needs a saving and a failed state.
+4. **Where rides go.** Closed by ADRs 0037 and 0039: there is no sign-in and no backend. The ride
+   count, the best and the last output stay on the device, and Class Done has `not-saved` for a
+   record that cannot be written.
 5. **HTTPS on Connect Bike.** Closed by slice 29.2. The prototype maps every unsupported browser,
    plain http included, to Connect Bike's "This browser can't reach the bike", whose copy is about
    Chrome and Edge, so a new rider on http was told to change browser. L2-009 AC4 stands: Connect
@@ -208,12 +212,11 @@ design says nothing. None was settled quietly; the mocks follow the design.
    frame's controls (the prototype starts at "found"). A new rider whose browser is unsupported can
    never leave Connect Bike, so The Class's banners are drawn for a returning rider, as the Form
    Factors canvas draws them. A first-time rider is never without a bike on The Class.
-7. **The ride starts at 0:00.** The prototype starts every ride it plays at 0:00 (the frame's
-   default is 7:00). The mocks freeze the ride at 7:00, the moment the frame draws.
-8. **Class Done's numbers.** The frame's args give 30:12 for a 30:00 plan; "On target" is a fixed
-   84%; and the prototype computes the output as 0.19 × seconds, so every finished ride reads 342 kJ
-   or near it. The mocks use the frame's args (351 kJ, 30:12) and 318 kJ (the returning rider's
-   "Last time") for `not-best`.
+7. **The ride starts at 0:00.** A ride starts at 0:00 on "Go!" (`class-ride/countdown`,
+   `go-ibiza`). The mid-ride mocks freeze it at 5:30, the cast's moment.
+8. **Class Done's numbers.** Closed by slices 32.2 to 32.5. The frame's args gave 30:12 for a
+   30:00 plan, a fixed 84% and an output of 0.19 × seconds. The mocks draw 20:00, 351 kJ and
+   293 W, which L2-078's rules give, and 318 kJ for `not-best`; "84%" is still the cast's number.
 9. **Light theme.** The design is dark only. The design system's light theme (paper, white panels,
    deeper accent text) applies; the design never draws it.
 10. **Finish.** The Class Ride frame has a "Finish" button ("Skip to the end (prototype only)").
@@ -221,14 +224,14 @@ design says nothing. None was settled quietly; the mocks follow the design.
 
 ### Where the mocks depart from the design's source, and why
 
-- **Frozen moments.** The class ride is frozen at 7:00 with every number computed by running the
-  design's own `shared/` code. The YouTube players are the class cover in the player's box; the plan
+- **Frozen moments.** The class ride is frozen at 5:30 with every number computed by L2-023's
+  formula. The YouTube players are the class cover in the player's box; the plan
   chart is inline SVG from the same data.
 - **The Class in an unsupported browser shows "No bike".** The prototype keeps a returning rider's
   bike "connected" in a browser that cannot use Web Bluetooth, which cannot happen. `needs-chromium`
   and `needs-https` show "No bike · Connect" and a disabled "Connect your bike".
 - **Phone overflow fixed.** On a phone the frame squeezes a returning rider's three stats (Rides, Best
-  output, Last time) into the row beside "30:00", where they overlap; they wrap under it instead.
+  output, Last time) into the row beside "20:00", where they overlap; they wrap under it instead.
   Nothing changes at tablet and desktop widths.
 - **Accessibility.** Class Ride has a visually hidden `<h1>`; Class Done's verdict line is its
   `<h1>`; the strongest effort says so in text, not only in orange. On phones the header's "· Change"

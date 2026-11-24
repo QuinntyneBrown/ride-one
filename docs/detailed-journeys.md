@@ -4,7 +4,7 @@ This document is rewritten for Telo Ride 1 and drops what Telo Ride 1 leaves out
 [`journeys.md`](journeys.md)). Each journey there is split into vertical slices of 4 days or
 fewer, in the same order. Estimates are working days for one intermediate developer, made from
 [`specs/L2.md`](specs/L2.md), the mocks and the code carried over; the detailed designs are
-rewritten for Telo Ride 1 but predate Intervals to the Beat and riding in Ibiza. **% complete** is 100% once a slice is merged into `main`; each slice sets its
+rewritten for Telo Ride 1 but predate Intervals to the Beat and riding in Ibiza in places, and all of them predate the shape of a ride (journey 39). **% complete** is 100% once a slice is merged into `main`; each slice sets its
 own row, and the totals, when it finishes (see [`lessons-learned.md`](lessons-learned.md)).
 
 **Requirements** names the L2s a slice proves. Before a slice is built, its detailed design is
@@ -72,7 +72,7 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 32.1 | Keep the record | Ride count, best output and last output kept on the device, fixed in size; a ride left early changes nothing. | 2 | 32. See your number | L2-132 AC2–4, L2-168 AC1–3, AC5 | 100% |
 | 32.2 | Class Done | Output in kJ, time and average watts; Done returns to The Class; `/done` with no ride opens The Class. | 3 | 32. See your number | L2-078, L2-079 AC1 | 100% |
 | 32.3 | Best output | "New best output" in gold with the previous best, "Your best is still", or the first ride's number to beat. | 1 | 32. See your number | L2-077 | 100% |
-| 32.4 | The eight efforts | Each effort's average watts as a bar, the strongest set apart, rising in turn. | 2 | 32. See your number | L2-142 AC2, L2-169 | 100% |
+| 32.4 | The efforts | Each effort's average watts as a bar, the strongest set apart, rising in turn. | 2 | 32. See your number | L2-142 AC2, L2-169 | 100% |
 | 32.5 | On target | The share of the ride within 10% of target power. | 1 | 32. See your number | L2-170 | 100% |
 | 32.6 | Come back to beat it | The Class shows rides, best output and last time, and its button reads "Ride it again". | 1 | 32. See your number | L2-079 AC2, L2-084 AC5, AC8, L2-171 AC4 | 100% |
 | 32.7 | A ride that could not be saved | Class Done still shows the result and says the ride was not saved on this device. | 1 | 32. See your number | L2-168 AC4 | 100% |
@@ -89,6 +89,12 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 36.3 | Screen readers, contrast and motion | One `h1` a screen, state changes announced once, contrast in both themes, reduced motion. | 2 | 36. Use by touch, keyboard and screen reader | L2-141, L2-142 AC1, AC3 | 100% |
 | 36.4 | Theme and full screen | Dark by default, light when the device asks; Full screen on every header. | 1 | 36. Use by touch, keyboard and screen reader | L2-143, L2-144 | 100% |
 | 36.5 | Page not found | "This page doesn’t exist." with "Back to the class". | 1 | 36. Use by touch, keyboard and screen reader | L2-145 | 100% |
+| 39.1 | Countdown | Class Ride opens on "3", "2", "1", "Go!" over the video's or the course's box, with no Pause; the ride clock, the video and the music start on "Go!"; the first target resistance is already sent and the stepper works; a lost bike starts it again from "3". | 3 | 39. Give the ride its shape | L2-180, L2-084 AC7, L2-087 AC1, L2-175 AC1, L2-176 AC1 | 0% |
+| 39.2 | Finish banner | At 20:00 the record is written and "Finish!" lies across the box with the output and the time for 3.2 seconds; the clock and the segment card hold, and neither Pause nor Leave shows. | 2 | 39. Give the ride its shape | L2-181, L2-093 AC2 | 0% |
+| 39.3 | Ease off and roll on | The target resistance steps down to level 4 with the stepper off; the roll-out card and its bar fill for 5.2 seconds while the video or the music plays on and output does not grow; then Class Done opens on its own, in a hidden tab and with the bike lost too. | 3 | 39. Give the ride its shape | L2-182 AC1–4, AC6–11, L2-093 AC3 | 0% |
+| 39.4 | Roll on past the finish line | In Ibiza the rider rolls on down the run-out at the cool-down's pace through the banner and the roll-out, the camera following. | 1 | 39. Give the ride its shape | L2-174 AC7, L2-182 AC5 | 0% |
+| 39.5 | Ibiza Flyover | Before a ride in Ibiza: the course from above between a bar and a band, five captions over 9 seconds, the landing on the grid, then Class Ride on the countdown with the course already drawn; Skip flyover and Cancel; the course fetched once for the flyover and the ride. | 4 | 39. Give the ride its shape | L2-179 AC1–6, AC11–12, L2-175 AC1, L2-141 AC1, L2-144 AC3 | 0% |
+| 39.6 | When the flyover falls short | A bike lost in flight holds the landing with "Try again"; a course that cannot be drawn, or is not within 10 seconds, gives way to the countdown; no flyover with reduced motion; the frames from above within the course's budgets, and the course released on Cancel. | 3 | 39. Give the ride its shape | L2-179 AC7–10, L2-177 AC1, AC3 | 0% |
 | 38.1 | Switch the recording on and save it | Off for every rider with none of its code fetched; `?diagnose` shows the recording mark, whose dialog saves the recording as a text file. | 2 | 38. Diagnose a bike that misbehaves | L2-178 AC1, AC2, AC10, AC11, AC15–17; L2-115 | 100% |
 | 38.2 | Record what the bike sends | Each notification's bytes with what the app's decoder made of them, a dropped frame included, and the readouts Class Ride showed. | 2 | 38. Diagnose a bike that misbehaves | L2-178 AC3, AC4, AC8 | 100% |
 | 38.3 | Record what the app writes | Every command and keepalive with its outcome, a failed write included, and the target resistance beside a resistance command. | 1 | 38. Diagnose a bike that misbehaves | L2-178 AC5 | 100% |
@@ -97,8 +103,8 @@ Not counted, though their code stays until a slice below replaces or removes it:
 | 38.6 | Capture the screen | One still of the tab kept with the recording and saved with it; a refusal, or a browser that cannot, leaves the ride alone. | 2 | 38. Diagnose a bike that misbehaves | L2-178 AC13, AC14 | 100% |
 | 38.7 | Leave nothing behind | Streams, timers, listeners and object URLs released; the long ride and the heap checked with the recording on; one critical path in CI. | 1 | 38. Diagnose a bike that misbehaves | L2-178 AC19, AC20 | 100% |
 
-**Total:** 66 slices, 130 days. **Complete:** 66 slices, 130 days (100%), 11 of them carried over.
-**To build:** 0 slices, 0 days. Journey 38 added seven slices and 11 days for L2-178 (ADR 0048). Slice 30.2 added journey 37, nine slices and 20 days: no slice of
+**Total:** 72 slices, 146 days. **Complete:** 66 slices, 130 days (89%), 11 of them carried over.
+**To build:** 6 slices, 16 days. Journey 39 added six slices and 16 days for the shape of a ride (L2-179 to L2-182, ADR 0049). Journey 38 added seven slices and 11 days for L2-178 (ADR 0048). Slice 30.2 added journey 37, nine slices and 20 days: no slice of
 the plan built riding in Ibiza (L2-174 to L2-177).
 
 ## What a slice waits for
@@ -119,8 +125,18 @@ the plan built riding in Ibiza (L2-174 to L2-177).
   30.2 drew the video that cannot load and "Ride with";
   31.1 drew power off target;
   31.2 drew paused and the lost bike's copy in Ibiza; 31.3 drew both notices and the two together; 32.4
-  (every effort at 0 W), and 32.7 are to draw; 37.6 drew the Music button; 37.4 drew the notice; 37.1 drew the
+  drew every effort at 0 W and 32.7 the ride that could not be saved; 37.6 drew the Music button; 37.4 drew the notice; 37.1 drew the
   course in the box and its loading.
+- **Journey 39** follows Class Ride (31.1 to 31.3), riding in Ibiza (journey 37) and Class Done
+  (32.2). Its mocks are drawn (`ibiza-flyover/*`, and Class Ride's `countdown`, `countdown-ibiza`,
+  `go-ibiza`, `finish`, `finish-ibiza`, `rolling-on` and `rolling-on-ibiza`); its detailed designs
+  are not yet written. 39.1 comes first, because it moves the start of the clock that every later
+  slice counts from; 39.2 and 39.3 follow in that order, and 39.4 needs both. 39.5 follows 39.1,
+  since the flyover lands on the countdown; 39.6 follows 39.5. Three mocks are still to draw
+  (`specs/L2.md`, *Mock gaps*): the bike lost during the countdown before 39.1, the finish on a
+  bike that gives no control before 39.3, and the recording mark on Ibiza Flyover before 39.5.
+  L2's open questions 41 to 46 are theirs: the timings (42) and the frames from above (45) are
+  tried on a bike and a tablet by 39.3 and 39.6.
 - **Journey 38** follows everything it records: the link (2.4, 29.1), the decoders (3.1), the
   commands (4.1) and Class Ride (31.1). 38.1 comes first, because every later slice is proved by
   the file it saves; 38.2 to 38.6 follow it in any order; 38.7 is last. Its mocks were drawn

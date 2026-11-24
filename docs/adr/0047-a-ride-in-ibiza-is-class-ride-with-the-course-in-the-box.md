@@ -1,6 +1,6 @@
 # 0047. A ride in Ibiza is Class Ride with the course in the video's box; World loading and Telo Ride's worlds are removed
 
-- **Status:** Accepted
+- **Status:** Accepted, amended by [0049](0049-a-ride-is-shaped-like-a-race-for-one.md) (Ibiza Flyover comes before a ride in Ibiza, and the clock starts on "Go!")
 - **Date:** 2026-11-23
 - **Carries out:** [0042](0042-one-class-and-one-course-shipped-with-the-app.md) and [0044](0044-the-class-offers-two-ways-to-ride.md) ("journey 37 replaces World loading and the inset video")
 - **Narrows:** [0030](0030-world-library-carried-from-main.md) (the `world` library holds one course's renderer and nothing else)

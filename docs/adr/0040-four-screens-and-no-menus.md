@@ -1,6 +1,6 @@
 # 0040. Telo Ride 1 has four screens and no menus
 
-- **Status:** Accepted, amended by [0048](0048-diagnostic-recording-behind-configuration.md) (a recording of the Bluetooth link comes back, behind configuration)
+- **Status:** Accepted, amended by [0048](0048-diagnostic-recording-behind-configuration.md) (a recording of the Bluetooth link comes back, behind configuration) and by [0049](0049-a-ride-is-shaped-like-a-race-for-one.md) (five screens: Ibiza Flyover comes before a ride in Ibiza)
 - **Date:** 2026-11-23
 - **Narrows:** [0028](0028-class-catalogue-shipped-with-the-backend.md) (the app reads one class from the catalogue), [0030](0030-world-library-carried-from-main.md) (the world is drawn at one fixed set of options)
 
