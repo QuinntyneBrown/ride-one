@@ -2,6 +2,7 @@
 import { Injectable, type OnDestroy, inject, signal } from '@angular/core';
 import {
   APP_LOGGER,
+  BIKE_LINK_TAP,
   type BikeConnection,
   BikeConnectionError,
   type BikeInfo,
@@ -35,7 +36,9 @@ const ECHELON_NAME_PREFIX = 'ECH';
 @Injectable()
 export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
   private readonly received = new Subject<Uint8Array>();
-  private readonly queue = new GattWriteQueue();
+  /** The tap on the link, bound only while a diagnostic recording is on (L2-178); `null` for every rider. */
+  private readonly tap = inject(BIKE_LINK_TAP, { optional: true });
+  private readonly queue = new GattWriteQueue(this.tap);
   private readonly ticker = inject(TICKER);
   private readonly reconnector = new DeviceReconnector();
   private readonly logger = inject(APP_LOGGER, { optional: true }) ?? new ConsoleAppLogger();
@@ -54,7 +57,10 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
     const characteristic = event.target as BluetoothRemoteGATTCharacteristic;
     const value = characteristic.value;
     if (!value) return;
-    this.received.next(bytesOf(value));
+    const bytes = bytesOf(value);
+    // The recording hears the bytes before anything decodes them (L2-178 AC3).
+    this.tap?.received(characteristic.uuid, bytes, 'notification', this.chosen()?.kind ?? null);
+    this.received.next(bytes);
   };
 
   private readonly linkState = signal<BleState>('idle');
@@ -132,7 +138,7 @@ export class WebBluetoothBikeConnection implements BikeConnection, OnDestroy {
       );
     const link: BikeLink = echelon
       ? new EchelonLink(this.queue, this.onValue, this.ticker, (error) => this.onFailure(error))
-      : new FtmsLink(this.queue, this.onValue);
+      : new FtmsLink(this.queue, this.onValue, this.tap);
     await link.open(service);
     this.link = link;
     await link.initialise();

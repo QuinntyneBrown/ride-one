@@ -119,8 +119,9 @@ export class TheClassPage {
     this.join = page.getByRole('button', { name: /^Join/ });
   }
 
-  async open(): Promise<void> {
-    await this.page.goto('/');
+  /** Opens The Class; `diagnose` adds `?diagnose`, which switches the diagnostic recording on (L2-178 AC2). */
+  async open(options: { diagnose?: boolean } = {}): Promise<void> {
+    await this.page.goto(options.diagnose ? '/?diagnose' : '/');
   }
 
   /** The value of one figure of the record, by its label. */

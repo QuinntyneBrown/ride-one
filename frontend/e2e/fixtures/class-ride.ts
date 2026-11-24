@@ -38,17 +38,19 @@ export async function connectBike(bluetooth: FakeBluetooth): Promise<void> {
  * first command has gone. Resolves once the page has rendered, a tenth of a second into the ride. The player The
  * Class parked is forgotten before the ride starts, so `youtube.players()` lists the ride's own. The class ships with
  * the app, so no request is answered for it (ADR 0037); `api` is taken so the shared fixture watches for one.
+ * `diagnose` opens the app with the diagnostic recording on (L2-178).
  */
 export async function startClassRide(
   page: Page,
   bluetooth: FakeBluetooth,
   api: ApiFixture,
+  options: { diagnose?: boolean } = {},
 ): Promise<ClassRidePage> {
   void api;
   await page.clock.install({ time: RIDE_START });
   await bluetooth.remember(echelonBike);
   const home = new TheClassPage(page);
-  await home.open();
+  await home.open(options);
   await connectBike(bluetooth);
   await expect(home.start).toHaveText(/^\s*(Start class|Ride it again)\s*$/);
   await home.videoSettled();

@@ -158,6 +158,16 @@ export class FakeBluetooth {
     );
   }
 
+  /** From now on every write to the bike fails, as a link that is going does: `NetworkError`. */
+  async failWrites(): Promise<void> {
+    await this.page.evaluate(() => Object.assign(window, { __fakeWritesFail: true }));
+  }
+
+  /** Writes reach the bike again. */
+  async allowWrites(): Promise<void> {
+    await this.page.evaluate(() => Object.assign(window, { __fakeWritesFail: false }));
+  }
+
   /** The bike is switched off: every GATT connection attempt fails, as a bike out of range does. */
   async switchOff(): Promise<void> {
     await this.power(false);
@@ -314,8 +324,11 @@ function installInPage(): void {
     for (const watched of [...watching]) watched.dispatchEvent(new Event('advertisementreceived'));
   };
   const characteristic = (bike: Bike, uuid: string) => {
-    const write = async (value: BufferSource, withResponse: boolean) =>
-      report({ kind: 'write', characteristic: uuid, hex: hex(value), withResponse });
+    const write = async (value: BufferSource, withResponse: boolean) => {
+      await report({ kind: 'write', characteristic: uuid, hex: hex(value), withResponse });
+      if ((window as unknown as { __fakeWritesFail?: boolean }).__fakeWritesFail)
+        throw new DOMException('GATT operation failed for unknown reason.', 'NetworkError');
+    };
     const c = Object.assign(new EventTarget(), {
       uuid,
       value: null as DataView | null,

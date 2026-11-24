@@ -47,7 +47,7 @@ export class EchelonLink implements BikeLink {
   }
 
   setResistance(level: number): Promise<number> {
-    return this.write(EchelonProtocol.setResistance(level));
+    return this.write(EchelonProtocol.setResistance(level), 0, level);
   }
 
   close(): void {
@@ -57,9 +57,18 @@ export class EchelonLink implements BikeLink {
     this.writer = null;
   }
 
-  private write(bytes: Uint8Array<ArrayBuffer>, gapMs = 0): Promise<number> {
+  /** `targetResistance` is the level a resistance command asks for, for the tap on the link (L2-178 AC5). */
+  private write(
+    bytes: Uint8Array<ArrayBuffer>,
+    gapMs = 0,
+    targetResistance?: number,
+  ): Promise<number> {
     const writer = this.writer;
     if (!writer) return Promise.reject(new Error('The bike is not connected'));
-    return this.queue.enqueue(() => writer.writeValueWithResponse(bytes), gapMs);
+    return this.queue.enqueue(() => writer.writeValueWithResponse(bytes), gapMs, {
+      to: writer.uuid,
+      bytes,
+      targetResistance,
+    });
   }
 }

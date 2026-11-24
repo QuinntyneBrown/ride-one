@@ -11,9 +11,22 @@ import {
   type ShownReadouts,
   type WriteSettled,
 } from '@telo/api';
+import { describeError } from '../../bluetooth/describe-error';
+import { toHex } from '../../protocol/echelon-protocol';
 import { redact } from '../console-app-logger';
-import { RecordingBuffer } from './recording-buffer';
-import { type EntryKind, entryLine, recordingFileName, recordingHeader } from './recording-format';
+import { readAnswer, readFrame } from './frame-reading';
+import { RECORDING_LIMITS, RecordingBuffer } from './recording-buffer';
+import {
+  type EntryKind,
+  captureFileName,
+  entryLine,
+  quote,
+  recordingFileName,
+  recordingHeader,
+} from './recording-format';
+
+/** A readout as an entry holds it: the screen's "—" is written "-", so the file stays ASCII. */
+const shown = (value: string): string => quote(value.replace(/—/g, '-'));
 
 /**
  * The diagnostic recording (L2-178; docs/detailed-designs/security/record-diagnostics): the tap on the Bluetooth
@@ -31,6 +44,11 @@ export class DiagnosticRecorder implements BikeLinkTap, DiagnosticRecording {
   private readonly held = signal(0);
   private readonly gone = signal(0);
   private readonly kept = signal(0);
+  /** The screen captures kept, oldest first; at most `RECORDING_LIMITS.captures`. */
+  private pictures: RecordingFile[] = [];
+  private writes = 0;
+  private taken = 0;
+  private lastShown = '';
 
   readonly startedAt = new Date();
   readonly entries = this.held.asReadonly();
@@ -42,33 +60,64 @@ export class DiagnosticRecorder implements BikeLinkTap, DiagnosticRecording {
   }
 
   received(from: string, bytes: Uint8Array, how: ReceivedHow, bike: BikeKind | null): void {
-    void [from, bytes, how, bike];
+    const reading = how === 'notification' ? readFrame(bytes, bike) : readAnswer(from, bytes);
+    const raw = `${how} ${from} ${toHex(bytes)}`;
+    this.add('RX', reading === null ? raw : `${raw} | ${reading}`);
   }
 
   writing(to: string, bytes: Uint8Array, targetResistance?: number): WriteSettled {
-    void [to, bytes, targetResistance];
-    return () => undefined;
+    const number = ++this.writes;
+    const asked = this.now();
+    const raw = `#${number} ${to} ${toHex(bytes)}`;
+    this.add(
+      'TX',
+      targetResistance === undefined ? raw : `${raw} | target-resistance=${targetResistance}`,
+    );
+    return (error?: unknown) =>
+      this.add(
+        'ACK',
+        error === undefined
+          ? `#${number} ok ${Math.round(this.now() - asked)}ms`
+          : `#${number} failed ${quote(redact(describeError(error)))}`,
+      );
   }
 
   event(name: string, detail?: string): void {
     this.add('EVT', detail === undefined ? name : `${name} ${detail}`);
   }
 
-  readouts(shown: ShownReadouts): void {
-    void shown;
+  /** A line the app logged, already redacted (L2-178 AC7). */
+  logged(line: string): void {
+    this.add('ERR', quote(line));
+  }
+
+  readouts(readouts: ShownReadouts): void {
+    const detail = `power=${shown(readouts.power)} cadence=${shown(readouts.cadence)} resistance=${shown(readouts.resistance)} target-resistance=${shown(readouts.targetResistance)}`;
+    if (detail === this.lastShown) return;
+    this.lastShown = detail;
+    this.add('SCR', detail);
   }
 
   note(text: string): void {
-    void text;
+    this.add('NOTE', quote(text));
   }
 
   keepCapture(captured: CapturedScreen): number {
-    void captured;
-    return 0;
+    const number = ++this.taken;
+    const name = captureFileName(this.startedAt, number);
+    this.pictures.push({ name, blob: captured.picture });
+    this.add('CAP', `${number} ${name} ${captured.width}x${captured.height}`);
+    while (this.pictures.length > RECORDING_LIMITS.captures) {
+      const oldest = this.pictures.shift();
+      this.add('CAP', `dropped ${oldest?.name} to keep ${RECORDING_LIMITS.captures}`);
+    }
+    this.kept.set(this.pictures.length);
+    return number;
   }
 
   captureFailed(code: ScreenCaptureErrorCode, error?: unknown): void {
-    void [code, error];
+    const why = error === undefined ? '' : ` ${quote(redact(describeError(error)))}`;
+    this.add('CAP', `${code}${why}`);
   }
 
   files(): RecordingFile[] {
@@ -85,6 +134,7 @@ export class DiagnosticRecorder implements BikeLinkTap, DiagnosticRecording {
         name: recordingFileName(this.startedAt),
         blob: new Blob([text], { type: 'text/plain;charset=utf-8' }),
       },
+      ...this.pictures,
     ];
   }
 
