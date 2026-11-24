@@ -32,6 +32,12 @@ export interface CourseDrawn {
   readonly frames: number;
   /** Where the latest frame put the camera: metres behind the rider and above the road (L2-174 AC10). */
   readonly camera: { readonly behind: number; readonly above: number };
+  /**
+   * The rider's shadow in the sun (L2-174 AC12): how far its direction stands from straight away from the sun, in
+   * degrees; the metres from under the wheels to the shadow of the rider's head; and how many times the rider's
+   * figure has been drawn for it.
+   */
+  readonly shadow: { readonly off: number; readonly reach: number; readonly figures: number };
 }
 
 export class CourseProbe {

@@ -44,6 +44,18 @@ export interface CourseDrawn {
   frames: number;
   /** Where the latest frame put the camera: metres behind the rider and above the road (L2-174 AC10). */
   camera: ChaseCamera;
+  /** The rider's shadow in the sun as the latest frame laid it (L2-174 AC12). */
+  shadow: ShadowDrawn;
+}
+
+/** What the renderer reports of the rider's shadow in the sun. */
+export interface ShadowDrawn {
+  /** How far its direction on the road stands from straight away from the sun, in degrees. */
+  off: number;
+  /** Metres from under the rider's wheels to where the shadow of their head lies. */
+  reach: number;
+  /** How many times the rider's figure has been drawn for it since the course started. */
+  figures: number;
 }
 
 /** The pinned step, or null when the hook is not set (every rider's ride). */
