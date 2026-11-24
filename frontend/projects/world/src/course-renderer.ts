@@ -10,7 +10,6 @@ import type { MeshStandardMaterial } from 'three/webgpu';
 import {
   AdditiveBlending,
   AgXToneMapping,
-  type CanvasTexture,
   Color,
   DirectionalLight,
   DoubleSide,
@@ -26,7 +25,6 @@ import {
   type Node,
   type Object3D,
   PerspectiveCamera,
-  PlaneGeometry,
   RenderPipeline,
   Scene,
   SphereGeometry,
@@ -56,10 +54,10 @@ import { type Rain, rain } from './rain';
 import { RiderBatch } from './rider-batch';
 import { RiderBody } from './rider-body';
 import { bendLean } from './rider-lean';
-import { type ShadowShape, shadowShape } from './rider-shadow-shape';
 import { outOfTheSaddle } from './rider-stance';
-import { endShadow, sideShadow } from './shadow-silhouette';
 import { SunGlow } from './sun-glow';
+import { SunShadow } from './sun-shadow';
+import { SUN_LIGHT } from './sun-shadow-frame';
 import { vertexFinish } from './rider-finish';
 import { RiderShadows } from './rider-shadows';
 import { wallMaterial } from './wall-material';
@@ -77,9 +75,6 @@ const FRAME_RISE = 0.19;
 /** The chase camera looks this far up the road, and this far above it (where it sits: chase-camera.ts). */
 const LOOK_AHEAD = 14;
 const LOOK_UP = 1.35;
-/** Each rider's shadow: a dark blob on the road, this long down-sun and this wide, in metres. */
-const SHADOW_LENGTH = 3.4;
-const SHADOW_WIDTH = 0.8;
 /**
  * How far from the camera, in metres, a chunk of each group of the map is drawn: the land keeps the island's shape to
  * the haze, and what stands on it is drawn nearer, the smallest things nearest.
@@ -211,6 +206,7 @@ export class ThreeCourseRenderer implements CourseRenderer {
     metres: 0,
     frames: 0,
     camera: { behind: 0, above: 0 },
+    shadow: { off: 0, reach: 0, figures: 0, ms: 0 },
   };
   private readonly chosenAt = new Vector3();
   /** The start lights: red until the ride's clock starts, green from then. */
@@ -218,14 +214,8 @@ export class ThreeCourseRenderer implements CourseRenderer {
   private startGreen: Mesh | null = null;
   private beams: MeshBasicMaterial | null = null;
   private readonly confetti: Mesh[] = [];
-  /** The blob the rider's shadow is drawn with, and the rider's own. */
-  private blob: {
-    geometry: PlaneGeometry;
-    side: MeshBasicMaterial;
-    end: MeshBasicMaterial;
-  } | null = null;
-  private readonly shape: ShadowShape = { side: false, width: 0.62, flipped: false };
-  private readonly shadows = new Map<Cyclist, Mesh>();
+  /** The rider's shadow in the sun: their own figure, laid on the road (sun-shadow.ts). */
+  private sunShadow: SunShadow | null = null;
   /** Under street lamps the rider's shadow is the lamps' instead (rider-shadows.ts). */
   private lampShadows: RiderShadows | null = null;
   private readonly casting = new Set<Cyclist>();
@@ -259,6 +249,10 @@ export class ThreeCourseRenderer implements CourseRenderer {
   private pinned = false;
   /** Set by the test-only hook: the metres up the road the bench starts its ride from. */
   private benchFrom = 0;
+  /** Set by the test-only hook: the camera looks straight down on the rider from this many metres (0: it chases). */
+  private above = 0;
+  /** Set by the test-only hook: the rider throws no shadow, so a bench can time a frame with and without it. */
+  private shadowless = false;
   /** The street lamps' light on what stands near the road, where the course has lamps; and the riders' materials lit by it. */
   private lampGlow: LampGlow | null = null;
   /** The daylight on the riders of a course without lamps (sun-glow.ts). */
@@ -286,6 +280,9 @@ export class ThreeCourseRenderer implements CourseRenderer {
         this.pinned = true;
         const from = (globalThis as Record<string, unknown>)[PROBE_KEY] as { from?: unknown };
         if (typeof from.from === 'number') this.benchFrom = from.from;
+        const { above } = from as { above?: unknown };
+        if (typeof above === 'number' && above > 0) this.above = above;
+        this.shadowless = (from as { shadow?: unknown }).shadow === false;
         this.tier = PINNED[asked.tier] ?? START;
         renderer.info.autoReset = false;
       }
@@ -405,10 +402,9 @@ export class ThreeCourseRenderer implements CourseRenderer {
     this.riderBatch = null;
     this.body = null;
     this.rain = null;
-    this.shadows.clear();
     this.casting.clear();
     this.lampShadows = null;
-    this.blob = null;
+    this.sunShadow = null;
     this.reportHeld(this.drawn.held);
     const renderer = this.renderer;
     this.renderer = null;
@@ -642,25 +638,6 @@ export class ThreeCourseRenderer implements CourseRenderer {
     }
 
     const fill = new HemisphereLight(look.fill[0], look.fill[1], 1.5);
-    // The low sun throws the rider's shadow long across the road: a soft dark blob, with no shadow map to draw.
-    // The rider's shadow in the sun: a square on the road drawn with the rider's own outline, from the side or
-    // end on as the sun stands (rider-shadow-shape.ts, shadow-silhouette.ts). Along it, away from the sun, is +z.
-    const square = new PlaneGeometry(1, 1);
-    square.rotateX(-Math.PI / 2);
-    const cast = (map: CanvasTexture) =>
-      new MeshBasicMaterial({
-        color: 0x07050b,
-        map,
-        transparent: true,
-        opacity: 0.8,
-        depthWrite: false,
-        side: DoubleSide,
-      });
-    const side = cast(sideShadow());
-    const end = cast(endShadow());
-    this.blob = { geometry: square, side, end };
-    this.disposables.push(side.map!, end.map!, side, end);
-    this.disposables.push(square);
     this.scene.add(fill, this.sun, this.sun.target);
     this.disposables.push(fill, this.sun);
 
@@ -699,8 +676,8 @@ export class ThreeCourseRenderer implements CourseRenderer {
     this.disposables.push(this.riderBatch);
     this.riderBatch.add(you);
     this.lamplight(you);
-    this.shadow(you);
     this.scene.add(you.group);
+    this.shadow(you);
     this.disposables.push(kit, ...you.owned, this.frameMaterial, this.plain);
   }
 
@@ -752,19 +729,9 @@ export class ThreeCourseRenderer implements CourseRenderer {
       'YXZ',
     );
     if (this.casting.has(cyclist) && cyclist.group.visible) this.lampShadows?.add(metres, lane);
-    // The shadow lies on the road, stretched away from the sun.
-    const shadow = this.shadows.get(cyclist);
-    if (shadow) {
-      const [sx, , sz] = this.course!.file.sun;
-      const far = SHADOW_LENGTH * 0.42;
-      shadow.position.set(at.x - sx * far, at.y + 0.05, at.z - sz * far);
-      shadow.rotation.set(at.pitch, Math.atan2(-sx, -sz), 0, 'YXZ');
-      // The rider as the sun sees them: from the side or end on, and as wide as that is.
-      const shape = shadowShape(at.heading, sx, sz, this.shape);
-      shadow.material = shape.side ? this.blob!.side : this.blob!.end;
-      shadow.scale.x = shape.flipped ? -shape.width : shape.width;
-      shadow.visible = cyclist.group.visible;
-    }
+    const began = this.pinned ? performance.now() : 0;
+    this.sunShadow?.at(at, metres, this.course!);
+    if (this.pinned) this.drawn.shadow.ms += performance.now() - began;
     return outOfTheSaddle(Math.tan(at.pitch) * 100);
   }
 
@@ -778,10 +745,21 @@ export class ThreeCourseRenderer implements CourseRenderer {
     this.groundEye?.at(metres - behind, 0, up);
     const ahead = course.place(metres + LOOK_AHEAD, 0, this.there);
     this.camera.lookAt(ahead.x, ahead.y + LOOK_UP, ahead.z);
+    if (this.above > 0) {
+      // The shadow, looked at from above (e2e/shadow/shadow.shots.ts): up the picture is up the road.
+      const at = course.place(metres, 0, this.here);
+      this.camera.position.set(at.x, at.y + this.above, at.z);
+      this.camera.up.set(-Math.sin(at.heading), 0, -Math.cos(at.heading));
+      this.camera.lookAt(at.x, at.y, at.z);
+    }
     this.sky?.position.copy(this.camera.position);
     const [x, , z] = course.file.sun;
     this.sun.target.position.set(ahead.x, ahead.y, ahead.z);
-    this.sun.position.set(ahead.x + x * 70, ahead.y + 34, ahead.z + z * 70);
+    this.sun.position.set(
+      ahead.x + x * SUN_LIGHT.out,
+      ahead.y + SUN_LIGHT.up,
+      ahead.z + z * SUN_LIGHT.out,
+    );
     this.sun.target.updateMatrixWorld();
   }
 
@@ -847,18 +825,24 @@ export class ThreeCourseRenderer implements CourseRenderer {
     }
   }
 
-  /** Gives the rider their shadow on the road. */
+  /** Gives the rider their shadow on the road: the lamps' where the course has lamps, the sun's where it does not. */
   private shadow(cyclist: Cyclist): void {
     if (this.lampShadows) {
       this.casting.add(cyclist);
       return;
     }
-    if (!this.blob) return;
-    const mesh = new Mesh(this.blob.geometry, this.blob.end);
-    mesh.scale.set(SHADOW_WIDTH, 1, SHADOW_LENGTH);
-    mesh.renderOrder = 1;
-    this.shadows.set(cyclist, mesh);
-    this.scene.add(mesh);
+    if (this.shadowless) return;
+    const shadow = new SunShadow(
+      this.course!.file.sun,
+      courseLook(this.course!.file),
+      this.tier,
+      this.drawn.shadow,
+    );
+    shadow.cast(cyclist.group);
+    if (this.riderBatch) shadow.cast(this.riderBatch.group);
+    this.sunShadow = shadow;
+    this.scene.add(shadow.mesh);
+    this.disposables.push(shadow);
   }
 
   /** The scene's pass with a soft bloom over it, so the neon, the bulbs and the sun glow. */
@@ -879,6 +863,10 @@ export class ThreeCourseRenderer implements CourseRenderer {
     const renderer = this.renderer;
     if (!renderer) return;
     if (this.pinned) renderer.info.reset();
+    // The rider's figure for their shadow is part of the frame, and of what the frame is counted to cost.
+    const began = this.pinned ? performance.now() : 0;
+    this.sunShadow?.draw(renderer, this.scene);
+    if (this.pinned) this.drawn.shadow.ms += performance.now() - began;
     if (this.pipeline && TIERS[this.tier]!.bloom) this.pipeline.render();
     else renderer.render(this.scene, this.camera);
     if (this.pinned) this.report(renderer);
@@ -917,5 +905,6 @@ export class ThreeCourseRenderer implements CourseRenderer {
   private step(by: number): void {
     this.tier += by;
     this.resize(...this.size);
+    this.sunShadow?.detail(this.tier);
   }
 }

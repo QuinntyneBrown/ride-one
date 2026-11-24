@@ -4,6 +4,7 @@
 // inverse kinematics in Blender: nothing of the kind is worked out here. Each rider is given a skeleton and a copy
 // of the mesh of their own, which course-cyclist.ts paints in their colours and plays from the crank's angle.
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { FIGURE_LAYER, NO_SHADOW } from './sun-shadow-frame';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
 import {
   type AnimationClip,
@@ -34,6 +35,8 @@ export interface RiderBodyParts {
   readonly plain: SkinnedMesh;
   /** The bone the head and what is worn on it turn with. */
   readonly head: Bone;
+  /** The coarse body a finely made rider keeps to throw their shadow; none where the body itself is coarse. */
+  readonly shade: readonly SkinnedMesh[];
   /** The geometries and skeletons that are this rider's own, to dispose with them. */
   readonly owned: readonly { dispose(): void }[];
 }
@@ -77,13 +80,26 @@ export class RiderBody {
   make(fine: boolean): RiderBodyParts {
     const root = clone(this.scene);
     // The file holds both finenesses on the one armature: this rider keeps one.
-    root.getObjectByName(fine ? 'body-coarse' : 'body')?.removeFromParent();
+    // A rider made finely keeps the coarse one too, unseen: it throws their shadow (sun-shadow.ts), which needs a
+    // quarter of the triangles to be the same shape on the road.
+    const coarse = fine ? root.getObjectByName('body-coarse') : null;
+    if (!fine) root.getObjectByName('body')?.removeFromParent();
+    const shade: SkinnedMesh[] = [];
     let kit: SkinnedMesh | null = null;
     let plain: SkinnedMesh | null = null;
     const owned: { dispose(): void }[] = [];
     root.traverse((child) => {
       const mesh = child as SkinnedMesh;
       if (!mesh.isSkinnedMesh) return;
+      mesh.frustumCulled = false;
+      if (coarse && (mesh === coarse || mesh.parent === coarse)) {
+        // Drawn for the shadow's figure and by nothing else; it follows the same bones.
+        mesh.layers.set(FIGURE_LAYER);
+        owned.push(mesh.skeleton);
+        shade.push(mesh);
+        return;
+      }
+      if (coarse) mesh.userData[NO_SHADOW] = true;
       // The rider's own copy: their colours are painted in its vertices.
       mesh.geometry = mesh.geometry.clone();
       // It is wherever its bones are, which is not where it was made.
@@ -99,7 +115,7 @@ export class RiderBody {
     bare.skeleton.dispose();
     owned.splice(owned.indexOf(bare.skeleton), 1);
     bare.bind(worn.skeleton, bare.bindMatrix);
-    return { root, kit: worn, plain: bare, head, owned };
+    return { root, kit: worn, plain: bare, head, owned, shade };
   }
 
   dispose(): void {
