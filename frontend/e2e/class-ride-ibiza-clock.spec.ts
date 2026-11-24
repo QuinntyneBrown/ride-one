@@ -73,7 +73,7 @@ async function rideFortySecondsOnTarget(page: Page, bluetooth: FakeBluetooth): P
   await page.clock.runFor(1000);
 }
 
-/** Runs the paused clock from 0:41 to the finish, and reads Class Done's time and its output and average line. */
+/** Runs the paused clock from 0:41 to the finish, and reads Class Done's time and its output and on-target line. */
 async function finishAndRead(page: Page): Promise<{ time: string; line: string }> {
   await page.clock.fastForward('19:17');
   await page.clock.runFor(2000);
@@ -82,7 +82,7 @@ async function finishAndRead(page: Page): Promise<{ time: string; line: string }
   await expect(done.title).toHaveText('Intervals to the Beat');
   return {
     time: (await done.time.textContent())!,
-    line: `${await done.number.textContent()} kJ · ${await done.average.textContent()}`,
+    line: `${await done.number.textContent()} kJ · ${await done.onTarget.textContent()} on target`,
   };
 }
 
@@ -211,7 +211,8 @@ test.describe('Placed by the clock in Ibiza', () => {
     await expect(async () => {
       await page.clock.runFor(16);
       await expect(home.classVideo).toBeChecked({ timeout: 50 });
-      await expect(home.start).toHaveText('Start class', { timeout: 50 });
+      // A rider with a finished ride is offered it again (L2-084).
+      await expect(home.start).toHaveText('Ride it again', { timeout: 50 });
     }).toPass({ intervals: [0] });
     const writes = bluetooth.writes().length;
     await home.start.click();
