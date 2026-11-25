@@ -3,7 +3,7 @@
 // Description: a class is always ridden solo. The Class has no choice between riding alone and with a group, only Start class; and an address that names
 // a group session, `/ride?session=…`, starts no ride of its own (L2-087 AC4): it opens The Class, and the class is ridden solo from
 // there, with Pause, no board, no request about a group session and no hub connection.
-import { connectBike } from './fixtures/class-ride';
+import { connectBike, skipFlyover } from './fixtures/class-ride';
 import { CourseFiles } from './fixtures/course-files';
 import { echelonBike } from './fixtures/echelon';
 import { keptRideWith } from './fixtures/how-to-ride';
@@ -45,6 +45,7 @@ test.describe('Always solo', () => {
     await connectBike(bluetooth);
     await expect(home.start).toHaveText('Start class');
     await home.start.click();
+    await skipFlyover(page);
 
     await expect(ride.name).toHaveText('Intervals to the Beat · Solo');
     await expect(ride.pause).toBeVisible();

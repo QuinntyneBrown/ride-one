@@ -24,6 +24,7 @@ export { ClassCountdown } from './class-ride/class-countdown';
 export { ClassRollout } from './class-ride/class-rollout';
 export { FinishBanner } from './class-ride/finish-banner';
 export { InlineMessage, type InlineMessageTone } from './inline-message/inline-message';
+export { IbizaFlyover } from './ibiza-flyover/ibiza-flyover';
 export { ClassDone } from './class-done/class-done';
 export { Toast, type ToastTone } from './toast/toast';
 export { ToastRegion } from './toast/toast-region';

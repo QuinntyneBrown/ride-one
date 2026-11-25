@@ -9,6 +9,8 @@ export interface SceneInput {
   readonly speedKmh: number | null;
   readonly running: boolean;
   readonly reducedMotion: boolean;
+  /** The share of the flyover's flight flown, or `null` when the chase camera draws the ride (L2-179 AC2). */
+  readonly flyover?: number | null;
 }
 
 /** The longest step one frame takes, so the pedals do not leap after a hidden tab. */
@@ -41,6 +43,7 @@ export class SceneDriver {
       time: this.time,
       crank: this.crank,
       reducedMotion: input.reducedMotion,
+      flyover: input.flyover ?? null,
     });
   }
 }

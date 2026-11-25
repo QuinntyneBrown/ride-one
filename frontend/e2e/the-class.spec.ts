@@ -9,7 +9,7 @@
 // at first, and Ibiza Sunset Strip; the choice is kept on the device, puts the course's still in the video's box, and
 // decides how the ride is ridden. A browser that cannot draw the course keeps to the class video. (A class that can't be loaded: the-one-class.spec.ts.)
 import { ECHELON_NOTIFY, echelonBike, targetResistanceWrite } from './fixtures/echelon';
-import { connectBike } from './fixtures/class-ride';
+import { connectBike, skipFlyover } from './fixtures/class-ride';
 import { CourseFiles } from './fixtures/course-files';
 import { keptRideWith } from './fixtures/how-to-ride';
 import { ScriptLog } from './fixtures/scripts';
@@ -344,6 +344,7 @@ test.describe('The Class', () => {
       await theClass.ibiza.click();
       await expect(theClass.start).toHaveText('Start class');
       await theClass.start.click();
+      await skipFlyover(page);
 
       // The ride is in Ibiza: the course takes the video's box, and there is no video (L2-174 AC1).
       await expect(ride.name).toContainText('Intervals to the Beat');

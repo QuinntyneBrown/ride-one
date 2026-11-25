@@ -280,6 +280,20 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 39.5 Ibiza Flyover (2026-11-24)
+
+Journey 39, fifth slice: a ride in Ibiza opens on Ibiza Flyover (the course from above between a bar and a band, five
+captions, Skip flyover, Cancel), lands on the grid and opens Class Ride on its countdown, with the course drawn once.
+
+- **What slowed it:** moving one `CourseScene` between two screens. Taking its host view out of a `ViewContainerRef` in a
+  directive's `onDestroy` is too late: the container has already destroyed its views, so the renderer was released as the
+  flyover went. The scene now belongs to a session (`createComponent` + `ApplicationRef.attachView`) and only its element
+  moves, to a comment node in the next screen, after that screen's first render.
+- **Lesson:** a thing that outlives the screen that shows it is owned by a service, never by the screen's view container.
+- **Lesson:** a spec helper that starts a ride is the one place to absorb a new screen in front of it (`skipFlyover`,
+  `startRideInIbiza`); only specs that click Start by hand needed an edit.
+- Full parallel runs still flake the Ibiza connect log under load (L250); rerun alone.
+
 ### 39.4 Roll on past the finish line (2026-11-24)
 
 Journey 39, fourth slice: through the ending the course is placed by the class length plus the seconds since the finish,

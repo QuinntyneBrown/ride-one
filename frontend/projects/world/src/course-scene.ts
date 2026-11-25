@@ -47,6 +47,8 @@ export class CourseScene implements AfterViewInit {
   readonly running = input.required<boolean>();
   /** Reduce motion as the app asks for it; null follows this device's `prefers-reduced-motion`. */
   readonly reducedMotion = input<boolean | null>(null);
+  /** The share of the flyover's flight flown, 0 to 1, or `null` for the chase camera of the ride (L2-179 AC2). */
+  readonly flyover = input<number | null>(null);
   /** Emitted once when the course's files cannot be loaded or the renderer fails to start. */
   readonly unavailable = output<void>();
   /** Emitted once the ride's first frame has been drawn, with the GPU API drawing the course. */
@@ -210,6 +212,7 @@ export class CourseScene implements AfterViewInit {
         speedKmh: this.speedKmh(),
         running: this.running(),
         reducedMotion: this.reducedMotion() ?? this.motion.reduced(),
+        flyover: this.flyover(),
       });
       if (untracked(this.shown) || !renderer) return;
       const backend = renderer.backend;

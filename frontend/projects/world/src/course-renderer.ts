@@ -64,6 +64,7 @@ import { wallMaterial } from './wall-material';
 import { waterMaterial } from './water-material';
 import { windowMaterial } from './window-material';
 import { chaseCamera } from './chase-camera';
+import { type FlyoverCamera, flyoverCamera } from './flyover-camera';
 import { type CourseDrawn, PROBE_KEY, readCourseProbe } from './course-probe';
 
 /**
@@ -245,6 +246,9 @@ export class ThreeCourseRenderer implements CourseRenderer {
   private readonly budget = new FrameBudget(TIERS.length, START);
   private period: number | null = null;
   private lastFrameAt: number | null = null;
+  /** The share of the flyover's flight flown, or `null` when the chase camera draws the ride (L2-179 AC2). */
+  private flyover: number | null = null;
+  private readonly flying: FlyoverCamera = { metres: 0, behind: 0, above: 0, ahead: 0 };
   /** Set by the test-only hook: the tier never steps, and each frame's cost is written to the hook. */
   private pinned = false;
   /** Set by the test-only hook: the metres up the road the bench starts its ride from. */
@@ -345,6 +349,7 @@ export class ThreeCourseRenderer implements CourseRenderer {
     const metres = Math.min(ridden + this.benchFrom, course.end);
     if (this.drawn.firstMetres === null) this.drawn.firstMetres = metres;
     this.drawn.metres = metres;
+    this.flyover = frame.flyover ?? null;
     this.lampShadows?.begin();
     const standing = this.ride(you, metres, 0);
     // The wheels turn as the bike covers the road.
@@ -739,12 +744,16 @@ export class ThreeCourseRenderer implements CourseRenderer {
   private aim(metres: number): void {
     const course = this.course!;
     // Nearer the rider on the grid and at the finish line (L2-174 AC10).
-    const { behind, above: up } = chaseCamera(metres, course.length, this.drawn.camera);
-    const back = course.place(metres - behind, 0, this.here);
+    // From above, on its way down the road, before the ride (L2-179 AC2); behind the rider otherwise.
+    const flyover =
+      this.flyover === null ? null : flyoverCamera(this.flyover, course.length, this.flying);
+    const { behind, above: up } = flyover ?? chaseCamera(metres, course.length, this.drawn.camera);
+    const at = flyover ? flyover.metres : metres;
+    const back = course.place(at - behind, 0, this.here);
     this.camera.position.set(back.x, back.y + up, back.z);
-    this.groundEye?.at(metres - behind, 0, up);
-    const ahead = course.place(metres + LOOK_AHEAD, 0, this.there);
-    this.camera.lookAt(ahead.x, ahead.y + LOOK_UP, ahead.z);
+    this.groundEye?.at(at - behind, 0, up);
+    const ahead = course.place(at + (flyover ? flyover.ahead : LOOK_AHEAD), 0, this.there);
+    this.camera.lookAt(ahead.x, ahead.y + (flyover ? 0 : LOOK_UP), ahead.z);
     if (this.above > 0) {
       // The shadow, looked at from above (e2e/shadow/shadow.shots.ts): up the picture is up the road.
       const at = course.place(metres, 0, this.here);

@@ -15,18 +15,6 @@ import {
   ClassVideo,
   InlineMessage,
 } from '@telo/components';
-import {
-  BikeTelemetry,
-  Countdown,
-  ResistanceController,
-  ResistanceEaseOff,
-  RideEnding,
-  RideClock,
-  RideTicker,
-  VideoClockSync,
-  VideoStallWatch,
-  WorkoutEngine,
-} from '@telo/domain';
 import { IBIZA_SUNSET_STRIP } from '../classes/ibiza-sunset-strip';
 import { FullscreenButton } from '../fullscreen/fullscreen-button';
 import { ClassRideStore } from './class-ride-store';
@@ -65,19 +53,6 @@ import { CourseSceneHost } from './course-scene-host';
   styleUrl: './class-ride-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(window:beforeunload)': 'confirmLeaving($event)' },
-  providers: [
-    ClassRideStore,
-    RideClock,
-    RideTicker,
-    WorkoutEngine,
-    ResistanceController,
-    BikeTelemetry,
-    VideoClockSync,
-    VideoStallWatch,
-    Countdown,
-    RideEnding,
-    ResistanceEaseOff,
-  ],
 })
 export default class ClassRidePage {
   protected readonly store = inject(ClassRideStore);
