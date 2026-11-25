@@ -4,6 +4,7 @@ import {
   Button,
   ClassBike,
   ClassCountdown,
+  ClassRollout,
   ClassCourse,
   ClassHeader,
   FinishBanner,
@@ -18,6 +19,7 @@ import {
   BikeTelemetry,
   Countdown,
   ResistanceController,
+  ResistanceEaseOff,
   RideEnding,
   RideClock,
   RideTicker,
@@ -48,6 +50,7 @@ import { CourseSceneHost } from './course-scene-host';
     ClassCountdown,
     ClassCourse,
     FinishBanner,
+    ClassRollout,
     ClassHeader,
     ClassLost,
     ClassResist,
@@ -73,6 +76,7 @@ import { CourseSceneHost } from './course-scene-host';
     VideoStallWatch,
     Countdown,
     RideEnding,
+    ResistanceEaseOff,
   ],
 })
 export default class ClassRidePage {

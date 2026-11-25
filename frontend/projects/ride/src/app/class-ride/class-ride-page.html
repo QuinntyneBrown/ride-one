@@ -91,6 +91,13 @@
                 [elapsedSeconds]="result.elapsedSeconds"
               />
             }
+            @if (store.rollOut(); as rollOut) {
+              <wz-class-rollout
+                slot="overlay"
+                [title]="rollOut.title"
+                [progress]="rollOut.progress"
+              />
+            }
           </wz-class-course>
         } @else {
           <wz-class-video
@@ -108,6 +115,13 @@
                 slot="overlay"
                 [outputKj]="result.outputKj"
                 [elapsedSeconds]="result.elapsedSeconds"
+              />
+            }
+            @if (store.rollOut(); as rollOut) {
+              <wz-class-rollout
+                slot="overlay"
+                [title]="rollOut.title"
+                [progress]="rollOut.progress"
               />
             }
           </wz-class-video>
@@ -135,7 +149,7 @@
             />
             <wz-class-resist
               [level]="store.level()"
-              [disabled]="!store.canControl()"
+              [disabled]="store.stepperOff()"
               (lower)="store.lower()"
               (raise)="store.raise()"
             />

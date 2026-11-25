@@ -22,6 +22,7 @@ export type { ResistanceControl } from './engine/resistance-controller';
 export { type PlanState, planStateAt } from './engine/plan-state';
 export { RideClock } from './engine/ride-clock';
 export { COUNT_MS, Countdown, GO_MS, countdownStep } from './engine/countdown';
+export { EASE_OFF_STEP_MS, EASE_OFF_TO, ResistanceEaseOff, easeOffLevels } from './engine/ease-off';
 export {
   BANNER_MS,
   ROLL_OUT_MS,

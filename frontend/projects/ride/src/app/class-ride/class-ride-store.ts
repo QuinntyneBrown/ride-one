@@ -21,6 +21,7 @@ import {
 import {
   BikeTelemetry,
   Countdown,
+  ResistanceEaseOff,
   RideEnding,
   type PlanState,
   PowerModel,
@@ -35,7 +36,13 @@ import {
   rideWith,
 } from '@telo/domain';
 import { classStepAnnouncement } from '../rides/step-announcement';
-import { lostBikeMessage, pauseAnnouncement, rideHeader, rideHold } from './ride-hold';
+import {
+  lostBikeMessage,
+  pauseAnnouncement,
+  rideHeader,
+  rideHold,
+  rollOutTitle,
+} from './ride-hold';
 import type { RidePhase } from './ride-phase';
 import { type StatView, cadenceStat, powerStat } from './stat-view';
 
@@ -82,6 +89,7 @@ export class ClassRideStore {
   private readonly rideRecord = inject(RIDE_RECORD);
   private readonly countdownTimer = inject(Countdown);
   private readonly ending = inject(RideEnding);
+  private readonly easeOff = inject(ResistanceEaseOff);
   /** What the finish banner shows: the output Class Done will show, in whole kJ, and the ride's time (L2-181 AC2). */
   private readonly result = signal<{ outputKj: number; elapsedSeconds: number } | null>(null);
   /** The ride's result, kept until the ending is over and Class Done opens with it. */
@@ -141,6 +149,13 @@ export class ClassRideStore {
   private readonly ended = computed(
     () => this.stage() === 'finished' || this.stage() === 'rolling-out',
   );
+  /** Whether the stepper is off: the bike cannot be controlled, or the ride is over and the bike eases off (L2-182 AC2). */
+  readonly stepperOff = computed(() => !this.canControl() || this.ended());
+  /** The roll-out card's figures while it shows, otherwise `null` (L2-182 AC4). */
+  readonly rollOut = computed(() => {
+    if (this.stage() !== 'rolling-out') return null;
+    return { title: rollOutTitle(this.way), progress: this.ending.state()?.rollOutShare ?? 0 };
+  });
   /** The finish banner's figures while it shows, otherwise `null` (L2-181 AC1). */
   readonly finished = computed(() => (this.stage() === 'finished' ? this.result() : null));
   readonly level = this.telemetry.resistance;
@@ -153,10 +168,16 @@ export class ClassRideStore {
   readonly bikeLost = computed(() => this.connection.ble() === 'disconnected');
   /** Which of its four states the ride is in, and what the screen shows for it (L2-091, L2-092). */
   readonly state = computed(() =>
-    rideHold({ pausedByRider: this.pausedByRider(), bikeLost: this.bikeLost() }),
+    rideHold({
+      pausedByRider: this.pausedByRider(),
+      // The ending waits for no bike: a lost one shows no alert and holds nothing (L2-182 AC8).
+      bikeLost: this.bikeLost() && !this.ended(),
+    }),
   );
   /** Whether the ride runs: past "Go!", and held neither by the rider nor by a lost bike; the course moves while it does. */
-  readonly running = computed(() => this.stage() === 'riding' && this.state().running);
+  readonly running = computed(
+    () => (this.stage() === 'riding' && this.state().running) || this.ended(),
+  );
   /** The bike's speed, which turns the pedals of the course's rider; the clock places them (L2-174 AC2). */
   readonly speedKmh = this.telemetry.speedKmh;
   /**
@@ -401,6 +422,8 @@ export class ClassRideStore {
     // The banner shows, then the roll-out; the video and the music play on through both (L2-181 AC1).
     this.stage.set('finished');
     this.ending.start();
+    // The bike eases off while the banner shows (L2-182 AC1).
+    this.easeOff.start();
   }
 
   /** The ending is over: the ride is released and Class Done opens with its result (L2-078 AC1). */
@@ -409,6 +432,7 @@ export class ClassRideStore {
     this.wakeLock.release();
     this.music.release();
     this.activity.end();
+    this.easeOff.stop();
     this.connection.forgetTarget();
     void this.router.navigateByUrl('/done', { state: { classResult: this.classResult } });
   }

@@ -6,6 +6,9 @@ export const BANNER_MS = 3_200;
 /** How long the roll-out lasts after the banner (L2-182). */
 export const ROLL_OUT_MS = 5_200;
 
+/** How often the roll-out's progress is published (L2-182 AC4). */
+export const ROLL_OUT_TICK_MS = 100;
+
 /** Which part of the ending a ride is in, and how far through the roll-out it is. */
 export interface RideEndingState {
   readonly stage: 'banner' | 'roll-out' | 'over';
@@ -61,8 +64,11 @@ export class RideEnding {
     const state = rideEndingAt(elapsed);
     this.current.set(state);
     if (state.stage === 'over') return this.release();
-    const next = state.stage === 'banner' ? BANNER_MS : BANNER_MS + ROLL_OUT_MS;
-    this.timer = setTimeout(() => this.read(), next - elapsed);
+    // The roll-out's bar fills as it passes, so it is read every 100 ms; the banner is read at its end.
+    const end = state.stage === 'banner' ? BANNER_MS : BANNER_MS + ROLL_OUT_MS;
+    const wait =
+      state.stage === 'banner' ? end - elapsed : Math.min(ROLL_OUT_TICK_MS, end - elapsed);
+    this.timer = setTimeout(() => this.read(), wait);
   }
 
   private release(): void {

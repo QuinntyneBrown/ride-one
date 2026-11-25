@@ -280,6 +280,26 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 39.3 Ease off and roll on (2026-11-24)
+
+Journey 39, third slice: after the finish the target resistance steps down to level 4, 110 ms apart, the stepper is
+off, and a roll-out card with a filling bar shows until Class Done opens by itself (L2-182).
+
+**Applied from earlier**
+
+- **L253, L255, L256:** saved time. Helpers were ready; the key was right; a spec that failed once was rerun alone.
+
+**What slowed it down**
+
+- The e2e project cannot import `@telo/*`: a spec that borrowed `easeOffLevels` from `domain` broke `tsc -p
+e2e/tsconfig.json`; the spec keeps its own three-line copy.
+- `no-inline-styles` forbids `[style.--value]` in a template; a component sets a custom property on its host instead.
+
+**New lessons**
+
+- **L257:** a spec that counts commands 110 ms apart steps the paused clock until the last one is seen, then compares;
+  a fixed `runFor` is one timer short about one run in four.
+
 ### 39.2 Finish banner (2026-11-24)
 
 Journey 39, second slice: at 20:00 a banner lies across the video's or the course's box with the output and time, the

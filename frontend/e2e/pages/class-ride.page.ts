@@ -92,6 +92,11 @@ export class ClassRidePage {
   readonly finishResult: Locator;
   readonly finishOutput: Locator;
   readonly finishStatus: Locator;
+  /** The roll-out card and its parts (L2-182 AC4). */
+  readonly rollOut: Locator;
+  readonly rollOutTitle: Locator;
+  readonly rollOutLine: Locator;
+  readonly rollOutBar: Locator;
   readonly lost: Locator;
   /** What the lost-bike alert says the ride is doing meanwhile (L2-092 AC1). */
   readonly lostBody: Locator;
@@ -153,6 +158,10 @@ export class ClassRidePage {
     this.finishTitle = page.locator('.finish-banner__title');
     this.finishResult = page.locator('.finish-banner__result');
     this.finishOutput = page.locator('.finish-banner__output');
+    this.rollOut = page.locator('.class-rollout');
+    this.rollOutTitle = page.locator('.class-rollout__title');
+    this.rollOutLine = page.locator('.class-rollout__body');
+    this.rollOutBar = page.locator('.class-rollout__bar');
     this.finishStatus = page.locator('.finish-banner').getByRole('status');
     this.lost = page.getByRole('alert').filter({ hasText: 'Lost the bike' });
     this.lostBody = this.lost.locator('.class-lost__body');

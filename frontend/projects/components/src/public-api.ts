@@ -21,6 +21,7 @@ export { ClassStat, type ClassStatTone } from './class-ride/class-stat';
 export { ClassVideo } from './class-ride/class-video';
 export { ClassCourse } from './class-ride/class-course';
 export { ClassCountdown } from './class-ride/class-countdown';
+export { ClassRollout } from './class-ride/class-rollout';
 export { FinishBanner } from './class-ride/finish-banner';
 export { InlineMessage, type InlineMessageTone } from './inline-message/inline-message';
 export { ClassDone } from './class-done/class-done';

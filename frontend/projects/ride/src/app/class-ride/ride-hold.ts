@@ -70,6 +70,11 @@ export function lostBikeMessage(ridingIn: 'video' | 'ibiza', phase: RidePhase = 
     : 'The video is paused. Pedal to wake the bike, then reconnect.';
 }
 
+/** The roll-out card's title: the promenade in Ibiza, plain "Rolling on" with the class video (L2-182 AC4). */
+export function rollOutTitle(ridingIn: 'video' | 'ibiza'): string {
+  return ridingIn === 'ibiza' ? 'Rolling on down the promenade' : 'Rolling on';
+}
+
 /** What a screen reader hears when the rider pauses or resumes the ride, once for each change (L2-091 AC3). */
 export function pauseAnnouncement(paused: boolean): string {
   return paused ? 'Ride paused' : 'Ride resumed';
