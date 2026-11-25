@@ -8,47 +8,52 @@
       [elapsed]="store.elapsed()"
       [total]="ride.lengthSeconds"
     >
-      <button
-        wz-button
-        variant="raised"
-        size="sm"
-        slot="end"
-        type="button"
-        class="class-ride__action"
-        [attr.aria-label]="store.state().action"
-        [disabled]="store.state().actionDisabled"
-        (click)="store.paused() ? store.resume() : store.pause()"
-      >
-        @if (store.state().action === 'Resume') {
-          <svg class="class-ride__icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"
-            />
-          </svg>
-          <span class="class-ride__pause-label">Resume</span>
-        } @else {
-          <svg class="class-ride__icon" viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="14" y="3" width="5" height="18" rx="1" />
-            <rect x="5" y="3" width="5" height="18" rx="1" />
-          </svg>
-          <span class="class-ride__pause-label">Pause</span>
-        }
-      </button>
+      <!-- No Pause before "Go!", and none after the finish: there is no ride to hold (L2-180 AC6). -->
+      @if (store.header().pause) {
+        <button
+          wz-button
+          variant="raised"
+          size="sm"
+          slot="end"
+          type="button"
+          class="class-ride__action"
+          [attr.aria-label]="store.state().action"
+          [disabled]="store.state().actionDisabled"
+          (click)="store.paused() ? store.resume() : store.pause()"
+        >
+          @if (store.state().action === 'Resume') {
+            <svg class="class-ride__icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"
+              />
+            </svg>
+            <span class="class-ride__pause-label">Resume</span>
+          } @else {
+            <svg class="class-ride__icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="14" y="3" width="5" height="18" rx="1" />
+              <rect x="5" y="3" width="5" height="18" rx="1" />
+            </svg>
+            <span class="class-ride__pause-label">Pause</span>
+          }
+        </button>
+      }
       <!-- Leave goes to the class and asks for no confirmation (L2-093 AC1); leaving the page stops the ride. -->
-      <a
-        wz-button
-        size="sm"
-        slot="end"
-        class="class-ride__action class-ride__leave"
-        aria-label="Leave class"
-        routerLink="/"
-      >
-        <svg class="class-ride__icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m16 17 5-5-5-5" />
-          <path d="M21 12H9" />
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-        </svg>
-      </a>
+      @if (store.header().leave) {
+        <a
+          wz-button
+          size="sm"
+          slot="end"
+          class="class-ride__action class-ride__leave"
+          aria-label="Leave class"
+          routerLink="/"
+        >
+          <svg class="class-ride__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m16 17 5-5-5-5" />
+            <path d="M21 12H9" />
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          </svg>
+        </a>
+      }
       <wz-fullscreen-button slot="end" />
     </wz-class-header>
     <main id="main" class="class-ride__body" tabindex="-1">
@@ -70,12 +75,29 @@
               ngProjectAs="[slot=scene]"
               [wzCourseScene]="course.name"
               [segments]="ride.plan.segments"
-              [elapsed]="store.elapsed()"
+              [elapsed]="store.courseSeconds()"
               [speedKmh]="store.speedKmh()"
               [running]="store.running()"
               (drawn)="store.showCourse()"
               (unavailable)="store.failCourse()"
             />
+            @if (store.countdown(); as step) {
+              <wz-class-countdown slot="overlay" [step]="step" />
+            }
+            @if (store.finished(); as result) {
+              <wz-finish-banner
+                slot="overlay"
+                [outputKj]="result.outputKj"
+                [elapsedSeconds]="result.elapsedSeconds"
+              />
+            }
+            @if (store.rollOut(); as rollOut) {
+              <wz-class-rollout
+                slot="overlay"
+                [title]="rollOut.title"
+                [progress]="rollOut.progress"
+              />
+            }
           </wz-class-course>
         } @else {
           <wz-class-video
@@ -84,7 +106,25 @@
             [unavailable]="store.videoUnavailable()"
             [paused]="store.state().pausedOverlay"
             (frame)="store.playVideo($event)"
-          />
+          >
+            @if (store.countdown(); as step) {
+              <wz-class-countdown slot="overlay" [step]="step" />
+            }
+            @if (store.finished(); as result) {
+              <wz-finish-banner
+                slot="overlay"
+                [outputKj]="result.outputKj"
+                [elapsedSeconds]="result.elapsedSeconds"
+              />
+            }
+            @if (store.rollOut(); as rollOut) {
+              <wz-class-rollout
+                slot="overlay"
+                [title]="rollOut.title"
+                [progress]="rollOut.progress"
+              />
+            }
+          </wz-class-video>
         }
         @if (store.plan(); as plan) {
           <wz-class-bike>
@@ -109,7 +149,7 @@
             />
             <wz-class-resist
               [level]="store.level()"
-              [disabled]="!store.canControl()"
+              [disabled]="store.stepperOff()"
               (lower)="store.lower()"
               (raise)="store.raise()"
             />
@@ -125,7 +165,7 @@
     </main>
     @if (store.state().lostAlert) {
       <!-- The ride waits for the bike (L2-092 AC1). -->
-      <wz-class-lost [body]="store.lostBody" (reconnect)="store.reconnect()" />
+      <wz-class-lost [body]="store.lostBody()" (reconnect)="store.reconnect()" />
     }
   }
 </div>

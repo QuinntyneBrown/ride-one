@@ -19,7 +19,11 @@
 // again, then the rider is where the clock puts them.
 // Given the same telemetry, when the class is ridden in Ibiza and then with the class video, then Class Done shows the
 // same time, output and on-target share.
-import { courseDrawnOnPausedClock, startRideInIbizaOnPausedClock } from './fixtures/class-ride';
+import {
+  COUNTDOWN_MS,
+  courseDrawnOnPausedClock,
+  startRideInIbizaOnPausedClock,
+} from './fixtures/class-ride';
 import { CourseFiles } from './fixtures/course-files';
 import type { CourseProbe } from './fixtures/course-probe';
 import {
@@ -185,6 +189,33 @@ test.describe('Placed by the clock in Ibiza', () => {
     expect(after.metres).toBeGreaterThan(before.metres + 90 * ((WARM_UP.cadenceAim / 60) * 5) - 10);
   });
 
+  test('the rider rolls on past the finish line through the ending, on the road (L2-174 AC7, L2-182 AC5)', async ({
+    page,
+    bluetooth,
+    course,
+  }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 844, height: 390 });
+    await course.pin('low');
+    const ride = await startRideInIbizaOnPausedClock(page, bluetooth);
+    await courseDrawnOnPausedClock(page, ride);
+
+    // The class length's metres are the finish line's; the clock stops there, and the rider does not.
+    await jump(page, theClass.lengthSeconds - 3 - (await ride.clockSeconds()));
+    await jump(page, 3);
+    await expect(ride.finishBanner).toBeVisible();
+    const finish = planMetres(theClass.lengthSeconds);
+    const atTheLine = (await course.drawn())!.metres;
+    expect(atTheLine).toBeLessThanOrEqual(finish + 20);
+
+    await jump(page, 2);
+    const past = (await course.drawn())!.metres;
+    expect(past).toBeGreaterThan(finish);
+    await jump(page, 4);
+    await expect(ride.rollOut).toBeVisible();
+    expect((await course.drawn())!.metres).toBeGreaterThan(past);
+  });
+
   test('the same telemetry gives the same time, output and on-target share in Ibiza as with the class video (L2-174 AC4)', async ({
     page,
     bluetooth,
@@ -223,6 +254,7 @@ test.describe('Placed by the clock in Ibiza', () => {
         return targetResistanceWrites(bluetooth.writes().slice(writes));
       })
       .toContain(targetResistanceWrite(WARM_UP.level));
+    await page.clock.runFor(COUNTDOWN_MS);
     await page.clock.runFor(100);
     await expect(new ClassRidePage(page).video).toHaveCount(1);
     await rideFortySecondsOnTarget(page, bluetooth);

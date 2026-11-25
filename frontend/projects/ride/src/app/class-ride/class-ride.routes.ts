@@ -13,6 +13,6 @@ export const classRideRoutes: Routes = [
     title: 'Class ride · Telo Ride 1',
     providers: [provideClassRide()],
     canActivate: [theClassGuard],
-    loadComponent: () => import('./class-ride-page'),
+    loadComponent: () => import('./ride-page'),
   },
 ];

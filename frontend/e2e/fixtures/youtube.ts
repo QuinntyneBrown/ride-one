@@ -34,7 +34,7 @@ const FAKE_API = `(() => {
       const frame = document.createElement('div');
       frame.dataset.fakeYoutube = options.videoId;
       host.replaceWith(frame);
-      Object.assign(this, { frame, options, base: 0, since: null, seeks: [], destroyed: false, stalled: false });
+      Object.assign(this, { frame, options, base: Number(options.playerVars?.start ?? 0), since: null, seeks: [], destroyed: false, stalled: false });
       players.push(this);
       setTimeout(() => options.events?.onReady?.({ target: this }));
     }

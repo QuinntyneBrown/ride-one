@@ -11,7 +11,13 @@
 // Given the course's model, when it is served, then it carries no texture and is no more than 3 MB gzipped.
 // Given the music, when it is served, then it is no more than 4 MB.
 import { gzipSync } from 'node:zlib';
-import { courseDrawnOnPausedClock, startRideInIbizaOnPausedClock } from './fixtures/class-ride';
+import {
+  RIDE_START,
+  courseDrawnOnPausedClock,
+  openTheClassForIbiza,
+  startRideInIbizaOnPausedClock,
+} from './fixtures/class-ride';
+import { IbizaFlyoverPage } from './pages/ibiza-flyover.page';
 import { expect, test } from './fixtures/test';
 
 const MEGABYTE = 1024 * 1024;
@@ -39,6 +45,35 @@ test('a frame anywhere on the course is within 120,000 triangles and 140 draw ca
     expect(drawn.drawCalls, `draw calls at ${second} s`).toBeGreaterThan(0);
     expect(drawn.drawCalls, `draw calls at ${second} s`).toBeLessThanOrEqual(140);
     expect(drawn.shadowMap, `shadow map at ${second} s`).toBe(false);
+  }
+});
+
+test('a frame of the flyover is within 120,000 triangles and 140 draw calls (L2-177 AC1, L2-179)', async ({
+  page,
+  bluetooth,
+  course,
+}) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 844, height: 390 });
+  await course.pin('ultra');
+  await page.clock.install({ time: RIDE_START });
+  const home = await openTheClassForIbiza(page, bluetooth);
+  await page.clock.pauseAt(RIDE_START + 60_000);
+  await home.start.click();
+  const flyover = new IbizaFlyoverPage(page);
+  await expect(async () => {
+    await page.clock.runFor(16);
+    await expect(flyover.caption).toContainText('The waterfront', { timeout: 50 });
+  }).toPass({ intervals: [0], timeout: 60_000 });
+
+  // The flight is nine seconds: frames from its start to its end.
+  for (let step = 0; step < 9; step++) {
+    await page.clock.runFor(1000);
+    const drawn = (await course.drawn())!;
+    expect(drawn.triangles, `triangles ${step + 1} s into the flight`).toBeGreaterThan(0);
+    expect(drawn.triangles, `triangles ${step + 1} s into the flight`).toBeLessThanOrEqual(120_000);
+    expect(drawn.drawCalls, `draw calls ${step + 1} s into the flight`).toBeLessThanOrEqual(140);
+    expect(drawn.shadowMap).toBe(false);
   }
 });
 

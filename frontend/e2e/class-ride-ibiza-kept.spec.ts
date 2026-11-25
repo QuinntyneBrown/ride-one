@@ -7,7 +7,7 @@
 // Given the course has been loaded once on this device, when the network is lost and the rider rides in Ibiza again,
 // then all three of the course's files are served by the worker and the course is not given up (no notice that it cannot be drawn). That the course draws from good files is proved by class-ride-ibiza.spec.ts.
 import { appCached } from './fixtures/app-cache';
-import { openTheClassForIbiza } from './fixtures/class-ride';
+import { openTheClassForIbiza, skipFlyover } from './fixtures/class-ride';
 import { expect, test } from './fixtures/test';
 import { ClassRidePage } from './pages/class-ride.page';
 
@@ -32,6 +32,7 @@ test('a ride in Ibiza with no network gets the course from what the first ride k
   // The first ride loads the course from the network, and the worker keeps what it fetched: the rider leaves once
   // all three files are on the device, without waiting for the course to be drawn.
   await home.start.click();
+  await skipFlyover(page);
   const first = new ClassRidePage(page);
   await expect(first.clock).toBeVisible();
   await expect
@@ -61,6 +62,7 @@ test('a ride in Ibiza with no network gets the course from what the first ride k
   });
   await expect(home.start).toBeEnabled();
   await home.start.click();
+  await skipFlyover(page);
   const second = new ClassRidePage(page);
   await expect(second.clock).toBeVisible();
   await expect.poll(() => [...new Set(served)].sort()).toEqual([...WANTED].sort());

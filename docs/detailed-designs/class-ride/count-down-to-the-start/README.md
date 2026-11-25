@@ -145,9 +145,11 @@ opens and holds a ride phase; the clock and the ticker start on "Go!".
 it calls `Countdown.stop()` when the bike is lost and shows `wz-class-lost`, and calls
 `Countdown.start()` when the bike is back, so the countdown starts again from "3" (AC7). The
 connection kept the target resistance and sends it first after the reconnect (`L2-027` AC4), so
-the bike is set before "Go!". No mock draws this state yet: `docs/specs/L2.md`, *Mock gaps*,
-describes it as `class-ride/disconnected` with the clock at 0:00 and neither **Pause** nor
-**Resume**. The alert's body line during a countdown is `<TO SUPPLY>` until that mock is drawn.
+the bike is set before "Go!". The mock is `docs/mocks/pages/class-ride/countdown-disconnected.html`:
+the countdown is not drawn, the clock reads 0:00, the header has neither **Pause** nor **Resume**,
+the stepper is off, and the alert's body line during a countdown is "The class has not started.
+Pedal to wake the bike, then reconnect." (`lostBikeMessage` gains the phase; the wording is a
+proposal).
 
 ## Requirements
 

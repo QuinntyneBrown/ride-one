@@ -76,6 +76,27 @@ export class ClassRidePage {
   readonly video: Locator;
   /** Any screen or card that stands between the start button and the ride; there is none (L2-175). */
   readonly loadingScreen: Locator;
+  /** The countdown over the video's or the course's box (L2-180 AC1). */
+  readonly countdown: Locator;
+  /** The numeral: "3", "2", "1" or "Go!" (L2-180 AC2). */
+  readonly countdownNumeral: Locator;
+  /** The lights lit so far, from none to all three. */
+  readonly countdownLights: Locator;
+  /** "The plan sets your resistance. Just pedal." */
+  readonly countdownLine: Locator;
+  /** What a screen reader hears of the countdown, once (L2-180 AC8). */
+  readonly countdownStatus: Locator;
+  /** The finish banner and its parts (L2-181). */
+  readonly finishBanner: Locator;
+  readonly finishTitle: Locator;
+  readonly finishResult: Locator;
+  readonly finishOutput: Locator;
+  readonly finishStatus: Locator;
+  /** The roll-out card and its parts (L2-182 AC4). */
+  readonly rollOut: Locator;
+  readonly rollOutTitle: Locator;
+  readonly rollOutLine: Locator;
+  readonly rollOutBar: Locator;
   readonly lost: Locator;
   /** What the lost-bike alert says the ride is doing meanwhile (L2-092 AC1). */
   readonly lostBody: Locator;
@@ -128,6 +149,20 @@ export class ClassRidePage {
     this.resume = page.getByRole('button', { name: 'Resume', exact: true });
     this.leave = page.getByRole('link', { name: 'Leave class' });
     this.paused = page.locator('.class-video__paused');
+    this.countdown = page.locator('.class-countdown');
+    this.countdownNumeral = page.locator('.class-countdown__num');
+    this.countdownLights = page.locator('.class-countdown__light--on');
+    this.countdownLine = page.locator('.class-countdown__line');
+    this.countdownStatus = page.locator('.class-countdown').getByRole('status');
+    this.finishBanner = page.locator('.finish-banner');
+    this.finishTitle = page.locator('.finish-banner__title');
+    this.finishResult = page.locator('.finish-banner__result');
+    this.finishOutput = page.locator('.finish-banner__output');
+    this.rollOut = page.locator('.class-rollout');
+    this.rollOutTitle = page.locator('.class-rollout__title');
+    this.rollOutLine = page.locator('.class-rollout__body');
+    this.rollOutBar = page.locator('.class-rollout__bar');
+    this.finishStatus = page.locator('.finish-banner').getByRole('status');
     this.lost = page.getByRole('alert').filter({ hasText: 'Lost the bike' });
     this.lostBody = this.lost.locator('.class-lost__body');
     this.coursePaused = page.locator('.class-course__paused');
@@ -138,7 +173,7 @@ export class ClassRidePage {
     this.courseStill = page
       .locator('.class-course')
       .getByRole('img', { name: 'Ibiza Sunset Strip: a seafront road at sunset' });
-    this.courseLoading = page.locator('.class-course').getByRole('status');
+    this.courseLoading = page.locator('.class-course__loading');
     this.courseNotice = page.locator('.class-course__notice');
     this.video = page.locator('.class-video, iframe');
     this.loadingScreen = page

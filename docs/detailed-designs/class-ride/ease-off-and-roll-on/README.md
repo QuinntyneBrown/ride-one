@@ -74,9 +74,9 @@ of the designed parts is built.
   controlled or the phase is `finished` or `rolling-out`. `ClassRidePage` binds it to
   `wz-class-resist`'s `disabled`, so **Lower resistance** and **Raise resistance** are disabled
   until Class Done opens (AC2).
-- **No mock for a bike set by hand.** The finish banner and the roll-out over
-  `class-ride/by-hand`, with the stepper reading "—", are not drawn (`docs/specs/L2.md`, *Mock
-  gaps*). The by-hand notice's place under the roll-out is `<TO SUPPLY>` until that mock exists.
+- **A bike set by hand.** The mocks are `class-ride/finish-by-hand` and `rolling-on-by-hand`: the
+  banner and the card as on any bike, the stepper reading "—" with both buttons disabled, and the
+  by-hand notice still under the bike panel until Class Done opens.
 
 ### The roll-out
 

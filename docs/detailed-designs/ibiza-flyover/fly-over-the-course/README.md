@@ -195,9 +195,10 @@ designed; none of the designed parts is built.
   five captions of the flight are not announced (AC11). The mock marks the caption
   `aria-live="polite"`; the component sets that attribute only on the landing's caption, so the
   five flight captions are not read out as they change.
-- **The recording mark.** Where the "Recording" mark stands on the flyover's band while a
-  diagnostic recording is on (`L2-178` AC2) is `<TO SUPPLY>`: no mock draws it
-  (`docs/specs/L2.md`, *Mock gaps*).
+- **The recording mark.** While a diagnostic recording is on (`L2-178` AC2) the mark stands above
+  the band on the bottom-left corner of the course, with the modifier
+  `diagnostic-mark--on-ibiza-flyover` (mock `recording`); `wz-diagnostic-mark`'s `screen` input
+  gains `"ibiza-flyover"` when this screen is built.
 - **Open questions that touch the screen.** Whether the flyover plays before every ride in
   Ibiza or only the first (open question 44) and whether music plays under it (open question
   41) are undecided; the design plays it every time, in silence, as `L2-179` and `L2-176` AC1

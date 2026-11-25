@@ -68,7 +68,12 @@ describe('SceneDriver', () => {
     const driver = new SceneDriver(renderer);
     driver.frame(0, input({ reducedMotion: true, speedKmh: null }));
     driver.frame(100, input({ reducedMotion: true, speedKmh: null }));
-    expect(renderer.frames[1]).toEqual({ time: 100.1, crank: 0, reducedMotion: true });
+    expect(renderer.frames[1]).toEqual({
+      time: 100.1,
+      crank: 0,
+      reducedMotion: true,
+      flyover: null,
+    });
   });
 
   it('puts the first frame at the clock’s second, however late the course is ready (L2-175 AC3)', () => {

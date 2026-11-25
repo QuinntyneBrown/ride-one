@@ -4,7 +4,7 @@
 // Three.js, a ride with the class video never fetches it, and it arrives only when a ride in Ibiza starts. The initial
 // bundle's gzipped size is checked by `npm run bundle:size` after the build, in verify and CI.
 import { echelonBike } from './fixtures/echelon';
-import { startClassRide } from './fixtures/class-ride';
+import { skipFlyover, startClassRide } from './fixtures/class-ride';
 import { CourseFiles } from './fixtures/course-files';
 import { ScriptLog } from './fixtures/scripts';
 import { expect, test } from './fixtures/test';
@@ -45,6 +45,7 @@ test('the 3D renderer’s code arrives when a ride in Ibiza starts, and never wi
   const home = new TheClassPage(page);
   await home.ibiza.click();
   await home.start.click();
+  await skipFlyover(page);
 
   await expect(ride.courseLoading).toBeVisible();
   await expect.poll(() => scripts.hasWorldCode()).toBe(true);

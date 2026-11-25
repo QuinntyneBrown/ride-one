@@ -21,6 +21,23 @@ export { ResistanceController, resistanceControl } from './engine/resistance-con
 export type { ResistanceControl } from './engine/resistance-controller';
 export { type PlanState, planStateAt } from './engine/plan-state';
 export { RideClock } from './engine/ride-clock';
+export { COUNT_MS, Countdown, GO_MS, countdownStep } from './engine/countdown';
+export {
+  FLIGHT_MS,
+  FLYOVER_PLACE_COUNT,
+  GIVE_UP_MS,
+  LANDED_MS,
+  type FlyoverAt,
+  flyoverAt,
+} from './engine/flyover';
+export { EASE_OFF_STEP_MS, EASE_OFF_TO, ResistanceEaseOff, easeOffLevels } from './engine/ease-off';
+export {
+  BANNER_MS,
+  ROLL_OUT_MS,
+  RideEnding,
+  type RideEndingState,
+  rideEndingAt,
+} from './engine/ride-ending';
 export { RideTicker } from './engine/ride-ticker';
 export { EffortTally } from './engine/effort-tally';
 export { RideRecorder } from './engine/ride-recorder';

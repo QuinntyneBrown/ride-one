@@ -18,6 +18,11 @@ export interface CourseFrame {
   readonly crank: number;
   /** Nothing on the course moves but the rider along the road, and the pedals stand still. */
   readonly reducedMotion: boolean;
+  /**
+   * The share of the flyover's flight flown, 0 to 1, when the course is seen from above before a ride (L2-179 AC2);
+   * `null` or absent draws the chase camera behind the rider.
+   */
+  readonly flyover?: number | null;
 }
 
 export interface CourseRenderer {

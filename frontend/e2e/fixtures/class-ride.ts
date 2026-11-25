@@ -11,6 +11,7 @@ import type { FakeBike, FakeBluetooth } from './fake-bluetooth';
 import { INDOOR_BIKE_DATA, INDOOR_BIKE_FRAME, ftmsBike } from './ftms';
 import { expect } from './test';
 import { ClassRidePage } from '../pages/class-ride.page';
+import { IbizaFlyoverPage } from '../pages/ibiza-flyover.page';
 import { TheClassPage } from '../pages/the-class.page';
 import { theClass } from './the-class';
 import { keptRideWith } from './how-to-ride';
@@ -31,6 +32,18 @@ export async function connectBike(bluetooth: FakeBluetooth): Promise<void> {
 }
 
 /**
+ * How far a started ride is taken. By default the countdown is counted out to "Go!", so a spec begins at 0:00 as it did
+ * before the ride had a countdown (L2-180); `countdown: 'hold'` leaves it where it opened, for the countdown's own specs.
+ */
+export interface RideStartOptions {
+  readonly diagnose?: boolean;
+  readonly countdown?: 'hold';
+}
+
+/** The countdown's "3", "2" and "1", a second each, before "Go!" starts the ride clock (L2-180 AC2). */
+export const COUNTDOWN_MS = 3000;
+
+/**
  * Starts Intervals to the Beat with the class video, as a rider does, on Playwright's paused clock: The Class opens
  * with the remembered Echelon on the running clock, and once the bike is connected and the video's box has settled
  * the clock is paused and the spec presses Start class, so the ride starts at a known time and the spec moves it on
@@ -44,7 +57,7 @@ export async function startClassRide(
   page: Page,
   bluetooth: FakeBluetooth,
   api: ApiFixture,
-  options: { diagnose?: boolean } = {},
+  options: RideStartOptions = {},
 ): Promise<ClassRidePage> {
   void api;
   await page.clock.install({ time: RIDE_START });
@@ -64,6 +77,7 @@ export async function startClassRide(
       return bluetooth.writes().map((write) => write.hex);
     })
     .toContain(targetResistanceWrite(theClass.segments[0].level));
+  if (options.countdown !== 'hold') await page.clock.runFor(COUNTDOWN_MS);
   await page.clock.runFor(100);
   return new ClassRidePage(page);
 }
@@ -72,13 +86,13 @@ export async function startClassRide(
  * Starts Intervals to the Beat with the class video on a remembered FTMS bike (L2-014), on Playwright's paused clock,
  * as `startClassRide` does on the Echelon. An FTMS bike needs no initialisation: it is connected by its first Indoor
  * Bike Data, which a bike sends about once a second, so the frame is sent until the start button turns on. Resolves
- * with Class Ride open at 0:00; the ride's first target asks the bike for control, which the spec answers or not.
+ * with Class Ride open on its countdown; the ride's first target asks the bike for control, which the spec answers or not.
  */
 export async function startClassRideOnFtms(
   page: Page,
   bluetooth: FakeBluetooth,
   bike: FakeBike = ftmsBike,
-  options: { diagnose?: boolean } = {},
+  options: RideStartOptions = {},
 ): Promise<ClassRidePage> {
   await page.clock.install({ time: RIDE_START });
   await bluetooth.remember(bike);
@@ -98,7 +112,14 @@ export async function startClassRideOnFtms(
     await page.clock.runFor(1);
     await expect(ride.clock).toBeVisible({ timeout: 50 });
   }).toPass();
+  // Left on the countdown: this bike's 3 s answer to its first command is timed from the ride's start, so the
+  // specs on it count the countdown out themselves (`COUNTDOWN_MS`).
   return ride;
+}
+
+/** Skips Ibiza Flyover, which a ride in Ibiza opens on (L2-179 AC4); Class Ride opens when the camera has landed. */
+export async function skipFlyover(page: Page): Promise<void> {
+  await new IbizaFlyoverPage(page).skip.click();
 }
 
 /** The Class with Ibiza Sunset Strip the kept choice and the remembered Echelon connected: the start button is on. */
@@ -124,14 +145,21 @@ export async function openTheClassForIbiza(
 export async function startRideInIbiza(
   page: Page,
   bluetooth: FakeBluetooth,
+  options: { flyover?: 'watch' } = {},
 ): Promise<ClassRidePage> {
   const home = await openTheClassForIbiza(page, bluetooth);
   await home.start.click();
+  const flyover = new IbizaFlyoverPage(page);
+  if (options.flyover === 'watch') return new ClassRidePage(page);
+  // Ibiza Flyover shows first (L2-179): the rider skips it, and the camera lands for 0.9 s.
+  await flyover.skip.click();
   const ride = new ClassRidePage(page);
   await expect(ride.clock).toBeVisible();
   await expect
     .poll(() => bluetooth.writes().map((write) => write.hex))
     .toContain(targetResistanceWrite(theClass.segments[0].level));
+  // The countdown runs on the clock the spec has: "Go!" starts the ride (L2-180).
+  await expect(ride.pause).toBeVisible({ timeout: 10_000 });
   return ride;
 }
 
@@ -154,6 +182,13 @@ export async function startRideInIbizaOnPausedClock(
       return bluetooth.writes().map((write) => write.hex);
     })
     .toContain(targetResistanceWrite(theClass.segments[0].level));
+  // Ibiza Flyover shows first (L2-179): the rider skips it, the camera lands for 0.9 s, and Class Ride opens.
+  await new IbizaFlyoverPage(page).skip.click();
+  await expect(async () => {
+    await page.clock.runFor(100);
+    await expect(new ClassRidePage(page).clock).toBeVisible({ timeout: 50 });
+  }).toPass({ intervals: [0], timeout: 60_000 });
+  await page.clock.runFor(COUNTDOWN_MS);
   await page.clock.runFor(100);
   return new ClassRidePage(page);
 }
