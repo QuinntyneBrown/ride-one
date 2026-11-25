@@ -122,6 +122,12 @@ export class ClassRidePage {
   /** The group board Telo Ride had; Telo Ride 1 has none (ADR 0038). */
   readonly board: Locator;
   readonly lower: Locator;
+  /** The intensity's setting, "5/10", on the box's left edge (L2-183 AC1). */
+  readonly intensityValue: Locator;
+  /** The intensity's slider, a range input from 0 to 10, hidden on a short box (L2-183 AC1, AC8). */
+  readonly intensitySlider: Locator;
+  readonly raiseIntensity: Locator;
+  readonly lowerIntensity: Locator;
 
   constructor(private readonly page: Page) {
     this.heading = page.getByRole('heading', { level: 1 });
@@ -199,6 +205,10 @@ export class ClassRidePage {
     this.raise = page.getByRole('button', { name: 'Raise resistance' });
     this.board = page.getByRole('complementary', { name: 'Group board' });
     this.lower = page.getByRole('button', { name: 'Lower resistance' });
+    this.intensityValue = page.locator('.class-intensity__value');
+    this.intensitySlider = page.getByRole('slider', { name: 'Intensity' });
+    this.raiseIntensity = page.getByRole('button', { name: 'Raise intensity' });
+    this.lowerIntensity = page.getByRole('button', { name: 'Lower intensity' });
   }
 
   /** Opens the ride's address with a group session named in it, as a bookmark from Telo Ride would (ADR 0038). */

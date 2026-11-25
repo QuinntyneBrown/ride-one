@@ -44,6 +44,14 @@ export { RideRecorder } from './engine/ride-recorder';
 export { DRIFT_LIMIT_SECONDS, VideoClockSync } from './engine/video-clock-sync';
 export { VIDEO_STALL_SECONDS, VideoStallWatch } from './engine/video-stall-watch';
 export { WorkoutEngine } from './engine/workout-engine';
+export {
+  DEFAULT_INTENSITY,
+  MAX_INTENSITY,
+  MIN_INTENSITY,
+  RideIntensity,
+  clampIntensity,
+  intensityLevel,
+} from './engine/intensity';
 export { SpeedModel } from './engine/speed-model';
 export { SecondTicker } from './engine/second-ticker';
 export {

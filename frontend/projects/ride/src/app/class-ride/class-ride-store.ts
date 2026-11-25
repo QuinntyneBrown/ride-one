@@ -27,6 +27,7 @@ import {
   PowerModel,
   ResistanceController,
   RideClock,
+  RideIntensity,
   EffortTally,
   RideRecorder,
   RideTicker,
@@ -69,6 +70,7 @@ export class ClassRideStore {
   private readonly ticker = inject(RideTicker);
   private readonly engine = inject(WorkoutEngine);
   private readonly resistance = inject(ResistanceController);
+  private readonly rideIntensity = inject(RideIntensity);
   private readonly telemetry = inject(BikeTelemetry);
   private readonly loaded = signal<ClassDefinition | null>(null);
   private readonly sync = inject(VideoClockSync);
@@ -325,6 +327,19 @@ export class ClassRideStore {
   /** Tries the lost bike at once, rather than at the connection's next retry: the alert's Reconnect. */
   reconnect(): void {
     this.connection.reconnectNow();
+  }
+
+  /** The ride's intensity, 0 to 10, which scales every level the plan sends (L2-183). */
+  readonly intensity = this.rideIntensity.value;
+
+  /**
+   * The rider set the intensity: the engine sends the current segment at it at once and every later one (L2-183 AC4),
+   * and a screen reader hears it once (AC7). Not while the stepper is off (AC6).
+   */
+  setIntensity(intensity: number): void {
+    if (this.stepperOff()) return;
+    if (this.rideIntensity.set(intensity))
+      this.announcer.announce(`Intensity ${this.rideIntensity.value()} of 10`);
   }
 
   raise(): void {

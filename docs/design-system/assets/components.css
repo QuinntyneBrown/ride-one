@@ -1026,7 +1026,7 @@ textarea.input { height: auto; min-height: var(--space-28); padding-block: var(-
 .class-sound { position: absolute; top: calc(var(--space-3) + var(--space-11) + var(--space-2)); left: var(--space-3); z-index: 3; display: flex; width: min(20rem, calc(100% - 2 * var(--space-3))); max-height: calc(100% - var(--space-11) - 3 * var(--space-3)); flex-direction: column; gap: var(--space-3); overflow-y: auto; border-radius: var(--radius-xl); background: var(--color-panel); box-shadow: var(--shadow-3); padding: var(--space-3); }
 .class-sound__group { margin: 0; border: 0; padding: 0; }
 .class-sound__legend { padding: 0 0 var(--space-1); font-size: var(--font-size-xs); line-height: var(--line-height-xs); font-weight: var(--font-weight-medium); color: var(--color-muted); }
-.class-sound__option { display: flex; min-height: var(--target-min); align-items: center; gap: var(--space-3); border-radius: var(--radius-md); padding-inline: var(--space-2); cursor: pointer; }
+.class-sound__option { display: flex; min-height: var(--target-comfortable); align-items: center; gap: var(--space-3); border-radius: var(--radius-md); padding-inline: var(--space-2); cursor: pointer; }
 .class-sound__option:hover { background: var(--color-raised); }
 .class-sound__option:has(input:disabled) { cursor: default; opacity: 0.5; }
 .class-sound__option input { width: var(--space-4); height: var(--space-4); margin: 0; accent-color: var(--color-accent); }
@@ -1040,10 +1040,10 @@ textarea.input { height: auto; min-height: var(--space-28); padding-block: var(-
 .class-course .class-intensity { height: calc(100% - 3 * var(--space-3) - var(--space-11)); }
 .class-intensity__label { font-size: var(--font-size-xs); line-height: var(--line-height-xs); color: var(--color-muted); }
 .class-intensity__value { font-family: var(--font-family-display); font-weight: var(--font-weight-bold); letter-spacing: var(--letter-spacing-display); font-feature-settings: 'tnum' 1; font-size: var(--font-size-lg); line-height: var(--line-height-lg); white-space: nowrap; }
-.class-intensity__btn { display: grid; width: var(--target-min); height: var(--target-min); flex-shrink: 0; place-items: center; border: 0; border-radius: var(--radius-full); background: var(--color-raised); color: var(--color-fg); cursor: pointer; }
+.class-intensity__btn { display: grid; width: var(--target-comfortable); height: var(--target-comfortable); flex-shrink: 0; place-items: center; border: 0; border-radius: var(--radius-full); background: var(--color-raised); color: var(--color-fg); cursor: pointer; }
 .class-intensity__btn:hover:not(:disabled) { background: var(--color-line); }
 .class-intensity__btn:disabled { opacity: 0.3; cursor: default; }
-.class-intensity__slider { flex: 1 1 0; min-height: 0; width: var(--target-min); margin: 0; writing-mode: vertical-lr; direction: rtl; accent-color: var(--color-accent); cursor: pointer; }
+.class-intensity__slider { flex: 1 1 0; min-height: 0; width: var(--target-comfortable); margin: 0; writing-mode: vertical-lr; direction: rtl; accent-color: var(--color-accent); cursor: pointer; }
 .class-intensity__slider:disabled { opacity: 0.3; cursor: default; }
 /* A short box (a phone either way up) lays the control out in a row, − 7/10 +, with no slider (L2-183 AC8). */
 @media (max-width: 47.99rem), (max-height: 33rem) {

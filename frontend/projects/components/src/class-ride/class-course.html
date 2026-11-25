@@ -30,6 +30,10 @@
     </svg>
     <span>Music</span>
   </button>
+  <!-- The ride's controls on the box's left edge: the intensity (L2-183 AC1), over the picture and "Paused". -->
+  <div class="class-course__controls">
+    <ng-content select="[slot=controls]" />
+  </div>
   @if (paused()) {
     <div class="class-course__paused" aria-hidden="true">
       <p class="class-course__paused-label">Paused</p>

@@ -81,6 +81,14 @@
               (drawn)="store.showCourse()"
               (unavailable)="store.failCourse()"
             />
+            <wz-class-intensity
+              slot="controls"
+              [value]="store.intensity()"
+              [disabled]="store.stepperOff()"
+              (changed)="store.setIntensity($event)"
+              (raise)="store.setIntensity(store.intensity() + 1)"
+              (lower)="store.setIntensity(store.intensity() - 1)"
+            />
             @if (store.countdown(); as step) {
               <wz-class-countdown slot="overlay" [step]="step" />
             }
@@ -107,6 +115,14 @@
             [paused]="store.state().pausedOverlay"
             (frame)="store.playVideo($event)"
           >
+            <wz-class-intensity
+              slot="controls"
+              [value]="store.intensity()"
+              [disabled]="store.stepperOff()"
+              (changed)="store.setIntensity($event)"
+              (raise)="store.setIntensity(store.intensity() + 1)"
+              (lower)="store.setIntensity(store.intensity() - 1)"
+            />
             @if (store.countdown(); as step) {
               <wz-class-countdown slot="overlay" [step]="step" />
             }
