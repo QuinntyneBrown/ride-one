@@ -280,6 +280,29 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 39.2 Finish banner (2026-11-24)
+
+Journey 39, second slice: at 20:00 a banner lies across the video's or the course's box with the output and time, the
+clock holds, the record is written, and Class Done opens when the 8.4 s ending is over (L2-181).
+
+**Applied from earlier**
+
+- **L253 (a ride-starting helper counts the countdown out):** saved time. No spec needed to learn it again.
+- **L250 (parallel runs flake):** saved time. Five end-of-ride specs failed in a full run and passed alone.
+
+**What slowed it down**
+
+- Every spec that waits for Class Done now waits through 8.4 s of ending; `ClassDonePage.shown()` steps the paused
+  clock 500 ms at a time for it, so no spec changed its own steps.
+- A spec asserted `telo-ride.ride-record` is null, a key that does not exist, so it could never fail.
+
+**New lessons**
+
+- **L255:** the ride record's storage key is `telo-ride.record` (`RIDE_RECORD_KEY`); check a "not written" assertion
+  against a ride that does write it.
+- **L256:** a full parallel e2e run on this machine fails a different dozen specs each time; trust a spec that passes
+  alone, and judge a slice by the specs that fail the same way twice.
+
 ### 39.1 Countdown (2026-11-24)
 
 Journey 39, first slice: Class Ride opens on "3, 2, 1, Go!"; the ride clock, the video and the music start on "Go!"

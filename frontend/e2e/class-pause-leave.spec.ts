@@ -306,8 +306,8 @@ test.describe('Pause, lose the bike, leave or finish', () => {
     await expect(ride.clock).toHaveText('19:58 / 20:00');
 
     await page.clock.runFor(2000);
-    await expect(page).toHaveURL('/done');
     await new ClassDonePage(page).shown();
+    await expect(page).toHaveURL('/done');
     expect((await youtube.players())[0].destroyed).toBe(true);
 
     // The finished ride sends nothing more, even when the bike drops and reconnects on the result.

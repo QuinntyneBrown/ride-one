@@ -84,6 +84,13 @@
             @if (store.countdown(); as step) {
               <wz-class-countdown slot="overlay" [step]="step" />
             }
+            @if (store.finished(); as result) {
+              <wz-finish-banner
+                slot="overlay"
+                [outputKj]="result.outputKj"
+                [elapsedSeconds]="result.elapsedSeconds"
+              />
+            }
           </wz-class-course>
         } @else {
           <wz-class-video
@@ -95,6 +102,13 @@
           >
             @if (store.countdown(); as step) {
               <wz-class-countdown slot="overlay" [step]="step" />
+            }
+            @if (store.finished(); as result) {
+              <wz-finish-banner
+                slot="overlay"
+                [outputKj]="result.outputKj"
+                [elapsedSeconds]="result.elapsedSeconds"
+              />
             }
           </wz-class-video>
         }

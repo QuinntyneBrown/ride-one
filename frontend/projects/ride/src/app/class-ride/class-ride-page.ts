@@ -6,6 +6,7 @@ import {
   ClassCountdown,
   ClassCourse,
   ClassHeader,
+  FinishBanner,
   ClassLost,
   ClassResist,
   ClassSegment,
@@ -17,6 +18,7 @@ import {
   BikeTelemetry,
   Countdown,
   ResistanceController,
+  RideEnding,
   RideClock,
   RideTicker,
   VideoClockSync,
@@ -45,6 +47,7 @@ import { CourseSceneHost } from './course-scene-host';
     ClassBike,
     ClassCountdown,
     ClassCourse,
+    FinishBanner,
     ClassHeader,
     ClassLost,
     ClassResist,
@@ -69,6 +72,7 @@ import { CourseSceneHost } from './course-scene-host';
     VideoClockSync,
     VideoStallWatch,
     Countdown,
+    RideEnding,
   ],
 })
 export default class ClassRidePage {

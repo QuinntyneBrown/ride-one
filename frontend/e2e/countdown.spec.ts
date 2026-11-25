@@ -92,7 +92,7 @@ test.describe('Countdown', () => {
       await page.clock.runFor(16);
       await expect(start.title).toHaveText(theClass.title, { timeout: 50 });
     }).toPass();
-    expect(await page.evaluate(() => localStorage.getItem('telo-ride.ride-record'))).toBeNull();
+    expect(await page.evaluate(() => localStorage.getItem('telo-ride.record'))).toBeNull();
   });
 
   test('a bike lost during the countdown stops it under "Lost the bike", and it starts again from 3 when the bike is back (L2-180 AC7)', async ({

@@ -21,6 +21,8 @@ import {
 import {
   BikeTelemetry,
   Countdown,
+  RideEnding,
+  type PlanState,
   PowerModel,
   ResistanceController,
   RideClock,
@@ -79,6 +81,11 @@ export class ClassRideStore {
   private readonly music = inject(RIDE_MUSIC);
   private readonly rideRecord = inject(RIDE_RECORD);
   private readonly countdownTimer = inject(Countdown);
+  private readonly ending = inject(RideEnding);
+  /** What the finish banner shows: the output Class Done will show, in whole kJ, and the ride's time (L2-181 AC2). */
+  private readonly result = signal<{ outputKj: number; elapsedSeconds: number } | null>(null);
+  /** The ride's result, kept until the ending is over and Class Done opens with it. */
+  private classResult: ClassResult | null = null;
   /** Whether a ride is in progress, so a new version of the app waits for its end (L2-150 AC2). */
   private readonly activity = inject(RIDE_ACTIVITY);
   private readonly stage = signal<RidePhase>('waiting');
@@ -111,8 +118,31 @@ export class ClassRideStore {
   readonly courseUnavailable = this.courseFailed.asReadonly();
   readonly ride = this.loaded.asReadonly();
   readonly elapsed = this.ticker.second;
-  /** Where the plan stands. */
-  readonly plan = this.engine.state;
+  /**
+   * Where the plan stands. At the plan's end the engine has none; through the ending the card holds the cool-down at
+   * 0:00 with its bar full (L2-181 AC4).
+   */
+  readonly plan = computed<PlanState | null>(() => {
+    const state = this.engine.state();
+    const ride = this.loaded();
+    if (state || !ride || (this.stage() !== 'finished' && this.stage() !== 'rolling-out'))
+      return state;
+    const segments = ride.plan.segments;
+    const segment = segments[segments.length - 1];
+    return {
+      index: segments.length - 1,
+      segment,
+      remainingMs: 0,
+      progress: 1,
+      targetPower: PowerModel.target(segment.cadenceAim, segment.level),
+    };
+  });
+  /** Whether the ride is over and its ending shows: no line stands under Power or Cadence then (L2-181 AC4). */
+  private readonly ended = computed(
+    () => this.stage() === 'finished' || this.stage() === 'rolling-out',
+  );
+  /** The finish banner's figures while it shows, otherwise `null` (L2-181 AC1). */
+  readonly finished = computed(() => (this.stage() === 'finished' ? this.result() : null));
   readonly level = this.telemetry.resistance;
   readonly canControl = this.resistance.canControl;
   /** Whether the bike refused control of its resistance, so the rider sets it by hand (L2-014 AC3). */
@@ -148,7 +178,7 @@ export class ClassRideStore {
 
   /** Cadence with the segment's aim (L2-089 AC3). */
   readonly cadence = computed<StatView>(() =>
-    cadenceStat(this.telemetry.cadence(), this.plan()?.segment.cadenceAim),
+    cadenceStat(this.telemetry.cadence(), this.ended() ? null : this.plan()?.segment.cadenceAim),
   );
 
   constructor() {
@@ -302,6 +332,11 @@ export class ClassRideStore {
     this.wakeLock.hold();
     this.engine.follow(dto.plan);
     this.countdownTimer.go.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((at) => this.go(at));
+    effect(() => {
+      const stage = this.ending.state()?.stage;
+      if (stage === 'roll-out') untracked(() => this.stage.set('rolling-out'));
+      if (stage === 'over') untracked(() => this.close());
+    });
     this.ticker.ticks.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((second) => {
       this.record(Math.min(second, dto.lengthSeconds));
       if (second >= dto.lengthSeconds) return this.finish(dto);
@@ -344,11 +379,6 @@ export class ClassRideStore {
   private finish(ride: ClassDefinition): void {
     this.clock.pause();
     this.ticker.stop();
-    this.player()?.pause();
-    this.wakeLock.release();
-    this.music.release();
-    this.activity.end();
-    this.connection.forgetTarget();
     // The best before this ride is counted: Class Done compares with it, and a reload still does (L2-077).
     const previousBestKj = this.rideRecord.read().bestKj;
     const classResult: ClassResult = {
@@ -363,7 +393,24 @@ export class ClassRideStore {
       saved: true,
     };
     const saved = this.rideRecord.add(classResult.outputKj);
-    void this.router.navigateByUrl('/done', { state: { classResult: { ...classResult, saved } } });
+    this.classResult = { ...classResult, saved };
+    this.result.set({
+      outputKj: Math.round(classResult.outputKj),
+      elapsedSeconds: classResult.elapsedSeconds,
+    });
+    // The banner shows, then the roll-out; the video and the music play on through both (L2-181 AC1).
+    this.stage.set('finished');
+    this.ending.start();
+  }
+
+  /** The ending is over: the ride is released and Class Done opens with its result (L2-078 AC1). */
+  private close(): void {
+    this.player()?.pause();
+    this.wakeLock.release();
+    this.music.release();
+    this.activity.end();
+    this.connection.forgetTarget();
+    void this.router.navigateByUrl('/done', { state: { classResult: this.classResult } });
   }
 
   /**

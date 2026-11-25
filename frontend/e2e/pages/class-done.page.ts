@@ -55,12 +55,15 @@ export class ClassDonePage {
       .locator('.class-done__fact-value');
   }
 
-  /** Steps the paused clock until the lazily loaded Class Done has rendered. */
+  /**
+   * Steps the paused clock until the lazily loaded Class Done has rendered: through the finish banner and the roll-out
+   * that follow the finish, 8.4 s on the clock (L2-181, L2-182), when the ride has just finished.
+   */
   async shown(): Promise<void> {
     await expect(async () => {
-      await this.page.clock.runFor(16);
+      await this.page.clock.runFor(500);
       await expect(this.number).toBeVisible({ timeout: 50 });
-    }).toPass({ intervals: [0] });
+    }).toPass({ intervals: [0], timeout: 25_000 });
   }
 
   async open(): Promise<void> {

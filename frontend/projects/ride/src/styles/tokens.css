@@ -376,6 +376,7 @@
 :root,
 [data-theme='light'] {
   color-scheme: light;
+  --finish-banner-accent: var(--palette-signal);
   --color-ink: var(--palette-paper);
   --color-panel: var(--palette-paper-panel);
   --color-raised: var(--palette-paper-raised);
@@ -441,6 +442,7 @@
 /* 4. Dark theme (the design). Keep the two blocks below identical. ----------------------------- */
 [data-theme='dark'] {
   color-scheme: dark;
+  --finish-banner-accent: var(--palette-signal-deep);
   --color-ink: var(--palette-ink);
   --color-panel: var(--palette-panel);
   --color-raised: var(--palette-raised);
@@ -505,6 +507,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
+    --finish-banner-accent: var(--palette-signal-deep);
     --color-ink: var(--palette-ink);
     --color-panel: var(--palette-panel);
     --color-raised: var(--palette-raised);
@@ -571,6 +574,7 @@
 /* 5. Role aliases: resolved again on every theme wrapper ------------------------------------- */
 :root,
 [data-theme] {
+  --color-bg-inverse: var(--color-fg);
   --color-bg-canvas: var(--color-ink);
   --color-bg-surface: var(--color-panel);
   --color-bg-surface-raised: var(--color-raised);

@@ -86,6 +86,12 @@ export class ClassRidePage {
   readonly countdownLine: Locator;
   /** What a screen reader hears of the countdown, once (L2-180 AC8). */
   readonly countdownStatus: Locator;
+  /** The finish banner and its parts (L2-181). */
+  readonly finishBanner: Locator;
+  readonly finishTitle: Locator;
+  readonly finishResult: Locator;
+  readonly finishOutput: Locator;
+  readonly finishStatus: Locator;
   readonly lost: Locator;
   /** What the lost-bike alert says the ride is doing meanwhile (L2-092 AC1). */
   readonly lostBody: Locator;
@@ -143,6 +149,11 @@ export class ClassRidePage {
     this.countdownLights = page.locator('.class-countdown__light--on');
     this.countdownLine = page.locator('.class-countdown__line');
     this.countdownStatus = page.locator('.class-countdown').getByRole('status');
+    this.finishBanner = page.locator('.finish-banner');
+    this.finishTitle = page.locator('.finish-banner__title');
+    this.finishResult = page.locator('.finish-banner__result');
+    this.finishOutput = page.locator('.finish-banner__output');
+    this.finishStatus = page.locator('.finish-banner').getByRole('status');
     this.lost = page.getByRole('alert').filter({ hasText: 'Lost the bike' });
     this.lostBody = this.lost.locator('.class-lost__body');
     this.coursePaused = page.locator('.class-course__paused');
