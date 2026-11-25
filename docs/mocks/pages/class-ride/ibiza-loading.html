@@ -29,9 +29,10 @@
     <h1 class="visually-hidden">Intervals to the Beat · solo class ride</h1>
     <div class="class-ride__stage">
       <div class="class-course">
+        <div class="class-intensity" role="group" aria-labelledby="intensity-label"><span class="class-intensity__label" id="intensity-label">Intensity</span><span class="class-intensity__value">5/10</span><button class="class-intensity__btn" type="button" aria-label="Raise intensity"><svg class="icon icon--lg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button><input class="class-intensity__slider" type="range" min="0" max="10" step="1" value="5" aria-label="Intensity" aria-valuetext="5 of 10"><button class="class-intensity__btn" type="button" aria-label="Lower intensity"><svg class="icon icon--lg" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button></div>
         <img class="photo class-course__still" src="../../assets/images/courses/ibiza-sunset-strip.jpg" alt="Ibiza Sunset Strip: a seafront road at sunset">
         <p class="class-course__loading" role="status">Loading Ibiza Sunset Strip</p>
-        <button class="btn btn--raised btn--sm class-course__music" type="button" aria-pressed="true"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span>Music</span></button>
+        <button class="btn btn--raised btn--sm class-course__sound" type="button" aria-expanded="false" aria-controls="sound-panel"><svg class="icon icon--md" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span><span class="visually-hidden">Sound: </span>Music</span></button>
         <p class="mock-note">There is no loading screen (L2-175 AC1): Class Ride opens at once, the clock starts at 0:00 and the first segment’s level is sent, while the 3D renderer and the course’s files are fetched. Until the course’s first frame is drawn the box reads “Loading Ibiza Sunset Strip” (<code>role="status"</code>) over the course’s still.</p>
       </div>
 
@@ -69,9 +70,16 @@
   <span class="mock-bar__screen">Class Ride</span>
   <ul class="mock-bar__states">
     <li><a href="default.html">default</a></li>
+    <li><a href="intensity.html">intensity</a></li>
     <li><a href="countdown.html">countdown</a></li>
     <li><a href="paused.html">paused</a></li>
     <li><a href="ibiza.html">ibiza</a></li>
+    <li><a href="ibiza-intensity.html">ibiza-intensity</a></li>
+    <li><a href="ibiza-sound.html">ibiza-sound</a></li>
+    <li><a href="ibiza-youtube.html">ibiza-youtube</a></li>
+    <li><a href="ibiza-youtube-class.html">ibiza-youtube-class</a></li>
+    <li><a href="ibiza-youtube-audio.html">ibiza-youtube-audio</a></li>
+    <li><a href="ibiza-youtube-unavailable.html">ibiza-youtube-unavailable</a></li>
     <li><a href="countdown-ibiza.html">countdown-ibiza</a></li>
     <li><a href="go-ibiza.html">go-ibiza</a></li>
     <li><a href="ibiza-loading.html" aria-current="page">ibiza-loading</a></li>

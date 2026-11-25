@@ -1003,7 +1003,8 @@ textarea.input { height: auto; min-height: var(--space-28); padding-block: var(-
 .class-video__paused-label { font-size: var(--font-size-lg); line-height: var(--line-height-lg); font-weight: var(--font-weight-semibold); }
 /* The course in the video's box, in a ride in Ibiza (L2-087 AC6, L2-174 AC1, L2-175 AC1): the same box by the same
    rule. The course's still stands in it under "Loading Ibiza Sunset Strip" until the course's first frame is drawn,
-   then the canvas takes the box; the class video's "Paused" lies over it. No video is inset. */
+   then the canvas takes the box; the class video's "Paused" lies over it. A YouTube video is inset only when the rider
+   chooses one (ADR 0050). */
 .class-course { position: relative; aspect-ratio: 16 / 9; width: 100%; overflow: hidden; border-radius: var(--radius-xl); background: var(--color-raised); }
 @media (min-width: 48rem) and (orientation: landscape) { .class-course { aspect-ratio: auto; min-height: var(--space-32); flex: 1; } }
 .class-course > .photo, .class-course__scene { position: absolute; inset: 0; }
@@ -1011,8 +1012,47 @@ textarea.input { height: auto; min-height: var(--space-28); padding-block: var(-
 .class-course__loading { position: absolute; inset: 0; display: grid; place-items: center; padding: var(--space-4); background: var(--color-scrim-photo); color: var(--color-on-photo); font-size: var(--font-size-md); line-height: var(--line-height-md); font-weight: var(--font-weight-medium); text-align: center; }
 .class-course__paused { position: absolute; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--color-ink) 70%, transparent); }
 .class-course__paused-label { font-size: var(--font-size-lg); line-height: var(--line-height-lg); font-weight: var(--font-weight-semibold); }
-/* The Music toggle in the box's top-right corner: a raised button of at least 44 px, over the course (L2-176 AC5). */
-.class-course__music { position: absolute; top: var(--space-3); right: var(--space-3); z-index: 1; min-width: var(--space-11); min-height: var(--space-11); }
+/* The Sound button in the box's top-left corner (L2-185 AC1, ADR 0050): a raised button of at least 44 px naming the
+   sound chosen, over the course and every overlay but the panel it opens. */
+.class-course__sound { position: absolute; top: var(--space-3); left: var(--space-3); z-index: 2; min-width: var(--space-11); min-height: var(--space-11); }
+/* The YouTube inset (L2-186 AC1): 16:9 in the top-right corner, a step further from the right edge than from the top,
+   32 % of the box between 12 and 28 rem. It lies under the countdown, the banner and "Paused" (same layer, earlier in
+   the box). YouTube audio keeps the same player 1 px square and transparent (AC2). */
+.class-course__inset { position: absolute; top: var(--space-3); right: var(--space-6); z-index: 1; width: clamp(12rem, 32%, 28rem); aspect-ratio: 16 / 9; overflow: hidden; border-radius: var(--radius-lg); background: var(--color-ink); box-shadow: var(--shadow-3); }
+.class-course__inset > .photo, .class-course__inset iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.class-course__inset--audio { top: 0; right: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; box-shadow: none; }
+
+/* The Sound panel (L2-185 AC2): a non-modal disclosure under the Sound button, two radio groups of 44 px rows. */
+.class-sound { position: absolute; top: calc(var(--space-3) + var(--space-11) + var(--space-2)); left: var(--space-3); z-index: 3; display: flex; width: min(20rem, calc(100% - 2 * var(--space-3))); max-height: calc(100% - var(--space-11) - 3 * var(--space-3)); flex-direction: column; gap: var(--space-3); overflow-y: auto; border-radius: var(--radius-xl); background: var(--color-panel); box-shadow: var(--shadow-3); padding: var(--space-3); }
+.class-sound__group { margin: 0; border: 0; padding: 0; }
+.class-sound__legend { padding: 0 0 var(--space-1); font-size: var(--font-size-xs); line-height: var(--line-height-xs); font-weight: var(--font-weight-medium); color: var(--color-muted); }
+.class-sound__option { display: flex; min-height: var(--target-min); align-items: center; gap: var(--space-3); border-radius: var(--radius-md); padding-inline: var(--space-2); cursor: pointer; }
+.class-sound__option:hover { background: var(--color-raised); }
+.class-sound__option:has(input:disabled) { cursor: default; opacity: 0.5; }
+.class-sound__option input { width: var(--space-4); height: var(--space-4); margin: 0; accent-color: var(--color-accent); }
+.class-sound__text { display: flex; min-width: 0; flex-direction: column; font-size: var(--font-size-sm); line-height: var(--line-height-sm); }
+.class-sound__hint { font-size: var(--font-size-xs); line-height: var(--line-height-xs); color: var(--color-muted); }
+
+/* Intensity (L2-183, ADR 0050): on the left edge of the video's or the course's box, like a volume control: "Intensity"
+   and "7/10", then + over a slider standing up over −. Under the Sound button in Ibiza. On a short box the slider goes
+   and the buttons stay (AC8). */
+.class-intensity { position: absolute; left: var(--space-3); bottom: var(--space-3); z-index: 2; display: flex; height: calc(100% - 2 * var(--space-3)); max-height: 20rem; flex-direction: column; align-items: center; gap: var(--space-1); border-radius: var(--radius-xl); background: color-mix(in srgb, var(--color-panel) 85%, transparent); padding: var(--space-2) var(--space-1-5); }
+.class-course .class-intensity { height: calc(100% - 3 * var(--space-3) - var(--space-11)); }
+.class-intensity__label { font-size: var(--font-size-xs); line-height: var(--line-height-xs); color: var(--color-muted); }
+.class-intensity__value { font-family: var(--font-family-display); font-weight: var(--font-weight-bold); letter-spacing: var(--letter-spacing-display); font-feature-settings: 'tnum' 1; font-size: var(--font-size-lg); line-height: var(--line-height-lg); white-space: nowrap; }
+.class-intensity__btn { display: grid; width: var(--target-min); height: var(--target-min); flex-shrink: 0; place-items: center; border: 0; border-radius: var(--radius-full); background: var(--color-raised); color: var(--color-fg); cursor: pointer; }
+.class-intensity__btn:hover:not(:disabled) { background: var(--color-line); }
+.class-intensity__btn:disabled { opacity: 0.3; cursor: default; }
+.class-intensity__slider { flex: 1 1 0; min-height: 0; width: var(--target-min); margin: 0; writing-mode: vertical-lr; direction: rtl; accent-color: var(--color-accent); cursor: pointer; }
+.class-intensity__slider:disabled { opacity: 0.3; cursor: default; }
+/* A short box (a phone either way up) lays the control out in a row, − 7/10 +, with no slider (L2-183 AC8). */
+@media (max-width: 47.99rem), (max-height: 33rem) {
+  .class-intensity, .class-course .class-intensity { height: auto; flex-direction: row; padding: var(--space-1); }
+  .class-intensity__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .class-intensity__slider { display: none; }
+  .class-intensity__btn[aria-label="Lower intensity"] { order: -1; }
+  .class-intensity__value { min-width: 3.5ch; text-align: center; }
+}
 /* The two notices of a ride that goes on short of something (L2-088 AC4, L2-014 AC3): the video that cannot play, under
    the video, and the bike that is set by hand, under the bike panel. Each is an .inline-message--warn, a polite status,
    and sits space-2 under what it speaks of, nearer than the stage's gap, so both fit a phone on its side. */
@@ -1221,6 +1261,21 @@ textarea.input { height: auto; min-height: var(--space-28); padding-block: var(-
 
 /* A record that could not be written: a polite status under the facts (L2-168 AC4) */
 .class-done__notice { margin-top: var(--space-4); }
+/* The intensity question above Done (L2-184): a panel with its two answers, or the kept default as a status, in
+   .class-done__end with Done. Done stays the screen's one primary button. From lg the panel and Done share one row, so
+   the score, the efforts and Done still fit one screen (L2-078 AC6). */
+.class-done__end { margin-top: var(--space-12); display: flex; flex-direction: column; gap: var(--space-4); }
+.class-done__end .class-done__actions { margin-top: 0; padding-top: 0; }
+.class-done__intensity { display: flex; flex-direction: column; gap: var(--space-1); border-radius: var(--radius-xl); background: var(--color-panel); padding: var(--space-4); }
+.class-done__intensity-title { margin: 0; font-size: var(--font-size-md); line-height: var(--line-height-md); font-weight: var(--font-weight-semibold); }
+.class-done__intensity-text { margin: 0; font-size: var(--font-size-sm); line-height: var(--line-height-sm); color: var(--color-muted); }
+.class-done__intensity-actions { margin-top: var(--space-2); display: flex; flex-wrap: wrap; gap: var(--space-2); }
+@media (min-width: 64rem) {
+  .class-done__end { margin-top: auto; padding-top: var(--space-12); flex-direction: row; align-items: stretch; }
+  .class-done__intensity { flex: 1; display: grid; grid-template-columns: 1fr auto; column-gap: var(--space-4); align-items: center; padding: var(--space-1) var(--space-4); }
+  .class-done__intensity-actions { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; }
+  .class-done__end .class-done__actions { display: flex; align-items: center; }
+}
 .class-done__actions { margin-top: var(--space-12); }
 @media (min-width: 64rem) { .class-done__actions { margin-top: auto; padding-top: var(--space-12); } }
 @media (min-width: 40rem) { .btn.class-done__done { width: var(--class-done-action-width); } }
