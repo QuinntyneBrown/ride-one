@@ -58,6 +58,12 @@ export class ClassRidePage {
   readonly sound: Locator;
   /** The Sound panel's radio group "Sound" (L2-185 AC2). */
   readonly soundGroup: Locator;
+  /** The Sound panel's radio group "Video", while a YouTube sound is chosen (L2-185 AC2). */
+  readonly videoGroup: Locator;
+  /** The YouTube inset in the course box's top-right corner, 1 px and hidden for YouTube audio (L2-186 AC1, AC2). */
+  readonly inset: Locator;
+  /** The notice under the course's box when YouTube cannot play (L2-186 AC6). */
+  readonly youtubeNotice: Locator;
   readonly resume: Locator;
   readonly leave: Locator;
   /** "Paused" over the class video (L2-091 AC1). */
@@ -155,6 +161,9 @@ export class ClassRidePage {
     this.pause = page.getByRole('button', { name: 'Pause', exact: true });
     this.sound = page.getByRole('button', { name: /^Sound: / });
     this.soundGroup = page.getByRole('group', { name: 'Sound', exact: true });
+    this.videoGroup = page.getByRole('group', { name: 'Video', exact: true });
+    this.inset = page.locator('.class-course__inset');
+    this.youtubeNotice = page.locator('.class-course__youtube-notice');
     this.resume = page.getByRole('button', { name: 'Resume', exact: true });
     this.leave = page.getByRole('link', { name: 'Leave class' });
     this.paused = page.locator('.class-video__paused');
@@ -217,6 +226,11 @@ export class ClassRidePage {
   /** A choice in the Sound panel: "Music", "No music", "YouTube video" or "YouTube audio" (L2-185 AC2). */
   soundChoice(name: string): Locator {
     return this.soundGroup.getByRole('radio', { name: new RegExp(`^${name}\\b`) });
+  }
+
+  /** A choice in the Sound panel's Video group: "Default video" or "The class video" (L2-185 AC2). */
+  videoChoice(name: string): Locator {
+    return this.videoGroup.getByRole('radio', { name: new RegExp(`^${name}\\b`) });
   }
 
   /** Opens the ride's address with a group session named in it, as a bookmark from Telo Ride would (ADR 0038). */

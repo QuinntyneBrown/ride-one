@@ -66,6 +66,7 @@
             [still]="course.still"
             [loading]="!store.courseDrawn()"
             [unavailable]="store.courseUnavailable()"
+            [youtubeUnavailable]="store.youtubeUnavailable()"
             [paused]="store.state().pausedOverlay"
           >
             <ng-container
@@ -83,7 +84,6 @@
               [sound]="store.sound()"
               [video]="store.soundVideo()"
               [musicAvailable]="store.musicAvailable()"
-              [youtube]="false"
               (soundChange)="store.chooseSound($event)"
               (videoChange)="store.chooseVideo($event)"
             />
@@ -95,6 +95,13 @@
               (raise)="store.setIntensity(store.intensity() + 1)"
               (lower)="store.setIntensity(store.intensity() - 1)"
             />
+            @if (store.youtube(); as youtube) {
+              <wz-class-inset
+                slot="inset"
+                [audio]="youtube.audio"
+                (frame)="store.playInset($event)"
+              />
+            }
             @if (store.countdown(); as step) {
               <wz-class-countdown slot="overlay" [step]="step" />
             }

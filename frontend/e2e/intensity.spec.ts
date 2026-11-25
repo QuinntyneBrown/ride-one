@@ -54,34 +54,34 @@ test.describe('Intensity', () => {
     expect(plus.x - box.x).toBeLessThan(box.width / 4);
   });
 
-  test('raised to 7/10, the warm-up is sent at 17 at once and the first effort at 23 (L2-183 AC3, AC4, AC7)', async ({
-    page,
-    bluetooth,
-    api,
-  }) => {
-    const ride = await startClassRide(page, bluetooth, api);
-    const announcement = new AppDocument(page).announcement;
+  test(
+    'raised to 7/10, the warm-up is sent at 17 at once and the first effort at 23 (L2-183 AC3, AC4, AC7)',
+    { tag: '@critical' },
+    async ({ page, bluetooth, api }) => {
+      const ride = await startClassRide(page, bluetooth, api);
+      const announcement = new AppDocument(page).announcement;
 
-    // The paused clock holds the app's rendering until it is stepped (L93).
-    await ride.raiseIntensity.click();
-    await page.clock.runFor(50);
-    await ride.raiseIntensity.click();
-    await page.clock.runFor(100);
+      // The paused clock holds the app's rendering until it is stepped (L93).
+      await ride.raiseIntensity.click();
+      await page.clock.runFor(50);
+      await ride.raiseIntensity.click();
+      await page.clock.runFor(100);
 
-    await expect(ride.intensityValue).toHaveText('7/10');
-    await expect(ride.intensitySlider).toHaveAttribute('aria-valuetext', '7 of 10');
-    await expect(announcement).toHaveText('Intensity 7 of 10');
-    await expect
-      .poll(() => targetResistanceWrites(bluetooth.writes()).at(-1))
-      .toBe(targetResistanceWrite(17));
+      await expect(ride.intensityValue).toHaveText('7/10');
+      await expect(ride.intensitySlider).toHaveAttribute('aria-valuetext', '7 of 10');
+      await expect(announcement).toHaveText('Intensity 7 of 10');
+      await expect
+        .poll(() => targetResistanceWrites(bluetooth.writes()).at(-1))
+        .toBe(targetResistanceWrite(17));
 
-    await page.clock.runFor('02:30');
-    await page.clock.runFor(100);
-    await expect(ride.segmentKind).toHaveText('Work');
-    await expect
-      .poll(() => targetResistanceWrites(bluetooth.writes()).at(-1))
-      .toBe(targetResistanceWrite(23));
-  });
+      await page.clock.runFor('02:30');
+      await page.clock.runFor(100);
+      await expect(ride.segmentKind).toHaveText('Work');
+      await expect
+        .poll(() => targetResistanceWrites(bluetooth.writes()).at(-1))
+        .toBe(targetResistanceWrite(23));
+    },
+  );
 
   test('moved to 0/10 with the keyboard, the warm-up is sent at 7 and Lower is off (L2-183 AC3, AC4)', async ({
     page,

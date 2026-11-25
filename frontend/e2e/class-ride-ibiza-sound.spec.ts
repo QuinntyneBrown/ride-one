@@ -48,34 +48,35 @@ test.describe('The Sound button', () => {
     await expect.poll(async () => (await music.tracks())[0]?.paused).toBe(false);
   });
 
-  test('opens a panel whose choice applies at once, stays open, and closes on Escape (L2-185 AC2, AC5)', async ({
-    page,
-    bluetooth,
-  }) => {
-    const ride = await startRideInIbiza(page, bluetooth);
-    await expect.poll(async () => (await music.tracks())[0]?.paused).toBe(false);
+  test(
+    'opens a panel whose choice applies at once, stays open, and closes on Escape (L2-185 AC2, AC5)',
+    { tag: '@critical' },
+    async ({ page, bluetooth }) => {
+      const ride = await startRideInIbiza(page, bluetooth);
+      await expect.poll(async () => (await music.tracks())[0]?.paused).toBe(false);
 
-    await ride.sound.click();
+      await ride.sound.click();
 
-    await expect(ride.sound).toHaveAttribute('aria-expanded', 'true');
-    await expect(ride.soundGroup).toBeVisible();
-    await expect(ride.soundChoice('Music')).toBeChecked();
-    await expect(ride.soundChoice('No music')).not.toBeChecked();
+      await expect(ride.sound).toHaveAttribute('aria-expanded', 'true');
+      await expect(ride.soundGroup).toBeVisible();
+      await expect(ride.soundChoice('Music')).toBeChecked();
+      await expect(ride.soundChoice('No music')).not.toBeChecked();
 
-    await ride.soundChoice('No music').check();
+      await ride.soundChoice('No music').check();
 
-    await expect.poll(async () => (await music.tracks())[0]!.paused).toBe(true);
-    await expect(ride.sound).toHaveAccessibleName('Sound: No music');
-    await expect(ride.soundGroup).toBeVisible();
-    // The ride is not stopped.
-    await expect(ride.pause).toBeEnabled();
+      await expect.poll(async () => (await music.tracks())[0]!.paused).toBe(true);
+      await expect(ride.sound).toHaveAccessibleName('Sound: No music');
+      await expect(ride.soundGroup).toBeVisible();
+      // The ride is not stopped.
+      await expect(ride.pause).toBeEnabled();
 
-    await page.keyboard.press('Escape');
+      await page.keyboard.press('Escape');
 
-    await expect(ride.soundGroup).toBeHidden();
-    await expect(ride.sound).toBeFocused();
-    await expect(ride.sound).toHaveAttribute('aria-expanded', 'false');
-  });
+      await expect(ride.soundGroup).toBeHidden();
+      await expect(ride.sound).toBeFocused();
+      await expect(ride.sound).toHaveAttribute('aria-expanded', 'false');
+    },
+  );
 
   test('a press outside the panel closes it (L2-185 AC2)', async ({ page, bluetooth }) => {
     const ride = await startRideInIbiza(page, bluetooth);

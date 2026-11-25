@@ -63,19 +63,21 @@ test.describe('Intensity default', () => {
     expect(await kept(page)).toBeNull();
   });
 
-  test('"Make it my default" keeps it and says so, with no buttons (L2-184 AC2)', async ({
-    page,
-  }) => {
-    await openClassDone(page, endedAt(7));
-    const done = new ClassDonePage(page);
+  test(
+    '"Make it my default" keeps it and says so, with no buttons (L2-184 AC2)',
+    { tag: '@critical' },
+    async ({ page }) => {
+      await openClassDone(page, endedAt(7));
+      const done = new ClassDonePage(page);
 
-    await done.makeDefault.click();
+      await done.makeDefault.click();
 
-    await expect(done.intensityStatus).toHaveText('7/10 is now your intensity.');
-    await expect(done.makeDefault).toHaveCount(0);
-    await expect(done.keepDefault).toHaveCount(0);
-    expect(await kept(page)).toBe('7');
-  });
+      await expect(done.intensityStatus).toHaveText('7/10 is now your intensity.');
+      await expect(done.makeDefault).toHaveCount(0);
+      await expect(done.keepDefault).toHaveCount(0);
+      expect(await kept(page)).toBe('7');
+    },
+  );
 
   test('"Keep 5/10" keeps nothing, and focus moves to Done (L2-184 AC3)', async ({ page }) => {
     await openClassDone(page, endedAt(7));

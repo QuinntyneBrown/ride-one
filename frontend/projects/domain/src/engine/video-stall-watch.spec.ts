@@ -110,4 +110,13 @@ describe('VideoStallWatch', () => {
       for (const [state, second] of row.seen) stalled = watch.check(state, second);
       expect(stalled).toBe(row.stalled);
     });
+
+  // Traces to: L2-186 AC6
+  it('starts its count again for a new player', () => {
+    const watch = new VideoStallWatch();
+    watch.check('loading', 0);
+    watch.reset();
+    expect(watch.check('loading', 12)).toBe(false);
+    expect(watch.check('loading', 22)).toBe(true);
+  });
 });

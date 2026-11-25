@@ -6,8 +6,9 @@ import { InlineMessage } from '../inline-message/inline-message';
  * ibiza, ibiza-loading and paused-ibiza): the course's still under "Loading Ibiza Sunset Strip" until the course is
  * drawn (L2-175 AC1), then the course alone, drawn in the `scene` slot, and the class video's "Paused" over it
  * (L2-091 AC1). When the course cannot be drawn the still stays and a notice stands under the box (L2-175 AC2, docs/
- * mocks/pages/class-ride/ibiza-unavailable). It lays out the Sound button in its `sound` slot (L2-185 AC1) and the
- * intensity in its `controls` slot (L2-183 AC1); this component only lays them out.
+ * mocks/pages/class-ride/ibiza-unavailable). It lays out the Sound button in its `sound` slot (L2-185 AC1), the
+ * YouTube inset in its `inset` slot (L2-186 AC1) and the intensity in its `controls` slot (L2-183 AC1); this component
+ * only lays them out.
  */
 @Component({
   selector: 'wz-class-course',
@@ -27,4 +28,6 @@ export class ClassCourse {
   readonly paused = input(false);
   /** Whether the course cannot be drawn: the still stays, "Loading …" goes and a notice stands under the box. */
   readonly unavailable = input(false);
+  /** Whether the chosen YouTube video cannot play: a notice stands under the box (L2-186 AC6). */
+  readonly youtubeUnavailable = input(false);
 }
