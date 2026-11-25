@@ -19,19 +19,25 @@ screens and no menus:
    while it loads; the camera lands on the grid. The rider can skip it or cancel. It never holds
    the ride: it gives way if the course cannot be drawn, and is not shown with reduced motion.
 4. **Class Ride**: a countdown ("3, 2, 1, Go!"), then the video in sync, or the course drawn as
-   the rider rides, while the class's plan sets target resistance; the rider just pedals. In
-   Ibiza one track plays in the background: *Beautiful Boom Bap* (Music_Unlimited, Pixabay), the
-   marketing film's music, self-hosted. Always solo, so the rider can pause, leave or finish.
+   the rider rides, while the class's plan sets target resistance; the rider just pedals. An
+   intensity control from 0 to 10, like a volume control, makes every interval from then on
+   harder or easier (5 is the class as it is). In Ibiza the rider chooses the sound: one track,
+   *Beautiful Boom Bap* (Music_Unlimited, Pixabay), the marketing film's music, self-hosted; no
+   music; a YouTube video in the course's top-right corner (a default video or the class video,
+   in time with the ride); or that video's audio alone (ADR 0050). Always solo, so the rider can
+   pause, leave or finish.
    At 20:00 a finish banner shows the output, the target resistance eases off, and the video or
    the course carries on for a few seconds (the roll-out) before Class Done opens on its own.
 5. **Class Done**: the ride's output in kJ (in gold for a new best), time, average watts, how much
-   of the ride was on target, and the class's efforts. **Done** returns to The Class.
+   of the ride was on target, and the class's efforts. When the ride ended at an intensity other
+   than the rider's default, it asks whether that should be the default, kept on the device.
+   **Done** returns to The Class.
 
 A ride borrows a race's shape and nothing else: the flyover, the countdown and the finish banner
 are for one rider alone, with no other riders, positions, laps or places (ADR 0049).
 
 Telo Ride 1 has no class library, races, maps or worlds beyond Ibiza Sunset Strip, music beyond
-that one track, group classes or live races, XP, rider
+that one track and the YouTube video the rider chooses in Ibiza, group classes or live races, XP, rider
 levels, stars or unlocks, sign-in, or custom workout. One thing sits behind configuration and is
 no part of the rider's app: the diagnostic recording (L2-178, ADR 0048), on only when the app is
 opened with `?diagnose`, for finding why a bike will not connect, report pedalling or take a
@@ -119,7 +125,8 @@ rewritten for Telo Ride 1.
 
 Use the words the specs use in code, docs and UI; no synonyms. The bike's reported level is
 "resistance", the requested one "target resistance"; the Bluetooth link state is `ble`. The
-screens are Connect Bike, The Class, Ibiza Flyover, Class Ride and Class Done; a ride's result
+screens are Connect Bike, The Class, Ibiza Flyover, Class Ride and Class Done; the ride's setting from 0 to 10 is
+its "intensity", and what plays in Ibiza its "sound"; a ride's result
 is its "output" in kJ, and the class's hard intervals are its "efforts". The course seen from
 above is the "flyover", the three seconds before the clock starts the "countdown", the banner
 at 20:00 the "finish banner", and the seconds after it the "roll-out".

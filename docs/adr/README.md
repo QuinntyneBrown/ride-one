@@ -48,6 +48,7 @@
 | [0044](0044-the-class-offers-two-ways-to-ride.md) | The Class offers two ways to ride, wired to the two rides the app has | Accepted |
 | [0045](0045-the-courses-rider-built-in-blender.md) | The course's rider is one mesh built in Blender, carried over from Telo Ride | Accepted |
 | [0046](0046-class-ride-at-ride-behind-a-connected-bike.md) | Class Ride is at `/ride`, and only a connected bike opens it | Accepted, narrowed by 0049 |
-| [0047](0047-a-ride-in-ibiza-is-class-ride-with-the-course-in-the-box.md) | A ride in Ibiza is Class Ride with the course in the video's box; World loading and Telo Ride's worlds are removed | Accepted, amended by 0049 |
+| [0047](0047-a-ride-in-ibiza-is-class-ride-with-the-course-in-the-box.md) | A ride in Ibiza is Class Ride with the course in the video's box; World loading and Telo Ride's worlds are removed | Accepted, amended by 0049 and 0050 |
 | [0048](0048-diagnostic-recording-behind-configuration.md) | Diagnostic recording behind configuration | Accepted |
-| [0049](0049-a-ride-is-shaped-like-a-race-for-one.md) | A ride is shaped like a race for one: five screens, with Ibiza Flyover before a ride in Ibiza | Accepted |
+| [0049](0049-a-ride-is-shaped-like-a-race-for-one.md) | A ride is shaped like a race for one: five screens, with Ibiza Flyover before a ride in Ibiza | Accepted, amended by 0050 |
+| [0050](0050-intensity-and-the-sound-of-a-ride-in-ibiza.md) | Intensity for every ride, and four sounds for a ride in Ibiza, one of them YouTube with its picture hidden | Accepted |
