@@ -12,8 +12,11 @@ import {
   INTENSITY_DEFAULT,
   RIDE_ACTIVITY,
   RIDE_MUSIC,
+  RIDE_SOUND,
   RIDE_RECORD,
   SCREEN_WAKE_LOCK,
+  type Sound,
+  type SoundVideo,
   THE_CLASS,
   TICKER,
   VIDEO_PLAYER_FACTORY,
@@ -89,6 +92,7 @@ export class ClassRideStore {
   private readonly announcer = inject(ANNOUNCER);
   private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
   private readonly music = inject(RIDE_MUSIC);
+  private readonly soundChoice = inject(RIDE_SOUND);
   private readonly rideRecord = inject(RIDE_RECORD);
   private readonly countdownTimer = inject(Countdown);
   private readonly ending = inject(RideEnding);
@@ -225,10 +229,14 @@ export class ClassRideStore {
       const segment = untracked(() => this.engine.state()?.segment);
       if (segment) announcer.announce(classStepAnnouncement(segment));
     });
-    // The music plays through a ride in Ibiza and holds with it, as the course does (L2-176 AC1, AC4); a ride with the
-    // class video has its own sound and no music (AC3).
+    // The music plays through a ride in Ibiza while the sound is Music, and holds with it, as the course does (L2-176
+    // AC1, AC4, L2-185); a ride with the class video has its own sound and no music (AC3).
     if (this.way === 'ibiza') {
-      effect(() => (this.running() && this.music.on() ? this.music.play() : this.music.pause()));
+      effect(() =>
+        this.running() && this.soundChoice.sound() === 'music'
+          ? this.music.play()
+          : this.music.pause(),
+      );
     }
     // With a diagnostic recording on, the readouts the rider sees go into it as they change (L2-178 AC8). The
     // recording is bound only when the app is opened with `?diagnose`; for a rider this is `null` and nothing runs.
@@ -259,12 +267,20 @@ export class ClassRideStore {
     });
   }
 
-  /** The "Music" toggle: pressed while the music is on, disabled once it cannot be played (L2-176 AC5, AC7). */
-  readonly musicOn = this.music.on;
+  /** The rider's sound in Ibiza and the video a YouTube sound plays, kept on the device (L2-185). */
+  readonly sound = this.soundChoice.sound;
+  readonly soundVideo = this.soundChoice.video;
+  /** Whether the music can play: Music is disabled in the Sound panel once it cannot (L2-176 AC7). */
   readonly musicAvailable = this.music.available;
 
-  toggleMusic(): void {
-    this.music.toggle();
+  /** The rider chose a sound: it applies at once and is kept for the next ride (L2-185 AC2, AC3). */
+  chooseSound(sound: Sound): void {
+    this.soundChoice.choose(sound);
+  }
+
+  /** The rider chose the video a YouTube sound plays (L2-185 AC2). */
+  chooseVideo(video: SoundVideo): void {
+    this.soundChoice.chooseVideo(video);
   }
 
   /**

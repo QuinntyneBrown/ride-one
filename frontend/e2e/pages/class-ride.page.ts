@@ -54,8 +54,10 @@ export class ClassRidePage {
   readonly profile: Locator;
   readonly cover: Locator;
   readonly pause: Locator;
-  /** The "Music" toggle in the course's corner, in Ibiza only (L2-176 AC5). */
-  readonly music: Locator;
+  /** The Sound button in the course's top-left corner, in Ibiza only, named for the sound chosen (L2-185 AC1). */
+  readonly sound: Locator;
+  /** The Sound panel's radio group "Sound" (L2-185 AC2). */
+  readonly soundGroup: Locator;
   readonly resume: Locator;
   readonly leave: Locator;
   /** "Paused" over the class video (L2-091 AC1). */
@@ -151,7 +153,8 @@ export class ClassRidePage {
     this.profile = page.getByRole('img', { name: 'Resistance profile' });
     this.cover = page.locator('.class-video .photo');
     this.pause = page.getByRole('button', { name: 'Pause', exact: true });
-    this.music = page.getByRole('button', { name: 'Music', exact: true });
+    this.sound = page.getByRole('button', { name: /^Sound: / });
+    this.soundGroup = page.getByRole('group', { name: 'Sound', exact: true });
     this.resume = page.getByRole('button', { name: 'Resume', exact: true });
     this.leave = page.getByRole('link', { name: 'Leave class' });
     this.paused = page.locator('.class-video__paused');
@@ -209,6 +212,11 @@ export class ClassRidePage {
     this.intensitySlider = page.getByRole('slider', { name: 'Intensity' });
     this.raiseIntensity = page.getByRole('button', { name: 'Raise intensity' });
     this.lowerIntensity = page.getByRole('button', { name: 'Lower intensity' });
+  }
+
+  /** A choice in the Sound panel: "Music", "No music", "YouTube video" or "YouTube audio" (L2-185 AC2). */
+  soundChoice(name: string): Locator {
+    return this.soundGroup.getByRole('radio', { name: new RegExp(`^${name}\\b`) });
   }
 
   /** Opens the ride's address with a group session named in it, as a bookmark from Telo Ride would (ADR 0038). */

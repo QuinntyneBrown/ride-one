@@ -73,25 +73,17 @@
   font-weight: var(--font-weight-semibold);
 }
 
-// The "Music" toggle in the box's top-right corner, over the course (docs/design-system class-course__music): a raised
-// button of at least 44 px (L2-176 AC5). It sits above the scene and below "Paused".
-.class-course__music {
+// The Sound slot in the box's top-left corner (class-course__sound, L2-185 AC1): above the course, every overlay and
+// the intensity, so its panel lies over them; it runs to the box's foot so the panel can scroll within the box. Only
+// the button and the panel take a press (class-sound).
+.class-course__sound-slot {
   position: absolute;
   top: var(--space-3);
+  bottom: var(--space-3);
+  left: var(--space-3);
   right: var(--space-3);
-  z-index: 1;
-  min-width: var(--space-11);
-  min-height: var(--space-11);
-}
-
-.class-course__music-icon {
-  width: var(--space-5);
-  height: var(--space-5);
-  fill: none;
-  stroke: currentcolor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  z-index: 3;
+  pointer-events: none;
 }
 
 // The box's controls slot on its left edge (class-intensity, L2-183 AC1): above the picture, the overlays and "Paused",

@@ -16,6 +16,7 @@ export { ClassBike } from './class-ride/class-bike';
 export { ClassHeader } from './class-ride/class-header';
 export { ClassLost } from './class-ride/class-lost';
 export { ClassIntensity } from './class-ride/class-intensity';
+export { ClassSound } from './class-ride/class-sound';
 export { ClassResist } from './class-ride/class-resist';
 export { ClassSegment } from './class-ride/class-segment';
 export { ClassStat, type ClassStatTone } from './class-ride/class-stat';

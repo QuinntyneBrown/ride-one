@@ -66,9 +66,6 @@
             [still]="course.still"
             [loading]="!store.courseDrawn()"
             [unavailable]="store.courseUnavailable()"
-            [musicOn]="store.musicOn()"
-            [musicAvailable]="store.musicAvailable()"
-            (musicToggle)="store.toggleMusic()"
             [paused]="store.state().pausedOverlay"
           >
             <ng-container
@@ -80,6 +77,15 @@
               [running]="store.running()"
               (drawn)="store.showCourse()"
               (unavailable)="store.failCourse()"
+            />
+            <wz-class-sound
+              slot="sound"
+              [sound]="store.sound()"
+              [video]="store.soundVideo()"
+              [musicAvailable]="store.musicAvailable()"
+              [youtube]="false"
+              (soundChange)="store.chooseSound($event)"
+              (videoChange)="store.chooseVideo($event)"
             />
             <wz-class-intensity
               slot="controls"

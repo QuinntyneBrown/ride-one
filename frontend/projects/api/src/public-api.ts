@@ -77,6 +77,7 @@ export { CLIPBOARD, type Clipboard } from './screen/clipboard';
 export { DISPLAY_PREFERENCES, type DisplayPreferences } from './screen/display-preferences';
 export { FULLSCREEN, type Fullscreen } from './screen/fullscreen';
 export { RIDE_MUSIC, type RideMusic } from './screen/ride-music';
+export { RIDE_SOUND, type RideSound, type Sound, type SoundVideo } from './screen/ride-sound';
 export { SCREEN_WAKE_LOCK, type ScreenWakeLock } from './screen/screen-wake-lock';
 export { APP_UPDATES, type AppUpdates } from './app-update/app-updates';
 export { RIDE_ACTIVITY, type RideActivity } from './app-update/ride-activity';

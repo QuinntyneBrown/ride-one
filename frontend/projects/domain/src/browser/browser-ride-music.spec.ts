@@ -1,11 +1,11 @@
 // Unit test
-// Traces to: L2-176 AC1, AC2, AC4, AC5, AC6, AC7
-// Description: nothing is made or fetched until the first play while the music is on; the track loops from its own
-// origin's path; pause holds it and the next play carries on; release pauses it, drops its source and forgets it; the
-// setting is kept on the device and turned off by the toggle; and a track that cannot be loaded or played makes the
-// music unavailable without anything thrown.
+// Traces to: L2-176 AC1, AC2, AC4, AC6, AC7
+// Description: nothing is made or fetched until the first play; the track loops from its own origin's path; pause
+// holds it and the next play carries on; release pauses it, drops its source and forgets it; and a track that cannot
+// be loaded or played makes the music unavailable without anything thrown. Whether it plays at all is the rider's
+// sound (L2-185), not the music's.
 import { TestBed } from '@angular/core/testing';
-import { BrowserRideMusic, RIDE_MUSIC_KEY, RIDE_MUSIC_PATH } from './browser-ride-music';
+import { BrowserRideMusic, RIDE_MUSIC_PATH } from './browser-ride-music';
 
 class FakeAudio {
   static made: FakeAudio[] = [];
@@ -54,11 +54,9 @@ describe('BrowserRideMusic', () => {
   beforeEach(() => {
     FakeAudio.made = [];
     FakeAudio.refuse = false;
-    localStorage.removeItem(RIDE_MUSIC_KEY);
     vi.stubGlobal('Audio', FakeAudio);
   });
   afterEach(() => {
-    localStorage.removeItem(RIDE_MUSIC_KEY);
     vi.unstubAllGlobals();
   });
 
@@ -101,47 +99,6 @@ describe('BrowserRideMusic', () => {
     expect(audio.calls.filter((call) => call === 'load')).toHaveLength(1);
     music.play();
     expect(FakeAudio.made).toHaveLength(2);
-  });
-
-  describe('the setting (L2-176 AC5)', () => {
-    it('is on until the rider turns it off', () => {
-      expect(create().on()).toBe(true);
-    });
-
-    it('turns off with the toggle, makes and fetches nothing while off, and is kept on the device', () => {
-      const music = create();
-      music.toggle();
-      expect(music.on()).toBe(false);
-      expect(localStorage.getItem(RIDE_MUSIC_KEY)).toBe('off');
-      music.play();
-      expect(FakeAudio.made).toEqual([]);
-      // The next ride, a new service, starts off.
-      expect(create().on()).toBe(false);
-    });
-
-    it('turns on again, forgets the setting and plays', () => {
-      const music = create();
-      music.toggle();
-      music.toggle();
-      expect(music.on()).toBe(true);
-      expect(localStorage.getItem(RIDE_MUSIC_KEY)).toBeNull();
-      music.play();
-      expect(FakeAudio.made).toHaveLength(1);
-    });
-
-    it('is on, and lasts for the visit, where the browser refuses storage', () => {
-      vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-        throw new Error('SecurityError');
-      });
-      vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-        throw new Error('QuotaExceededError');
-      });
-      const music = create();
-      expect(music.on()).toBe(true);
-      music.toggle();
-      expect(music.on()).toBe(false);
-      vi.restoreAllMocks();
-    });
   });
 
   describe('a track that cannot be played (L2-176 AC7)', () => {
