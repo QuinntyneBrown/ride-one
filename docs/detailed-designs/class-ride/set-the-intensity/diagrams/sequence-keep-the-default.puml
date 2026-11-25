@@ -5,7 +5,7 @@ skinparam defaultFontName Arial
 actor Rider
 participant ClassRideStore as Store
 participant ClassDonePage as Done
-participant "RIDE_INTENSITY" as Default
+participant "INTENSITY_DEFAULT" as Default
 database localStorage
 
 Store -> Done : navigate /done, classResult.intensity = 7

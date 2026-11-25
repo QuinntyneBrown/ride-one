@@ -54,9 +54,11 @@ outside it closes it (`L2-185` AC2). It sits in `wz-class-course`'s `controls` s
 
 ### The inset and the hidden player
 
-`wz-class-course` takes an `inset` slot. The page renders, while a YouTube sound is chosen, one
-host element in it, `class-course__inset`, with the `--audio` modifier for YouTube audio and
-`aria-hidden` then. The store loads the player into that host with the `VIDEO_PLAYER_FACTORY`,
+`wz-class-course` takes an `inset` slot. The page renders in it, while a YouTube sound is chosen,
+`wz-class-inset` (block `class-course__inset`), with the `--audio` modifier and `aria-hidden` for
+YouTube audio; it emits its element once drawn (`playInset`). YouTube's player replaces the element
+it is given, so the store puts a fresh child in the inset for each video and loads the player into
+it with the `VIDEO_PLAYER_FACTORY`,
 imported only when a YouTube sound is first chosen (`L2-186` AC4), and destroys it when the sound
 becomes Music or No music, when the video changes (then loads the other) and when Class Ride
 closes (AC5). Moving between YouTube video and YouTube audio changes only the modifier, so the
@@ -66,8 +68,11 @@ The player follows the ride as the class video does: parked before "Go!", played
 when the ride is held, sought back on a tick when it drifts more than 1.5 s from the ride clock
 plus its offset (0:03 for the class video, 0 for the default video), and watched for a stall of
 10 s of the ride, which shows "YouTube can’t play. The bike will still follow the class." under
-the box (`L2-186` AC3, AC6). The store's existing `playVideo`, `syncVideo` and stall watch serve
-both ways; in Ibiza they read the chosen video instead of the class's.
+the box (`L2-186` AC3, AC6). The store's player, `syncVideo` and stall watch serve both ways; in
+Ibiza they read the chosen video's offset instead of the class's (`syncOffset()`), the stall watch
+is reset for each new player (`VideoStallWatch.reset`), and a player that resolves after the rider
+changed their mind is destroyed at once. A video chosen while the ride is held loads parked and
+plays when the ride carries on (`L2-185` AC7).
 
 The inset lies under the countdown, the finish banner, the roll-out and "Paused" (same layer,
 earlier in the box), and under the Sound button, its panel and the intensity control (`L2-186`

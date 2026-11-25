@@ -4,7 +4,7 @@ skinparam shadowing false
 skinparam defaultFontName Arial
 
 package "@telo/api" {
-  interface RideIntensityDefault {
+  interface IntensityDefault {
     +kept(): number
     +keep(intensity: number): boolean
   }
@@ -26,8 +26,8 @@ package "@telo/domain" {
     +resend(): void
   }
   class IntensityStore
-  IntensityStore ..|> RideIntensityDefault
-  RideIntensity --> RideIntensityDefault : starts at kept()
+  IntensityStore ..|> IntensityDefault
+  RideIntensity --> IntensityDefault : starts at kept()
   WorkoutEngine --> RideIntensity : scales each level
   WorkoutEngine --> Rule
 }
@@ -37,6 +37,8 @@ package "@telo/components" {
     +value: input<number>
     +disabled: input<boolean>
     +changed: output<number>
+    +raise: output<void>
+    +lower: output<void>
   }
   class IntensityQuestion <<wz-intensity-question>>
 }
@@ -46,6 +48,6 @@ package "ride" {
   class ClassDonePage
   ClassRideStore --> RideIntensity
   ClassRideStore ..> ClassResult : intensity at 20:00
-  ClassDonePage --> RideIntensityDefault
+  ClassDonePage --> IntensityDefault
 }
 @enduml

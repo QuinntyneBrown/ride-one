@@ -11,8 +11,8 @@ participant ResistanceController as Resistance
 participant "BIKE_CONNECTION" as Bike
 
 Rider -> Control : presses + (5/10 → 6/10)
-Control -> Store : changed(6)
-Store -> Intensity : set(6)
+Control -> Store : raise
+Store -> Intensity : set(intensity + 1)
 Store -> Store : announce "Intensity 6 of 10"
 Intensity --> Engine : value changes (effect)
 Engine -> Engine : intensityLevel(13, 6) = 14
