@@ -84,8 +84,8 @@ This repository began as a copy of Telo Ride. Telo Ride's other features are rem
 code and tests: races, the class library and the other seven courses, sign-in, progression, group
 classes and live races, feedback, the custom workout, the `marketing` application and the backend
 (ADRs 0036 to 0043), and World loading, the `world` library's other worlds and their music
-(ADR 0047). The code holds four of the five screens: Ibiza Flyover, the countdown, the finish
-banner and the roll-out are specified and drawn but not built (ADR 0049, journey 39). The ADRs
+(ADR 0047). The code holds all five screens, with the flyover, the countdown, the finish
+banner and the roll-out built (ADR 0049, journey 39). The ADRs
 before 0036 still describe Telo Ride; `docs/specs/`,
 `docs/journeys.md`, `docs/detailed-journeys.md`, `docs/mocks/` and `docs/detailed-designs/` are
 rewritten for Telo Ride 1.

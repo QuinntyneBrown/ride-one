@@ -280,6 +280,16 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 39.6 When the flyover falls short (2026-11-24)
+
+Journey 39, sixth slice: a bike lost in flight holds the landing with Try again; a course that cannot be drawn gives way
+to the countdown; reduced motion has no flyover; Cancel releases the course; flyover frames stay within the budgets.
+
+- **What slowed it:** little: the store written in 39.5 already carried the rules, so this slice was its specs. A lost
+  bike on Playwright's paused clock needs `switchOn` and a stepped clock (`bikeAnswers`), not `bikeBack`.
+- **Outcome of open question 45:** the high camera (55 m up, 40 m behind, 60 m ahead) holds both budgets at the heaviest
+  step, so the low-over-the-road fallback was not needed.
+
 ### 39.5 Ibiza Flyover (2026-11-24)
 
 Journey 39, fifth slice: a ride in Ibiza opens on Ibiza Flyover (the course from above between a bar and a band, five
