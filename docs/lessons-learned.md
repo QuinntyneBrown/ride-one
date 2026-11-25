@@ -280,6 +280,25 @@ The same step updates **% complete** in [`detailed-journeys.md`](detailed-journe
 
 ## Log
 
+### 39.4 Roll on past the finish line (2026-11-24)
+
+Journey 39, fourth slice: through the ending the course is placed by the class length plus the seconds since the finish,
+so the rider rolls on down the road past the finish line (L2-174 AC7, L2-182 AC5).
+
+**Applied from earlier**
+
+- **L243 (step the paused clock in frames):** saved time. The spec jumps and draws a few frames each time.
+
+**What slowed it down**
+
+- Nothing: the course's driver already carries the clock on between whole seconds while `running` is true, so the spec
+  passes before and after the binding. It is kept as the guard that the rider does not stop at the line.
+
+**New lessons**
+
+- **L258:** a spec written first can pass for a slice whose behaviour an earlier slice already delivered; say so in the
+  entry and keep it as a guard, rather than weakening it to make it fail.
+
 ### 39.3 Ease off and roll on (2026-11-24)
 
 Journey 39, third slice: after the finish the target resistance steps down to level 4, 110 ms apart, the stepper is

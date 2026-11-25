@@ -14,16 +14,22 @@ export interface RideEndingState {
   readonly stage: 'banner' | 'roll-out' | 'over';
   /** The share of the roll-out that has passed, 0 to 1. */
   readonly rollOutShare: number;
+  /** The milliseconds since the finish, which place the rider on the course past the finish line (L2-174 AC7). */
+  readonly elapsedMs: number;
 }
 
 /** The ending `elapsedMs` after the finish: the banner from 0 ms, the roll-out from 3,200 ms, over from 8,400 ms. */
 export function rideEndingAt(elapsedMs: number): RideEndingState {
   const elapsed = Math.max(0, elapsedMs);
-  if (elapsed < BANNER_MS) return { stage: 'banner', rollOutShare: 0 };
+  if (elapsed < BANNER_MS) return { stage: 'banner', rollOutShare: 0, elapsedMs: elapsed };
   if (elapsed < BANNER_MS + ROLL_OUT_MS) {
-    return { stage: 'roll-out', rollOutShare: (elapsed - BANNER_MS) / ROLL_OUT_MS };
+    return {
+      stage: 'roll-out',
+      rollOutShare: (elapsed - BANNER_MS) / ROLL_OUT_MS,
+      elapsedMs: elapsed,
+    };
   }
-  return { stage: 'over', rollOutShare: 1 };
+  return { stage: 'over', rollOutShare: 1, elapsedMs: elapsed };
 }
 
 /**
@@ -64,11 +70,9 @@ export class RideEnding {
     const state = rideEndingAt(elapsed);
     this.current.set(state);
     if (state.stage === 'over') return this.release();
-    // The roll-out's bar fills as it passes, so it is read every 100 ms; the banner is read at its end.
+    // Read every 100 ms: the roll-out's bar fills as it passes, and the rider rolls on past the finish line by it.
     const end = state.stage === 'banner' ? BANNER_MS : BANNER_MS + ROLL_OUT_MS;
-    const wait =
-      state.stage === 'banner' ? end - elapsed : Math.min(ROLL_OUT_TICK_MS, end - elapsed);
-    this.timer = setTimeout(() => this.read(), wait);
+    this.timer = setTimeout(() => this.read(), Math.min(ROLL_OUT_TICK_MS, end - elapsed));
   }
 
   private release(): void {

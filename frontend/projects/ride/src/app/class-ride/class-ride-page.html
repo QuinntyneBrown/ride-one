@@ -75,7 +75,7 @@
               ngProjectAs="[slot=scene]"
               [wzCourseScene]="course.name"
               [segments]="ride.plan.segments"
-              [elapsed]="store.elapsed()"
+              [elapsed]="store.courseSeconds()"
               [speedKmh]="store.speedKmh()"
               [running]="store.running()"
               (drawn)="store.showCourse()"

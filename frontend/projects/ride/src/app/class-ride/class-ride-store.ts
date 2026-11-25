@@ -156,6 +156,17 @@ export class ClassRideStore {
     if (this.stage() !== 'rolling-out') return null;
     return { title: rollOutTitle(this.way), progress: this.ending.state()?.rollOutShare ?? 0 };
   });
+  /**
+   * The seconds that place the rider on the course: the ride clock's, and through the ending the class length plus the
+   * whole seconds since the finish, so the rider rolls on past the finish line (L2-174 AC7).
+   */
+  readonly courseSeconds = computed(() => {
+    const ending = this.ending.state();
+    const length = this.loaded()?.lengthSeconds ?? 0;
+    return this.ended() && ending
+      ? length + Math.floor(ending.elapsedMs / 1000)
+      : this.ticker.second();
+  });
   /** The finish banner's figures while it shows, otherwise `null` (L2-181 AC1). */
   readonly finished = computed(() => (this.stage() === 'finished' ? this.result() : null));
   readonly level = this.telemetry.resistance;
