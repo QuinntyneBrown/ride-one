@@ -19,6 +19,7 @@ export {
 export { type EffortBar } from './classes/effort-bar';
 export { FINISHED_RIDES, type FinishedRides } from './rides/finished-rides';
 export { RIDE_RECORD, type RideRecord, type RideRecordSnapshot } from './rides/ride-record';
+export { INTENSITY_DEFAULT, type IntensityDefault } from './rides/intensity-default';
 export type { ResistanceSource, SentCommand } from './bike/sent-command';
 export type { BikeSupportLevel, SupportedBike } from './bike/supported-bike';
 export type { TelemetrySample } from './bike/telemetry-sample';

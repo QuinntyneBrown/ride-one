@@ -27,6 +27,7 @@ export { FinishBanner } from './class-ride/finish-banner';
 export { InlineMessage, type InlineMessageTone } from './inline-message/inline-message';
 export { IbizaFlyover } from './ibiza-flyover/ibiza-flyover';
 export { ClassDone } from './class-done/class-done';
+export { type IntensityAnswer, IntensityQuestion } from './class-done/intensity-question';
 export { Toast, type ToastTone } from './toast/toast';
 export { ToastRegion } from './toast/toast-region';
 export { RIDE_KINDS } from './class-ride/ride-kind';

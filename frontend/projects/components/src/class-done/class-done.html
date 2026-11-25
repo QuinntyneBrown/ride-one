@@ -68,7 +68,11 @@
           </ol>
         </section>
       }
-      <div class="class-done__actions"><ng-content select="[slot=actions]" /></div>
+      <!-- The intensity question, when there is one (L2-184), then Done; from lg in one row (L2-078 AC6). -->
+      <div class="class-done__end">
+        <ng-content select="[slot=question]" />
+        <div class="class-done__actions"><ng-content select="[slot=actions]" /></div>
+      </div>
     </main>
   </div>
 </div>

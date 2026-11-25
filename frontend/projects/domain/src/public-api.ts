@@ -69,6 +69,7 @@ export { BrowserRideMusic } from './browser/browser-ride-music';
 export { BrowserScreenWakeLock } from './browser/browser-screen-wake-lock';
 export { BrowserCourseGraphics } from './browser/browser-course-graphics';
 export { HOW_TO_RIDE_KEY, HowToRideStore } from './storage/how-to-ride-store';
+export { INTENSITY_KEY, IntensityStore } from './storage/intensity-store';
 export { rideWith } from './engine/ride-with';
 export { PlanSummary, type PlanEfforts } from './engine/plan-summary';
 export { ConsoleAppLogger, redact } from './diagnostics/console-app-logger';

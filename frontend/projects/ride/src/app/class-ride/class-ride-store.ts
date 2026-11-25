@@ -9,6 +9,7 @@ import {
   DIAGNOSTIC_RECORDING,
   type ClassResult,
   HOW_TO_RIDE,
+  INTENSITY_DEFAULT,
   RIDE_ACTIVITY,
   RIDE_MUSIC,
   RIDE_RECORD,
@@ -243,6 +244,8 @@ export class ClassRideStore {
         }),
       );
     }
+    // The ride opens at the rider's default intensity, before the plan's first level is sent (L2-183 AC2).
+    this.rideIntensity.start(inject(INTENSITY_DEFAULT).kept());
     this.start(inject(THE_CLASS).get());
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
@@ -438,6 +441,8 @@ export class ClassRideStore {
       efforts: this.efforts?.watts() ?? [],
       // Only a ride that reaches its end is counted (L2-168 AC1, AC2); Class Done says when the device would not keep it.
       saved: true,
+      // Class Done asks whether to keep the intensity the ride ended at (L2-184 AC1).
+      intensity: this.rideIntensity.value(),
     };
     const saved = this.rideRecord.add(classResult.outputKj);
     this.classResult = { ...classResult, saved };
