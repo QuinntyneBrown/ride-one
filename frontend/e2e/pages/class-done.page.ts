@@ -28,6 +28,17 @@ export class ClassDonePage {
   readonly efforts: Locator;
   /** The bar of one effort. */
   readonly bars: Locator;
+  /** The intensity question's card above Done, when the ride ended away from the default (L2-184). */
+  readonly intensityCard: Locator;
+  /** "Make 7/10 your intensity?" */
+  readonly intensityTitle: Locator;
+  /** "Your next rides start at 7/10. It’s kept on this device." */
+  readonly intensityText: Locator;
+  /** The card's answer once given: "7/10 is now your intensity." (L2-184 AC2, AC5). */
+  readonly intensityStatus: Locator;
+  readonly makeDefault: Locator;
+  /** "Keep 5/10": the default the ride's intensity would replace. */
+  readonly keepDefault: Locator;
 
   constructor(private readonly page: Page) {
     this.title = page.locator('.class-done__class');
@@ -45,6 +56,20 @@ export class ClassDonePage {
     this.efforts = page.locator('.class-done__effort');
     this.bars = page.locator('.class-done__bar');
     this.bestFact = page.locator('.class-done__fact').filter({ hasText: /best/i });
+    this.intensityCard = page.locator('.class-done__intensity');
+    this.intensityTitle = this.intensityCard.getByRole('heading', { name: /intensity\?$/ });
+    this.intensityText = this.intensityCard.locator('.class-done__intensity-text');
+    this.intensityStatus = this.intensityCard.getByRole('status');
+    this.makeDefault = page.getByRole('button', { name: 'Make it my default' });
+    this.keepDefault = page.getByRole('button', { name: /^Keep \d+\/10$/ });
+  }
+
+  /** Where `part` is drawn in the window, in CSS pixels. */
+  drawn(part: Locator): Promise<{ x: number; y: number; width: number; height: number }> {
+    return part.evaluate((element) => {
+      const { x, y, width, height } = element.getBoundingClientRect();
+      return { x, y, width, height };
+    });
   }
 
   /** The value of the fact with this label. */

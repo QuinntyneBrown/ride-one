@@ -18,4 +18,9 @@ export interface ClassResult {
   readonly efforts: readonly number[];
   /** Whether the device kept the ride in the record; `false` when storage refused it (L2-168 AC4). */
   readonly saved: boolean;
+  /**
+   * The ride's intensity at 20:00, 0 to 10 (L2-183), which Class Done compares with the kept default (L2-184 AC1).
+   * Absent from a result written before intensity was added, which asks nothing.
+   */
+  readonly intensity?: number;
 }

@@ -19,6 +19,7 @@ export {
 export { type EffortBar } from './classes/effort-bar';
 export { FINISHED_RIDES, type FinishedRides } from './rides/finished-rides';
 export { RIDE_RECORD, type RideRecord, type RideRecordSnapshot } from './rides/ride-record';
+export { INTENSITY_DEFAULT, type IntensityDefault } from './rides/intensity-default';
 export type { ResistanceSource, SentCommand } from './bike/sent-command';
 export type { BikeSupportLevel, SupportedBike } from './bike/supported-bike';
 export type { TelemetrySample } from './bike/telemetry-sample';
@@ -76,6 +77,7 @@ export { CLIPBOARD, type Clipboard } from './screen/clipboard';
 export { DISPLAY_PREFERENCES, type DisplayPreferences } from './screen/display-preferences';
 export { FULLSCREEN, type Fullscreen } from './screen/fullscreen';
 export { RIDE_MUSIC, type RideMusic } from './screen/ride-music';
+export { RIDE_SOUND, type RideSound, type Sound, type SoundVideo } from './screen/ride-sound';
 export { SCREEN_WAKE_LOCK, type ScreenWakeLock } from './screen/screen-wake-lock';
 export { APP_UPDATES, type AppUpdates } from './app-update/app-updates';
 export { RIDE_ACTIVITY, type RideActivity } from './app-update/ride-activity';

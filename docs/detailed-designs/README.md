@@ -59,6 +59,8 @@ line first.
 | [Count down to the start](class-ride/count-down-to-the-start/README.md) | `L2-180` |
 | [Show the finish banner](class-ride/show-the-finish-banner/README.md) | `L2-181` |
 | [Ease off and roll on](class-ride/ease-off-and-roll-on/README.md) | `L2-182` |
+| [Set the intensity](class-ride/set-the-intensity/README.md) | `L2-183` `L2-184` |
+| [Choose the sound](class-ride/choose-the-sound/README.md) | `L2-185` `L2-186` |
 
 ## Class Done
 

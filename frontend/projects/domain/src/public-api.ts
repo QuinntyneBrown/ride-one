@@ -44,6 +44,14 @@ export { RideRecorder } from './engine/ride-recorder';
 export { DRIFT_LIMIT_SECONDS, VideoClockSync } from './engine/video-clock-sync';
 export { VIDEO_STALL_SECONDS, VideoStallWatch } from './engine/video-stall-watch';
 export { WorkoutEngine } from './engine/workout-engine';
+export {
+  DEFAULT_INTENSITY,
+  MAX_INTENSITY,
+  MIN_INTENSITY,
+  RideIntensity,
+  clampIntensity,
+  intensityLevel,
+} from './engine/intensity';
 export { SpeedModel } from './engine/speed-model';
 export { SecondTicker } from './engine/second-ticker';
 export {
@@ -61,6 +69,13 @@ export { BrowserRideMusic } from './browser/browser-ride-music';
 export { BrowserScreenWakeLock } from './browser/browser-screen-wake-lock';
 export { BrowserCourseGraphics } from './browser/browser-course-graphics';
 export { HOW_TO_RIDE_KEY, HowToRideStore } from './storage/how-to-ride-store';
+export { INTENSITY_KEY, IntensityStore } from './storage/intensity-store';
+export {
+  RIDE_MUSIC_OFF_KEY,
+  RIDE_SOUND_KEY,
+  RIDE_SOUND_VIDEO_KEY,
+  RideSoundStore,
+} from './storage/ride-sound-store';
 export { rideWith } from './engine/ride-with';
 export { PlanSummary, type PlanEfforts } from './engine/plan-summary';
 export { ConsoleAppLogger, redact } from './diagnostics/console-app-logger';

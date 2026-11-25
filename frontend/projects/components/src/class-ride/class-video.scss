@@ -59,3 +59,16 @@
   line-height: var(--line-height-lg);
   font-weight: var(--font-weight-semibold);
 }
+
+// The box's controls slot on its left edge (class-intensity, L2-183 AC1): above the picture, the overlays and "Paused",
+// so the intensity can be set while the ride is paused. It is placed from the bottom, and grows up to its top.
+.class-video__controls {
+  position: absolute;
+  top: var(--space-3);
+  bottom: var(--space-3);
+  left: var(--space-3);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}

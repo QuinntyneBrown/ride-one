@@ -136,13 +136,23 @@
         "L2-178",
         "L2-180",
         "L2-181",
-        "L2-182"
+        "L2-182",
+        "L2-183",
+        "L2-185",
+        "L2-186"
       ],
       "states": [
         "default",
+        "intensity",
         "countdown",
         "paused",
         "ibiza",
+        "ibiza-intensity",
+        "ibiza-sound",
+        "ibiza-youtube",
+        "ibiza-youtube-class",
+        "ibiza-youtube-audio",
+        "ibiza-youtube-unavailable",
         "countdown-ibiza",
         "go-ibiza",
         "ibiza-loading",
@@ -180,6 +190,7 @@
         "L2-077",
         "L2-078",
         "L2-079",
+        "L2-184",
         "L2-178"
       ],
       "states": [
@@ -188,6 +199,8 @@
         "not-best",
         "efforts-none",
         "not-saved",
+        "intensity",
+        "intensity-kept",
         "recording"
       ],
       "not_applicable": {

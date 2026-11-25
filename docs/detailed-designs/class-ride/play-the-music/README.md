@@ -49,6 +49,11 @@ Neighbouring features own the adjacent concerns:
 - The ride clock in a hidden tab belongs to
   [keep the ride clock true](../../performance/keep-the-ride-clock-true/README.md) (`L2-133`).
 
+ADR 0050 later replaced the "Music" button with the Sound button and its panel, and made the
+music one of four sounds: it plays only while the sound is Music. That is designed in
+[choose the sound](../choose-the-sound/README.md); what follows describes the button as slice 37.6
+built it.
+
 ## Description
 
 The slice lives in the Ride app. The contract and its token are in `api`, the implementation in

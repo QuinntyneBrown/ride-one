@@ -66,9 +66,7 @@
             [still]="course.still"
             [loading]="!store.courseDrawn()"
             [unavailable]="store.courseUnavailable()"
-            [musicOn]="store.musicOn()"
-            [musicAvailable]="store.musicAvailable()"
-            (musicToggle)="store.toggleMusic()"
+            [youtubeUnavailable]="store.youtubeUnavailable()"
             [paused]="store.state().pausedOverlay"
           >
             <ng-container
@@ -81,6 +79,29 @@
               (drawn)="store.showCourse()"
               (unavailable)="store.failCourse()"
             />
+            <wz-class-sound
+              slot="sound"
+              [sound]="store.sound()"
+              [video]="store.soundVideo()"
+              [musicAvailable]="store.musicAvailable()"
+              (soundChange)="store.chooseSound($event)"
+              (videoChange)="store.chooseVideo($event)"
+            />
+            <wz-class-intensity
+              slot="controls"
+              [value]="store.intensity()"
+              [disabled]="store.stepperOff()"
+              (changed)="store.setIntensity($event)"
+              (raise)="store.setIntensity(store.intensity() + 1)"
+              (lower)="store.setIntensity(store.intensity() - 1)"
+            />
+            @if (store.youtube(); as youtube) {
+              <wz-class-inset
+                slot="inset"
+                [audio]="youtube.audio"
+                (frame)="store.playInset($event)"
+              />
+            }
             @if (store.countdown(); as step) {
               <wz-class-countdown slot="overlay" [step]="step" />
             }
@@ -107,6 +128,14 @@
             [paused]="store.state().pausedOverlay"
             (frame)="store.playVideo($event)"
           >
+            <wz-class-intensity
+              slot="controls"
+              [value]="store.intensity()"
+              [disabled]="store.stepperOff()"
+              (changed)="store.setIntensity($event)"
+              (raise)="store.setIntensity(store.intensity() + 1)"
+              (lower)="store.setIntensity(store.intensity() - 1)"
+            />
             @if (store.countdown(); as step) {
               <wz-class-countdown slot="overlay" [step]="step" />
             }

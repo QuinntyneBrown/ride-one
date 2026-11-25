@@ -1,6 +1,18 @@
 import type { EnvironmentProviders, Provider } from '@angular/core';
-import { COURSE_RENDERER, MONOTONIC_TIME, RIDE_MUSIC, SCREEN_WAKE_LOCK } from '@telo/api';
-import { BrowserRideMusic, BrowserScreenWakeLock } from '@telo/domain';
+import {
+  COURSE_RENDERER,
+  INTENSITY_DEFAULT,
+  MONOTONIC_TIME,
+  RIDE_MUSIC,
+  RIDE_SOUND,
+  SCREEN_WAKE_LOCK,
+} from '@telo/api';
+import {
+  BrowserRideMusic,
+  BrowserScreenWakeLock,
+  IntensityStore,
+  RideSoundStore,
+} from '@telo/domain';
 import { provideClassVideo } from '../classes/provide-class-video';
 import { provideHowToRide } from '../classes/provide-how-to-ride';
 import { provideTheClass } from '../classes/provide-the-class';
@@ -21,6 +33,9 @@ export function provideClassRide(): (Provider | EnvironmentProviders)[] {
     { provide: SCREEN_WAKE_LOCK, useClass: BrowserScreenWakeLock },
     // The one track, played in a ride in Ibiza only and fetched when that ride starts (L2-176).
     { provide: RIDE_MUSIC, useClass: BrowserRideMusic },
+    // The rider's sound for a ride in Ibiza, kept on the device (L2-185), and their default intensity (L2-183 AC2).
+    { provide: RIDE_SOUND, useClass: RideSoundStore },
+    { provide: INTENSITY_DEFAULT, useClass: IntensityStore },
     provideClassVideo(),
     {
       provide: COURSE_RENDERER,

@@ -12,6 +12,16 @@
     [saved]="view.saved"
   >
     <wz-fullscreen-button slot="end" />
+    @if (question(); as question) {
+      <wz-intensity-question
+        slot="question"
+        [intensity]="question.intensity"
+        [current]="question.current"
+        [answer]="answer()"
+        (keep)="keep()"
+        (dismiss)="dismiss()"
+      />
+    }
     <a
       wz-button
       slot="actions"

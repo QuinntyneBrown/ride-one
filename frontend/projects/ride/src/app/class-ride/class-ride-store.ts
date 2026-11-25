@@ -9,10 +9,14 @@ import {
   DIAGNOSTIC_RECORDING,
   type ClassResult,
   HOW_TO_RIDE,
+  INTENSITY_DEFAULT,
   RIDE_ACTIVITY,
   RIDE_MUSIC,
+  RIDE_SOUND,
   RIDE_RECORD,
   SCREEN_WAKE_LOCK,
+  type Sound,
+  type SoundVideo,
   THE_CLASS,
   TICKER,
   VIDEO_PLAYER_FACTORY,
@@ -27,6 +31,7 @@ import {
   PowerModel,
   ResistanceController,
   RideClock,
+  RideIntensity,
   EffortTally,
   RideRecorder,
   RideTicker,
@@ -45,6 +50,20 @@ import {
 } from './ride-hold';
 import type { RidePhase } from './ride-phase';
 import { type StatView, cadenceStat, powerStat } from './stat-view';
+
+/** The video a YouTube sound plays in Ibiza unless the rider chose the class's own (L2-186, ADR 0050). */
+export const DEFAULT_VIDEO: YouTubeSource = {
+  videoId: 'xfgZRgPkoME',
+  syncOffsetSeconds: 0,
+  title: 'Default video',
+};
+
+/** A video the ride plays, and the video time at which the ride's 0:00 stands. */
+interface YouTubeSource {
+  readonly videoId: string;
+  readonly syncOffsetSeconds: number;
+  readonly title: string;
+}
 
 /**
  * The solo class ride's state (docs/detailed-designs/class-ride/ride-the-class), provided by the page so it goes when the
@@ -69,6 +88,7 @@ export class ClassRideStore {
   private readonly ticker = inject(RideTicker);
   private readonly engine = inject(WorkoutEngine);
   private readonly resistance = inject(ResistanceController);
+  private readonly rideIntensity = inject(RideIntensity);
   private readonly telemetry = inject(BikeTelemetry);
   private readonly loaded = signal<ClassDefinition | null>(null);
   private readonly sync = inject(VideoClockSync);
@@ -86,6 +106,7 @@ export class ClassRideStore {
   private readonly announcer = inject(ANNOUNCER);
   private readonly wakeLock = inject(SCREEN_WAKE_LOCK);
   private readonly music = inject(RIDE_MUSIC);
+  private readonly soundChoice = inject(RIDE_SOUND);
   private readonly rideRecord = inject(RIDE_RECORD);
   private readonly countdownTimer = inject(Countdown);
   private readonly ending = inject(RideEnding);
@@ -103,6 +124,12 @@ export class ClassRideStore {
   private efforts: EffortTally | null = null;
   private lastSecond = 0;
   private videoHost: HTMLElement | null = null;
+  /** The YouTube inset's element in Ibiza, while one is drawn (L2-186 AC1). */
+  private insetHost: HTMLElement | null = null;
+  /** The video the inset's player was made for, so a change of video loads the other (L2-186 AC5). */
+  private insetVideo: string | null = null;
+  /** Counts players asked for: one that arrives after the rider changed their mind is destroyed at once. */
+  private playerAsked = 0;
   private destroyed = false;
 
   /**
@@ -222,10 +249,20 @@ export class ClassRideStore {
       const segment = untracked(() => this.engine.state()?.segment);
       if (segment) announcer.announce(classStepAnnouncement(segment));
     });
-    // The music plays through a ride in Ibiza and holds with it, as the course does (L2-176 AC1, AC4); a ride with the
-    // class video has its own sound and no music (AC3).
+    // The music plays through a ride in Ibiza while the sound is Music, and holds with it, as the course does (L2-176
+    // AC1, AC4, L2-185); a ride with the class video has its own sound and no music (AC3).
     if (this.way === 'ibiza') {
-      effect(() => (this.running() && this.music.on() ? this.music.play() : this.music.pause()));
+      // The inset's player follows the rider's choice of YouTube video, or goes with it (L2-186 AC5).
+      const video = computed(() => this.youtube()?.videoId ?? null);
+      effect(() => {
+        video();
+        untracked(() => this.followYouTube());
+      });
+      effect(() =>
+        this.running() && this.soundChoice.sound() === 'music'
+          ? this.music.play()
+          : this.music.pause(),
+      );
     }
     // With a diagnostic recording on, the readouts the rider sees go into it as they change (L2-178 AC8). The
     // recording is bound only when the app is opened with `?diagnose`; for a rider this is `null` and nothing runs.
@@ -241,6 +278,8 @@ export class ClassRideStore {
         }),
       );
     }
+    // The ride opens at the rider's default intensity, before the plan's first level is sent (L2-183 AC2).
+    this.rideIntensity.start(inject(INTENSITY_DEFAULT).kept());
     this.start(inject(THE_CLASS).get());
     this.destroyRef.onDestroy(() => {
       this.destroyed = true;
@@ -254,12 +293,41 @@ export class ClassRideStore {
     });
   }
 
-  /** The "Music" toggle: pressed while the music is on, disabled once it cannot be played (L2-176 AC5, AC7). */
-  readonly musicOn = this.music.on;
+  /** The rider's sound in Ibiza and the video a YouTube sound plays, kept on the device (L2-185). */
+  readonly sound = this.soundChoice.sound;
+  readonly soundVideo = this.soundChoice.video;
+  /**
+   * The video a YouTube sound plays in Ibiza, and whether only its sound is wanted, or `null` with Music or No music
+   * and with the class video (L2-186 AC1 to AC3).
+   */
+  readonly youtube = computed(() => {
+    const sound = this.soundChoice.sound();
+    const ride = this.loaded();
+    if (this.way !== 'ibiza' || !ride || (sound !== 'youtube-video' && sound !== 'youtube-audio'))
+      return null;
+    const source: YouTubeSource =
+      this.soundChoice.video() === 'class'
+        ? {
+            videoId: ride.video.videoId,
+            syncOffsetSeconds: ride.video.syncOffsetSeconds,
+            title: ride.title,
+          }
+        : DEFAULT_VIDEO;
+    return { ...source, audio: sound === 'youtube-audio' };
+  });
+  /** Whether the chosen YouTube video cannot play: a notice under the course says so (L2-186 AC6). */
+  readonly youtubeUnavailable = computed(() => this.youtube() !== null && this.videoUnavailable());
+  /** Whether the music can play: Music is disabled in the Sound panel once it cannot (L2-176 AC7). */
   readonly musicAvailable = this.music.available;
 
-  toggleMusic(): void {
-    this.music.toggle();
+  /** The rider chose a sound: it applies at once and is kept for the next ride (L2-185 AC2, AC3). */
+  chooseSound(sound: Sound): void {
+    this.soundChoice.choose(sound);
+  }
+
+  /** The rider chose the video a YouTube sound plays (L2-185 AC2). */
+  chooseVideo(video: SoundVideo): void {
+    this.soundChoice.chooseVideo(video);
   }
 
   /**
@@ -271,25 +339,82 @@ export class ClassRideStore {
     const ride = this.loaded();
     if (!ride || this.videoHost) return;
     this.videoHost = host;
+    this.loadPlayer(host, { ...ride.video, title: ride.title });
+  }
+
+  /**
+   * The YouTube inset is drawn in Ibiza (L2-186 AC1): the chosen video's player is made in it. The `video` library and
+   * YouTube are fetched only now, when a YouTube sound is first chosen (AC4).
+   */
+  playInset(host: HTMLElement): void {
+    this.insetHost = host;
+    this.insetVideo = null;
+    this.followYouTube();
+  }
+
+  /**
+   * Makes the inset's player follow the rider's choice (L2-186 AC5): a new video destroys the player and loads the
+   * other; Music or No music destroys it; YouTube video and YouTube audio share one player, so moving between them
+   * reloads nothing.
+   */
+  private followYouTube(): void {
+    const youtube = this.youtube();
+    const videoId = youtube?.videoId ?? null;
+    if (videoId === this.insetVideo) return;
+    this.insetVideo = videoId;
+    this.playerAsked++;
+    this.player()?.destroy();
+    this.player.set(null);
+    this.playerMissing.set(false);
+    this.stalled.set(false);
+    this.stall.reset();
+    if (youtube === null) return void (this.insetHost = null);
+    if (this.insetHost === null) return void (this.insetVideo = null);
+    // YouTube's player takes the element it is given: each video gets its own, in the inset.
+    const frame = this.insetHost.ownerDocument.createElement('div');
+    this.insetHost.replaceChildren(frame);
+    this.loadPlayer(frame, youtube);
+  }
+
+  /**
+   * Plays `source` in `host`. Before "Go!", or while the ride is held, the video is parked at the clock plus its sync
+   * offset, and plays from there on "Go!" or when the ride carries on (L2-180 AC4, L2-185 AC7); a player that arrives
+   * later plays from the offset plus the clock, as the ride does. A player the ride no longer wants is destroyed.
+   */
+  private loadPlayer(host: HTMLElement, source: YouTubeSource): void {
+    const asked = ++this.playerAsked;
     this.playerFactory().then(
       (player) => {
-        if (this.destroyed) return player.destroy();
+        if (this.destroyed || asked !== this.playerAsked) return player.destroy();
         this.player.set(player);
-        const parked = this.stage() !== 'riding';
+        const parked = this.stage() !== 'riding' || this.held();
         void player
-          .load(host, ride.video.videoId, {
-            startSeconds: ride.video.syncOffsetSeconds + this.clock.elapsedMs() / 1000,
+          .load(host, source.videoId, {
+            startSeconds: source.syncOffsetSeconds + this.clock.elapsedMs() / 1000,
             controls: false,
             autoplay: !parked,
-            title: ride.title,
+            title: source.title,
           })
           // "Go!" came while the player was still loading: it plays on from the clock.
           .then(() => {
-            if (parked && this.stage() === 'riding') this.carryOn(ride);
+            if (parked && this.stage() === 'riding' && !this.held()) this.carryOn();
           });
       },
-      () => this.playerMissing.set(true),
+      () => {
+        if (asked === this.playerAsked) this.playerMissing.set(true);
+      },
     );
+  }
+
+  /** Whether the ride is held, by the rider or by a lost bike. */
+  private held(): boolean {
+    return this.pausedByRider() || this.pausedByBike();
+  }
+
+  /** The video time at which the ride's 0:00 stands: the class video's offset, or the chosen YouTube video's. */
+  private syncOffset(): number {
+    if (this.way === 'ibiza') return this.youtube()?.syncOffsetSeconds ?? 0;
+    return this.loaded()?.video.syncOffsetSeconds ?? 0;
   }
 
   /** The course's files could not be loaded, were malformed, or its graphics context was lost for good. */
@@ -319,12 +444,25 @@ export class ClassRideStore {
     if (!this.pausedByRider() || this.bikeLost() || !ride) return;
     this.pausedByRider.set(false);
     this.announcer.announce(pauseAnnouncement(false));
-    if (!this.pausedByBike()) this.carryOn(ride);
+    if (!this.pausedByBike()) this.carryOn();
   }
 
   /** Tries the lost bike at once, rather than at the connection's next retry: the alert's Reconnect. */
   reconnect(): void {
     this.connection.reconnectNow();
+  }
+
+  /** The ride's intensity, 0 to 10, which scales every level the plan sends (L2-183). */
+  readonly intensity = this.rideIntensity.value;
+
+  /**
+   * The rider set the intensity: the engine sends the current segment at it at once and every later one (L2-183 AC4),
+   * and a screen reader hears it once (AC7). Not while the stepper is off (AC6).
+   */
+  setIntensity(intensity: number): void {
+    if (this.stepperOff()) return;
+    if (this.rideIntensity.set(intensity))
+      this.announcer.announce(`Intensity ${this.rideIntensity.value()} of 10`);
   }
 
   raise(): void {
@@ -372,15 +510,13 @@ export class ClassRideStore {
     this.ticker.ticks.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((second) => {
       this.record(Math.min(second, dto.lengthSeconds));
       if (second >= dto.lengthSeconds) return this.finish(dto);
-      // A ride in Ibiza has no video to stall (L2-174 AC1).
-      if (this.way === 'video')
+      // A ride in Ibiza has no video to stall (L2-174 AC1), unless the rider chose a YouTube sound (L2-186 AC6).
+      if (this.way === 'video' || this.youtube() !== null)
         this.stalled.set(this.stall.check(this.player()?.state() ?? 'loading', second));
-      this.syncVideo(dto);
+      this.syncVideo();
     });
     // The bike is watched on a beat of its own: the ride clock's ticks stop while the ride is held.
-    this.beat.seconds
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.followBike(dto));
+    this.beat.seconds.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.followBike());
   }
 
   /**
@@ -389,7 +525,7 @@ export class ClassRideStore {
    * When the bike is back the current segment's level is sent again, after the target the connection kept and sent
    * first (L2-017 AC4, L2-027 AC4, L2-092 AC3), whether or not the rider had paused.
    */
-  private followBike(ride: ClassDefinition): void {
+  private followBike(): void {
     const lost = this.bikeLost();
     if (lost === this.pausedByBike()) return;
     this.pausedByBike.set(lost);
@@ -400,7 +536,7 @@ export class ClassRideStore {
     if (this.stage() !== 'riding') return;
     if (this.pausedByRider()) return;
     if (lost) this.hold();
-    else this.carryOn(ride);
+    else this.carryOn();
   }
 
   /**
@@ -423,6 +559,8 @@ export class ClassRideStore {
       efforts: this.efforts?.watts() ?? [],
       // Only a ride that reaches its end is counted (L2-168 AC1, AC2); Class Done says when the device would not keep it.
       saved: true,
+      // Class Done asks whether to keep the intensity the ride ended at (L2-184 AC1).
+      intensity: this.rideIntensity.value(),
     };
     const saved = this.rideRecord.add(classResult.outputKj);
     this.classResult = { ...classResult, saved };
@@ -467,20 +605,20 @@ export class ClassRideStore {
     this.player()?.pause();
   }
 
-  private carryOn(ride: ClassDefinition): void {
+  private carryOn(): void {
     this.clock.resume();
     const player = this.player();
-    player?.seekTo(ride.video.syncOffsetSeconds + this.clock.elapsedMs() / 1000);
+    player?.seekTo(this.syncOffset() + this.clock.elapsedMs() / 1000);
     player?.play();
   }
 
-  private syncVideo(ride: ClassDefinition): void {
+  private syncVideo(): void {
     const player = this.player();
     if (player?.state() !== 'playing') return;
     // A player that became ready during a pause starts playing on its own; it follows the pause instead.
-    if (this.pausedByRider() || this.pausedByBike()) return player.pause();
+    if (this.held()) return player.pause();
     const elapsed = this.clock.elapsedMs() / 1000;
-    const seek = this.sync.check(player.currentTime(), elapsed, ride.video.syncOffsetSeconds);
+    const seek = this.sync.check(player.currentTime(), elapsed, this.syncOffset());
     if (seek !== null) player.seekTo(seek);
   }
 }

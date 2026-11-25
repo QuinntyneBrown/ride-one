@@ -24,4 +24,9 @@ export class VideoStallWatch {
     this.since ??= second;
     return second - this.since >= VIDEO_STALL_SECONDS;
   }
+
+  /** Forgets the time without play: a new player starts its own count (L2-186 AC6). */
+  reset(): void {
+    this.since = null;
+  }
 }

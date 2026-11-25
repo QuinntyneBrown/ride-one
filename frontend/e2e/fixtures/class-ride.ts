@@ -38,6 +38,8 @@ export async function connectBike(bluetooth: FakeBluetooth): Promise<void> {
 export interface RideStartOptions {
   readonly diagnose?: boolean;
   readonly countdown?: 'hold';
+  /** The level of the ride's first command: the warm-up's, unless a kept intensity scales it (L2-183 AC2). */
+  readonly firstLevel?: number;
 }
 
 /** The countdown's "3", "2" and "1", a second each, before "Go!" starts the ride clock (L2-180 AC2). */
@@ -76,7 +78,7 @@ export async function startClassRide(
       await page.clock.runFor(1);
       return bluetooth.writes().map((write) => write.hex);
     })
-    .toContain(targetResistanceWrite(theClass.segments[0].level));
+    .toContain(targetResistanceWrite(options.firstLevel ?? theClass.segments[0].level));
   if (options.countdown !== 'hold') await page.clock.runFor(COUNTDOWN_MS);
   await page.clock.runFor(100);
   return new ClassRidePage(page);

@@ -9,6 +9,8 @@ import { BIKE_CONNECTION, MONOTONIC_TIME, type Plan, TICKER } from '@telo/api';
 import { Subject } from 'rxjs';
 import { SimulatedBikeConnection } from '../bluetooth/simulated-bike-connection';
 import { BikeTelemetry } from './bike-telemetry';
+import { RideIntensity } from './intensity';
+import { PowerModel } from './power-model';
 import { ResistanceController } from './resistance-controller';
 import { RideClock } from './ride-clock';
 import { RideTicker } from './ride-ticker';
@@ -170,5 +172,65 @@ describe('WorkoutEngine on the simulated bike', () => {
     await vi.advanceTimersByTimeAsync(2_000);
     second.next(2);
     expect(telemetry.resistance()).toBe(14);
+  });
+});
+
+// Traces to: L2-183 AC3 to AC5; L2-089 AC2
+describe('WorkoutEngine at an intensity', () => {
+  let sent: number[];
+  let engine: WorkoutEngine;
+  let intensity: RideIntensity;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    sent = [];
+    TestBed.configureTestingModule({
+      providers: [
+        RideClock,
+        RideTicker,
+        WorkoutEngine,
+        RideIntensity,
+        monotonic,
+        {
+          provide: ResistanceController,
+          useValue: { applyPlanLevel: async (level: number) => void sent.push(level) },
+        },
+      ],
+    });
+    intensity = TestBed.inject(RideIntensity);
+    intensity.start(7);
+    engine = TestBed.inject(WorkoutEngine);
+    TestBed.inject(RideClock).start();
+    TestBed.inject(RideTicker).start();
+    engine.follow(plan);
+    TestBed.tick();
+  });
+
+  afterEach(() => {
+    TestBed.resetTestingModule();
+    vi.useRealTimers();
+  });
+
+  it('sends each segment’s level scaled by the intensity, with the target power to match (L2-183 AC3)', () => {
+    // 8 × 1.2 = 9.6, then 18 × 1.2 = 21.6.
+    expect(sent).toEqual([10]);
+    expect(engine.state()?.targetPower).toBe(PowerModel.target(80, 10));
+
+    vi.advanceTimersByTime(300_500);
+
+    expect(sent).toEqual([10, 22]);
+    expect(engine.state()?.targetPower).toBe(PowerModel.target(100, 22));
+  });
+
+  it('sends the current segment at a new intensity at once, and the target power follows (L2-183 AC4, AC5)', () => {
+    intensity.set(5);
+    TestBed.tick();
+
+    expect(sent).toEqual([10, 8]);
+    expect(engine.state()?.targetPower).toBe(PowerModel.target(80, 8));
+
+    intensity.set(10);
+    TestBed.tick();
+    expect(sent).toEqual([10, 8, 12]);
   });
 });
